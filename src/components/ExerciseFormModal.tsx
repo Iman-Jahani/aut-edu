@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import type { Exercise, TestCase } from "@/lib/types";
 import { Pencil, FileText, RefreshCw, BookOpen, X } from "lucide-react";
+import RichTextHint from "@/components/RichTextHint";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function ExerciseFormModal({
   classId,
@@ -34,6 +36,8 @@ export default function ExerciseFormModal({
   );
   const [addToLibrary, setAddToLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
+  const descRef = useRef<HTMLTextAreaElement>(null);
+  const hintRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
     setAddToLibrary(false);
@@ -99,7 +103,7 @@ export default function ExerciseFormModal({
       }
       onSaved();
     } catch (e) {
-      toast("خطا: " + (e as Error).message, "err");
+      toast("خطا: " + getErrorMessage(e), "err");
     } finally {
       setSaving(false);
     }
@@ -129,18 +133,26 @@ export default function ExerciseFormModal({
             className="w-full border border-line rounded-lg px-3 py-2 outline-none focus:border-primary"
           />
           <textarea
+            ref={descRef}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="توضیح تمرین (اختیاری)"
-            rows={3}
-            className="w-full border border-line rounded-lg px-3 py-2 outline-none focus:border-primary resize-none"
+            placeholder="توضیح تمرین (اختیاری) — می‌تونی مثال کد هم بذاری"
+            rows={4}
+            className="w-full border border-line rounded-lg px-3 py-2 outline-none focus:border-primary resize-none font-mono text-sm"
+            dir="auto"
           />
-          <input
+          <RichTextHint textareaRef={descRef} value={description} onChange={setDescription} />
+
+          <textarea
+            ref={hintRef}
             value={hint}
             onChange={(e) => setHint(e.target.value)}
             placeholder="راهنمایی (اختیاری)"
-            className="w-full border border-line rounded-lg px-3 py-2 outline-none focus:border-primary"
+            rows={2}
+            className="w-full border border-line rounded-lg px-3 py-2 outline-none focus:border-primary resize-none font-mono text-sm"
+            dir="auto"
           />
+          <RichTextHint textareaRef={hintRef} value={hint} onChange={setHint} />
 
           <div className="flex items-center justify-between pt-2">
             <span className="text-sm font-bold text-muted">تست‌ها</span>

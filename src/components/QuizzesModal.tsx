@@ -7,9 +7,10 @@ import { useToast } from "@/components/ToastProvider";
 import QuizFormModal from "@/components/QuizFormModal";
 import QuizTakeView from "@/components/QuizTakeView";
 import QuizResultsView from "@/components/QuizResultsView";
-import type { Quiz, QuizAnswer } from "@/lib/types";
+import QuizLibraryPickerModal from "@/components/QuizLibraryPickerModal";
+import type { Quiz, QuizAnswer, QuizQuestion, SharedQuiz } from "@/lib/types";
 import { CardGridSkeleton } from "@/components/Skeleton";
-import { Brain, Eye, Plus, Play, Pencil, Trash2, Square, CircleDot, X } from "lucide-react";
+import { Brain, Eye, Plus, Play, Pencil, Trash2, Square, CircleDot, X, BookOpen } from "lucide-react";
 import type { ReactNode } from "react";
 
 const STATUS_META: Record<string, { label: string; className: string; icon: ReactNode }> = {
@@ -45,6 +46,8 @@ export default function QuizzesModal({
   const [view, setView] = useState<"list" | "take" | "results">(initialTakeActive ? "take" : "list");
   const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null);
   const [formOpen, setFormOpen] = useState<Quiz | "new" | null>(null);
+  const [templateForNew, setTemplateForNew] = useState<SharedQuiz | null>(null);
+  const [libraryOpen, setLibraryOpen] = useState(false);
 
   const activeQuiz = quizzes.find((q) => q.status === "active") || null;
 
@@ -151,12 +154,23 @@ export default function QuizzesModal({
             <>
               <div className="flex items-center justify-between mb-4">
                 <span className="text-sm text-muted">{quizzes.length} کوییز</span>
-                <button
-                  onClick={() => setFormOpen("new")}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-br from-primary to-primary2"
-                >
-                  <Plus size={14} /> کوییز جدید
-                </button>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => setLibraryOpen(true)}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line"
+                  >
+                    <BookOpen size={14} /> از کتابخانه
+                  </button>
+                  <button
+                    onClick={() => {
+                      setTemplateForNew(null);
+                      setFormOpen("new");
+                    }}
+                    className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-br from-primary to-primary2"
+                  >
+                    <Plus size={14} /> کوییز جدید
+                  </button>
+                </div>
               </div>
               {quizzes.length === 0 ? (
                 <div className="text-center py-16">
@@ -280,10 +294,30 @@ export default function QuizzesModal({
         <QuizFormModal
           classId={classId}
           quiz={formOpen === "new" ? null : formOpen}
-          onClose={() => setFormOpen(null)}
+          template={
+            templateForNew
+              ? { title: templateForNew.title, time_limit: templateForNew.time_limit, questions: templateForNew.questions as QuizQuestion[] }
+              : null
+          }
+          onClose={() => {
+            setFormOpen(null);
+            setTemplateForNew(null);
+          }}
           onSaved={() => {
             setFormOpen(null);
+            setTemplateForNew(null);
             load();
+          }}
+        />
+      )}
+
+      {libraryOpen && (
+        <QuizLibraryPickerModal
+          onClose={() => setLibraryOpen(false)}
+          onPick={(quiz) => {
+            setTemplateForNew(quiz);
+            setLibraryOpen(false);
+            setFormOpen("new");
           }}
         />
       )}

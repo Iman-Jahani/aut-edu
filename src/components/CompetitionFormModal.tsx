@@ -5,6 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import type { Competition } from "@/lib/types";
 import { Flag, Pencil } from "lucide-react";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function CompetitionFormModal({
   classId,
@@ -46,7 +47,7 @@ export default function CompetitionFormModal({
       }
       onSaved();
     } catch (e) {
-      toast("خطا: " + (e as Error).message, "err");
+      toast("خطا: " + getErrorMessage(e), "err");
     } finally {
       setSaving(false);
     }

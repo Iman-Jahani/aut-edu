@@ -115,7 +115,9 @@ export default function PlaygroundPage() {
           loading={loading}
           highlightId={highlightId}
           onAdd={addCell}
-          renderItem={(cell) => <PlaygroundCell cell={cell} onDeleted={(id) => setCells((p) => p.filter((c) => c.id !== id))} />}
+          renderItem={(cell) => (
+            <PlaygroundCell cell={cell} autoFocus={cell.id === highlightId} onDeleted={(id) => setCells((p) => p.filter((c) => c.id !== id))} />
+          )}
           emptyIcon={<Code2 size={44} className="mx-auto mb-3 text-primary/40" />}
           emptyTitle="بزن بریم!"
           emptyDesc="یه سلول بساز و هر وقت دلت خواست پایتون تمرین کن، بدون نیاز به هیچ کلاسی."

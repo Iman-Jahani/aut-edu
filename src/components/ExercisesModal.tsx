@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { stripRich } from "@/components/RichText";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
@@ -134,7 +135,7 @@ export default function ExercisesModal({
                     }`}
                   >
                     <div className="font-bold text-sm mb-1 flex items-center gap-1.5"><FileText size={14} className="text-primary shrink-0" /> {ex.title}</div>
-                    {ex.description && <p className="text-xs text-muted mb-2 line-clamp-2">{ex.description}</p>}
+                    {ex.description && <p className="text-xs text-muted mb-2 line-clamp-2">{stripRich(ex.description)}</p>}
                     {teacherMode && ex.shared_exercise_id && (
                       <div className="text-[11px] text-emerald-600 font-bold mb-1 flex items-center gap-1"><CheckCircle2 size={12} /> در کتابخانه اشتراکی</div>
                     )}

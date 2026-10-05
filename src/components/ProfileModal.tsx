@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import { Sparkles, Shuffle, User, GraduationCap, BookOpen } from "lucide-react";
 import type { UserRole } from "@/lib/types";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function ProfileModal({
   open,
@@ -16,7 +17,7 @@ export default function ProfileModal({
   firstTime?: boolean;
   onClose: () => void;
 }) {
-  const { displayName, avatar, role, saveProfile } = useAuth();
+  const { displayName, avatar, role, pendingProfileHint, saveProfile } = useAuth();
   const toast = useToast();
   const [name, setName] = useState(displayName);
   const [pickedAvatar, setPickedAvatar] = useState(avatar);
@@ -25,11 +26,12 @@ export default function ProfileModal({
 
   useEffect(() => {
     if (open) {
-      setName(displayName);
-      setPickedAvatar(avatar);
-      setPickedRole(role || "student");
+      // After an email-confirmation round trip, recover what they picked at sign-up.
+      setName(displayName || pendingProfileHint?.display_name || "");
+      setPickedAvatar(avatar || pendingProfileHint?.avatar || "🙂");
+      setPickedRole(role || pendingProfileHint?.role || "student");
     }
-  }, [open, displayName, avatar, role]);
+  }, [open, displayName, avatar, role, pendingProfileHint]);
 
   if (!open) return null;
 
@@ -43,7 +45,7 @@ export default function ProfileModal({
       toast(firstTime ? `خوش آمدی ${trimmed}!` : "پروفایل ذخیره شد", "ok");
       onClose();
     } catch (e) {
-      toast("خطا: " + (e as Error).message, "err");
+      toast("خطا: " + getErrorMessage(e), "err");
     } finally {
       setSaving(false);
     }

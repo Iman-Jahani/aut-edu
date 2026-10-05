@@ -4,16 +4,25 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { Play, Save, Trash2, Loader2, CornerDownLeft, X, Tag } from "lucide-react";
+import { Play, Trash2, Loader2, CornerDownLeft, X, Tag } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import { runPython } from "@/lib/pyodide";
 import { noPaste } from "@/lib/editor";
 import { Skeleton } from "@/components/Skeleton";
+import HintButton from "@/components/HintPanel";
 import { fmtRelative } from "@/lib/utils";
 import type { PlaygroundCell as PlaygroundCellType } from "@/lib/types";
 
-export default function PlaygroundCell({ cell, onDeleted }: { cell: PlaygroundCellType; onDeleted: (id: string) => void }) {
+export default function PlaygroundCell({
+  cell,
+  autoFocus = false,
+  onDeleted,
+}: {
+  cell: PlaygroundCellType;
+  autoFocus?: boolean;
+  onDeleted: (id: string) => void;
+}) {
   const toast = useToast();
   const [code, setCode] = useState(cell.code || "");
   const [output, setOutput] = useState(cell.output || "");
@@ -88,11 +97,6 @@ export default function PlaygroundCell({ cell, onDeleted }: { cell: PlaygroundCe
     }
   }, [pendingPrompt]);
 
-  const manualSave = async () => {
-    await save(code, output);
-    toast("ذخیره شد", "ok");
-  };
-
   const del = async () => {
     if (!confirm("این سلول حذف شود؟")) return;
     const { error } = await supabase.from("playground_cells").delete().eq("id", cell.id);
@@ -141,6 +145,7 @@ export default function PlaygroundCell({ cell, onDeleted }: { cell: PlaygroundCe
         theme={dracula}
         extensions={extensions}
         indentWithTab
+        autoFocus={autoFocus}
         minHeight="100px"
         maxHeight="420px"
         basicSetup={{ lineNumbers: true, autocompletion: true }}
@@ -200,9 +205,7 @@ export default function PlaygroundCell({ cell, onDeleted }: { cell: PlaygroundCe
           {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           {running ? "در حال اجرا…" : "اجرا"}
         </button>
-        <button onClick={manualSave} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white">
-          <Save size={14} /> ذخیره
-        </button>
+        <HintButton code={code} error={isError ? output : undefined} />
         <button onClick={del} className="mr-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-danger border border-red-200 bg-white">
           <Trash2 size={14} /> حذف
         </button>

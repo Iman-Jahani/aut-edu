@@ -11,17 +11,21 @@ import { runPython } from "@/lib/pyodide";
 import { colorOf, initials, fmtRelative } from "@/lib/utils";
 import CommentsPanel from "@/components/CommentsPanel";
 import { Skeleton } from "@/components/Skeleton";
+import HintButton from "@/components/HintPanel";
 import { noPaste } from "@/lib/editor";
-import { Play, Save, MessageCircle, Trash2, Tag, X, CornerDownLeft, Loader2 } from "lucide-react";
+import { Play, MessageCircle, Trash2, Tag, X, CornerDownLeft, Loader2 } from "lucide-react";
 import type { Cell } from "@/lib/types";
 
 export default function CodeCell({
   cell,
   teacherMode = false,
+  autoFocus = false,
   onDeleted,
 }: {
   cell: Cell;
   teacherMode?: boolean;
+  /** Focus the editor and place the cursor in it as soon as it mounts (freshly created cell). */
+  autoFocus?: boolean;
   onDeleted: (id: string) => void;
 }) {
   const { user } = useAuth();
@@ -124,11 +128,6 @@ export default function CodeCell({
     }
   }, [pendingPrompt]);
 
-  const manualSave = async () => {
-    await save(code, output);
-    toast("ذخیره شد", "ok");
-  };
-
   const del = async () => {
     if (!confirm("این سلول حذف شود؟")) return;
     const { error } = await supabase.from("cells").delete().eq("id", cell.id);
@@ -230,6 +229,7 @@ export default function CodeCell({
         theme={dracula}
         extensions={extensions}
         indentWithTab
+        autoFocus={autoFocus}
         minHeight="100px"
         maxHeight="420px"
         basicSetup={{ lineNumbers: true, autocompletion: true }}
@@ -296,17 +296,12 @@ export default function CodeCell({
           {running ? "در حال اجرا…" : "اجرا"}
         </button>
         <button
-          onClick={manualSave}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white"
-        >
-          <Save size={14} /> ذخیره
-        </button>
-        <button
           onClick={() => setShowComments((s) => !s)}
           className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white"
         >
           <MessageCircle size={14} /> نظر
         </button>
+        <HintButton code={code} error={isError ? output : undefined} />
         {canDelete && (
           <button
             onClick={del}

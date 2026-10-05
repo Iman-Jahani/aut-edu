@@ -7,6 +7,7 @@ import { useToast } from "@/components/ToastProvider";
 import { fmtRelative } from "@/lib/utils";
 import type { Quiz, QuizAnswer } from "@/lib/types";
 import { ClipboardList, CheckCircle2, XCircle, Clock, Send } from "lucide-react";
+import RichText from "@/components/RichText";
 import { PartyPopper, ThumbsUp, Meh } from "lucide-react";
 
 function fmtClock(sec: number) {
@@ -102,7 +103,7 @@ export default function QuizTakeView({
           return (
             <div key={i} className="border border-line rounded-lg p-3">
               <div className="font-bold text-sm mb-2">
-                {i + 1}. {q.question}
+                <RichText text={`${i + 1}. ${q.question}`} />
               </div>
               <div className="space-y-1">
                 {q.options.map((opt, j) => {
@@ -116,7 +117,7 @@ export default function QuizTakeView({
                       }`}
                     >
                       <span className="inline-flex items-center gap-1">
-                        {String.fromCharCode(65 + j)}. {opt}
+                        <RichText text={`${String.fromCharCode(65 + j)}. ${opt}`} />
                         {isCorrect && <CheckCircle2 size={13} />}
                         {isChosenWrong && <XCircle size={13} />}
                       </span>
@@ -162,7 +163,7 @@ export default function QuizTakeView({
           <div className="text-[11px] text-muted mb-1">
             سوال {i + 1} از {qs.length}
           </div>
-          <div className="font-bold text-sm mb-2.5">{q.question}</div>
+          <div className="font-bold text-sm mb-2.5"><RichText text={q.question} /></div>
           <div className="space-y-1.5">
             {q.options.map((opt, j) => (
               <label
@@ -179,7 +180,7 @@ export default function QuizTakeView({
                   className="accent-primary"
                 />
                 <span className="font-bold text-primary w-5 text-center">{String.fromCharCode(65 + j)}</span>
-                <span>{opt}</span>
+                <span><RichText text={opt} /></span>
               </label>
             ))}
           </div>

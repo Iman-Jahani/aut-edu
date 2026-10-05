@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import type { Quiz, QuizAnswer } from "@/lib/types";
 import { StatsListSkeleton } from "@/components/Skeleton";
-import { Trophy, Medal, ClipboardList, Square, CheckCircle2 } from "lucide-react";
+import { Trophy, Medal, ClipboardList, Square, CheckCircle2, EyeOff } from "lucide-react";
+import RichText from "@/components/RichText";
 
 export default function QuizResultsView({ quiz, onStop }: { quiz: Quiz; onStop: () => void }) {
   const { user } = useAuth();
@@ -93,26 +94,35 @@ export default function QuizResultsView({ quiz, onStop }: { quiz: Quiz; onStop: 
         </div>
       )}
 
-      <h3 className="text-sm font-bold text-muted pt-2 flex items-center gap-1.5"><ClipboardList size={14} /> سوالات و پاسخ‌های درست</h3>
-      {quiz.questions.map((q, i) => (
-        <div key={i} className="border border-line rounded-lg p-3">
-          <div className="font-bold text-sm mb-2">
-            {i + 1}. {q.question}
-          </div>
-          <div className="space-y-1">
-            {q.options.map((opt, j) => (
-              <div
-                key={j}
-                className={`text-sm px-2.5 py-1.5 rounded-lg ${j === q.correct ? "bg-emerald-50 text-emerald-800" : "text-ink/80"}`}
-              >
-                <span className="inline-flex items-center gap-1">
-                  {String.fromCharCode(65 + j)}. {opt} {j === q.correct && <CheckCircle2 size={12} />}
-                </span>
-              </div>
-            ))}
-          </div>
+      <h3 className="text-sm font-bold text-muted pt-2 flex items-center gap-1.5">
+        <ClipboardList size={14} /> سوالات و پاسخ‌های درست
+      </h3>
+      {quiz.status === "active" ? (
+        <div className="text-center text-sm text-muted bg-amber-50 border border-amber-100 rounded-lg py-6 px-4 flex flex-col items-center gap-1.5">
+          <EyeOff size={20} className="text-amber-500" />
+          <span>پاسخ‌های درست بعد از «پایان کوییز» نشون داده می‌شن — تا وقتی روی پرده‌ست دانشجوها نمی‌بیننش.</span>
         </div>
-      ))}
+      ) : (
+        quiz.questions.map((q, i) => (
+          <div key={i} className="border border-line rounded-lg p-3">
+            <div className="font-bold text-sm mb-2">
+              <RichText text={`${i + 1}. ${q.question}`} />
+            </div>
+            <div className="space-y-1">
+              {q.options.map((opt, j) => (
+                <div
+                  key={j}
+                  className={`text-sm px-2.5 py-1.5 rounded-lg ${j === q.correct ? "bg-emerald-50 text-emerald-800" : "text-ink/80"}`}
+                >
+                  <span className="inline-flex items-center gap-1">
+                    <RichText text={`${String.fromCharCode(65 + j)}. ${opt}`} /> {j === q.correct && <CheckCircle2 size={12} />}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        ))
+      )}
 
       {quiz.status === "active" && (
         <button onClick={onStop} className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-warning flex items-center justify-center gap-1.5">

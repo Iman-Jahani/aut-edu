@@ -174,7 +174,18 @@ export interface Quiz {
   time_limit: number; // minutes
   questions: QuizQuestion[];
   status: QuizStatus;
+  shared_quiz_id?: string | null;
   started_at?: string | null;
+  created_at: string;
+}
+
+export interface SharedQuiz {
+  id: string;
+  title: string;
+  time_limit: number;
+  questions: QuizQuestion[];
+  created_by_name: string | null;
+  use_count: number;
   created_at: string;
 }
 

@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
-import { GraduationCap, BookOpen, Shuffle, Mail, Lock, User as UserIcon, Loader2 } from "lucide-react";
+import { GraduationCap, BookOpen, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function SignupPage() {
@@ -22,6 +22,7 @@ export default function SignupPage() {
   const [avatar, setAvatar] = useState(() => AVATAR_PALETTE[Math.floor(Math.random() * AVATAR_PALETTE.length)]);
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState<string | null>(null);
 
   useEffect(() => {
     if (ready && user && !needsProfile) router.replace("/dashboard");
@@ -34,12 +35,38 @@ export default function SignupPage() {
     if (!e) return toast("ایمیل رو وارد کن", "err");
     if (password.length < 6) return toast("رمز عبور حداقل ۶ کاراکتر", "err");
     setBusy(true);
-    const { error } = await signUpWithEmail(e, password, n, avatar, role);
+    const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, avatar, role);
     setBusy(false);
     if (error) return toast("خطا: " + error, "err");
+    if (needsEmailConfirmation) {
+      setAwaitingConfirmation(e);
+      return;
+    }
     toast(`خوش آمدی ${n}!`, "ok");
     router.replace("/dashboard");
   };
+
+  if (awaitingConfirmation) {
+    return (
+      <div className="min-h-screen grid place-items-center p-4">
+        <div className="card w-full max-w-md p-8 text-center anim-pop">
+          <div className="w-14 h-14 mx-auto rounded-2xl bg-emerald-50 text-emerald-600 grid place-items-center mb-4">
+            <MailCheck size={28} />
+          </div>
+          <h1 className="font-extrabold text-lg mb-2">ایمیلت رو چک کن</h1>
+          <p className="text-sm text-muted leading-7 mb-1">
+            یه لینک تایید به <b dir="ltr" className="font-mono">{awaitingConfirmation}</b> فرستادیم.
+          </p>
+          <p className="text-sm text-muted leading-7 mb-6">
+            اینباکس (و پوشه‌ی اسپم) رو چک کن، روی لینک بزن، بعد از همین صفحه وارد شو.
+          </p>
+          <Link href="/login" className="btn-primary w-full !py-3 inline-flex justify-center">
+            برو به صفحه‌ی ورود
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   const withGoogle = async () => {
     setGoogleBusy(true);
@@ -55,9 +82,9 @@ export default function SignupPage() {
     <div className="min-h-screen grid place-items-center p-4">
       <div className="card w-full max-w-md p-7 anim-pop">
         <div className="text-center mb-6">
-          <div className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-xl shadow-glow mb-3" style={{ background: "var(--grad)" }}>
+          <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-xl shadow-glow mb-3" style={{ background: "var(--grad)" }}>
             🐍
-          </div>
+          </Link>
           <h1 className="font-extrabold text-xl">ساخت حساب کاربری</h1>
           <p className="text-sm text-muted mt-1">چه معلمی چه دانشجو، اول یه حساب بساز</p>
         </div>

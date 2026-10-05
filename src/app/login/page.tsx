@@ -44,9 +44,9 @@ export default function LoginPage() {
     <div className="min-h-screen grid place-items-center p-4">
       <div className="card w-full max-w-sm p-7 anim-pop">
         <div className="text-center mb-6">
-          <div className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-xl shadow-glow mb-3" style={{ background: "var(--grad)" }}>
+          <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-xl shadow-glow mb-3" style={{ background: "var(--grad)" }}>
             🐍
-          </div>
+          </Link>
           <h1 className="font-extrabold text-xl">ورود</h1>
           <p className="text-sm text-muted mt-1">به دفترچه‌ی کلاس پایتون خوش اومدی</p>
         </div>

@@ -20,9 +20,17 @@ interface AuthContextValue {
   role: UserRole | null;
   email: string | null;
   ready: boolean;
-  /** Signed in, but no row in user_profiles yet (fresh Google sign-in). */
+  /** Signed in, but no row in user_profiles yet (fresh Google sign-in, or first login after email confirmation). */
   needsProfile: boolean;
-  signUpWithEmail: (email: string, password: string, displayName: string, avatar: string, role: UserRole) => Promise<{ error: string | null }>;
+  /** Name/avatar/role chosen during sign-up, recovered after an email-confirmation round trip. */
+  pendingProfileHint: { display_name: string; avatar: string; role: UserRole } | null;
+  signUpWithEmail: (
+    email: string,
+    password: string,
+    displayName: string,
+    avatar: string,
+    role: UserRole
+  ) => Promise<{ error: string | null; needsEmailConfirmation?: boolean }>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -30,6 +38,24 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
+
+/** Turns Supabase's (English) auth error strings into clear Persian messages. */
+function friendlyAuthError(message: string): string {
+  const m = message.toLowerCase();
+  if (m.includes("email not confirmed") || m.includes("email_not_confirmed")) {
+    return "ایمیلت هنوز تایید نشده. یه ایمیل با لینک تایید برات فرستاده بودیم — اینباکس (و پوشه‌ی اسپم) رو چک کن و لینکش رو بزن، بعد دوباره وارد شو.";
+  }
+  if (m.includes("invalid login credentials")) {
+    return "ایمیل یا رمز عبور اشتباهه.";
+  }
+  if (m.includes("user already registered") || m.includes("already registered")) {
+    return "این ایمیل قبلاً ثبت‌نام کرده — به‌جاش وارد شو.";
+  }
+  if (m.includes("password") && m.includes("least")) {
+    return "رمز عبور خیلی کوتاهه (حداقل ۶ کاراکتر).";
+  }
+  return message;
+}
 
 async function loadProfile(userId: string): Promise<UserProfile | null> {
   const { data } = await supabase.from("user_profiles").select("*").eq("user_id", userId).maybeSingle();
@@ -40,6 +66,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [ready, setReady] = useState(false);
+  const [pendingProfileHint, setPendingProfileHint] = useState<AuthContextValue["pendingProfileHint"]>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -55,7 +82,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (cancelled) return;
       setUser(u);
-      setProfile(u ? await loadProfile(u.id) : null);
+      const loadedProfile = u ? await loadProfile(u.id) : null;
+      setProfile(loadedProfile);
+      if (u && !loadedProfile) {
+        try {
+          const raw = localStorage.getItem("pendingProfile");
+          setPendingProfileHint(raw ? JSON.parse(raw) : null);
+        } catch {
+          setPendingProfileHint(null);
+        }
+      } else {
+        setPendingProfileHint(null);
+      }
       setReady(true);
     };
 
@@ -73,14 +111,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const signUpWithEmail = useCallback(
     async (emailAddr: string, password: string, name: string, avatar: string, role: UserRole) => {
       const { data, error } = await supabase.auth.signUp({ email: emailAddr, password });
-      if (error) return { error: error.message };
+      if (error) return { error: friendlyAuthError(error.message) };
       const u = data.user;
       if (!u) return { error: "ثبت‌نام ناموفق بود" };
+
+      // If the Supabase project requires email confirmation, `signUp` returns a
+      // user but NO session — `auth.uid()` is null server-side until they click
+      // the confirmation link, so writing user_profiles now would just fail an
+      // RLS check with a confusing error. Stash the chosen name/avatar/role so
+      // ProfileModal can prefill them once the user actually logs in later.
+      if (!data.session) {
+        try {
+          localStorage.setItem("pendingProfile", JSON.stringify({ display_name: name, avatar, role }));
+        } catch {
+          /* ignore */
+        }
+        return { error: null, needsEmailConfirmation: true };
+      }
+
       const { error: profileError } = await supabase.from("user_profiles").upsert(
         { user_id: u.id, display_name: name, avatar, email: emailAddr, role, updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
-      if (profileError) return { error: profileError.message };
+      if (profileError) return { error: friendlyAuthError(profileError.message) };
       setUser(u);
       setProfile({ user_id: u.id, display_name: name, avatar, email: emailAddr, role, updated_at: new Date().toISOString() });
       return { error: null };
@@ -90,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signInWithEmail = useCallback(async (emailAddr: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({ email: emailAddr, password });
-    return { error: error?.message || null };
+    return { error: error ? friendlyAuthError(error.message) : null };
   }, []);
 
   const signInWithGoogle = useCallback(async () => {
@@ -143,6 +196,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         role,
         updated_at: new Date().toISOString(),
       }));
+      try {
+        localStorage.removeItem("pendingProfile");
+      } catch {
+        /* ignore */
+      }
+      setPendingProfileHint(null);
     },
     [user, profile]
   );
@@ -156,6 +215,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     email: profile?.email || user?.email || null,
     ready,
     needsProfile: ready && !!user && !profile,
+    pendingProfileHint,
     signUpWithEmail,
     signInWithEmail,
     signInWithGoogle,

@@ -1,32 +1,61 @@
 "use client";
 
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import type { Quiz, QuizQuestion } from "@/lib/types";
-import { Brain, Pencil, X } from "lucide-react";
+import { Brain, Pencil, X, BookOpen, RefreshCw } from "lucide-react";
+import RichTextHint from "@/components/RichTextHint";
+import { getErrorMessage } from "@/lib/errors";
+import { useAuth } from "@/context/AuthContext";
 
 function emptyQuestion(): QuizQuestion {
   return { question: "", options: ["", "", "", ""], correct: 0 };
 }
 
+function QuestionTextArea({ value, onChange }: { value: string; onChange: (v: string) => void }) {
+  const ref = useRef<HTMLTextAreaElement>(null);
+  return (
+    <div>
+      <textarea
+        ref={ref}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder="متن سوال… می‌تونی کد هم بذاری"
+        rows={2}
+        dir="auto"
+        className="w-full border border-line rounded-lg px-3 py-2 text-sm mb-1.5 outline-none focus:border-primary resize-y font-mono"
+      />
+      <RichTextHint textareaRef={ref} value={value} onChange={onChange} />
+    </div>
+  );
+}
+
 export default function QuizFormModal({
   classId,
   quiz,
+  template,
   onClose,
   onSaved,
 }: {
   classId: string;
   quiz?: Quiz | null;
+  template?: { title: string; time_limit: number; questions: QuizQuestion[] } | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
   const toast = useToast();
-  const [title, setTitle] = useState(quiz?.title || "");
-  const [timeLimit, setTimeLimit] = useState(quiz?.time_limit || 5);
+  const { displayName } = useAuth();
+  const [title, setTitle] = useState(quiz?.title || template?.title || "");
+  const [timeLimit, setTimeLimit] = useState(quiz?.time_limit || template?.time_limit || 5);
   const [questions, setQuestions] = useState<QuizQuestion[]>(
-    quiz?.questions?.length ? quiz.questions.map((q) => ({ ...q, options: [...q.options] })) : [emptyQuestion()]
+    quiz?.questions?.length
+      ? quiz.questions.map((q) => ({ ...q, options: [...q.options] }))
+      : template?.questions?.length
+      ? template.questions.map((q) => ({ ...q, options: [...q.options] }))
+      : [emptyQuestion()]
   );
+  const [addToLibrary, setAddToLibrary] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const updateQuestion = (i: number, text: string) =>
@@ -60,17 +89,47 @@ export default function QuizFormModal({
           .update({ title: t, time_limit: timeLimit, questions: clean })
           .eq("id", quiz.id);
         if (error) throw error;
-        toast("کوییز ویرایش شد", "ok");
+        if (addToLibrary) {
+          if (quiz.shared_quiz_id) {
+            await supabase
+              .from("shared_quizzes")
+              .update({ title: t, time_limit: timeLimit, questions: clean, created_by_name: displayName })
+              .eq("id", quiz.shared_quiz_id);
+            toast("ویرایش شد + کتابخانه به‌روز شد", "ok");
+          } else {
+            const { data: lib } = await supabase
+              .from("shared_quizzes")
+              .insert({ title: t, time_limit: timeLimit, questions: clean, created_by_name: displayName })
+              .select()
+              .single();
+            if (lib) await supabase.from("quizzes").update({ shared_quiz_id: lib.id }).eq("id", quiz.id);
+            toast("ویرایش شد + به کتابخانه اضافه شد", "ok");
+          }
+        } else {
+          toast("کوییز ویرایش شد", "ok");
+        }
       } else {
-        const { error } = await supabase
+        const { data: newQuiz, error } = await supabase
           .from("quizzes")
-          .insert({ class_id: classId, title: t, time_limit: timeLimit, questions: clean, status: "draft" });
+          .insert({ class_id: classId, title: t, time_limit: timeLimit, questions: clean, status: "draft" })
+          .select()
+          .single();
         if (error) throw error;
-        toast("کوییز ساخته شد", "ok");
+        if (addToLibrary) {
+          const { data: lib } = await supabase
+            .from("shared_quizzes")
+            .insert({ title: t, time_limit: timeLimit, questions: clean, created_by_name: displayName })
+            .select()
+            .single();
+          if (lib && newQuiz) await supabase.from("quizzes").update({ shared_quiz_id: lib.id }).eq("id", newQuiz.id);
+          toast("ساخته شد + به کتابخانه اضافه شد", "ok");
+        } else {
+          toast("کوییز ساخته شد", "ok");
+        }
       }
       onSaved();
     } catch (e) {
-      toast("خطا: " + (e as Error).message, "err");
+      toast("خطا: " + getErrorMessage(e), "err");
     } finally {
       setSaving(false);
     }
@@ -127,35 +186,38 @@ export default function QuizFormModal({
                   </button>
                 )}
               </div>
-              <input
-                value={q.question}
-                onChange={(e) => updateQuestion(i, e.target.value)}
-                placeholder="متن سوال…"
-                className="w-full border border-line rounded-lg px-3 py-2 text-sm mb-2.5 outline-none focus:border-primary"
-              />
-              <div className="text-[11px] font-bold text-muted mb-1.5 uppercase">گزینه‌ها — گزینه‌ی صحیح رو انتخاب کن</div>
+              <QuestionTextArea value={q.question} onChange={(v) => updateQuestion(i, v)} />
+              <div className="text-[11px] font-bold text-muted mb-1.5 mt-2.5 uppercase">گزینه‌ها — گزینه‌ی صحیح رو انتخاب کن</div>
               <div className="space-y-1.5">
                 {q.options.map((opt, j) => (
-                  <div key={j} className="flex items-center gap-2">
+                  <div key={j} className="flex items-start gap-2">
                     <input
                       type="radio"
                       name={`correct-${i}`}
                       checked={q.correct === j}
                       onChange={() => setCorrect(i, j)}
-                      className="accent-primary w-4 h-4 shrink-0"
+                      className="accent-primary w-4 h-4 shrink-0 mt-2.5"
                     />
-                    <span className="font-bold text-primary w-5 text-center shrink-0">{String.fromCharCode(65 + j)}</span>
-                    <input
+                    <span className="font-bold text-primary w-5 text-center shrink-0 mt-1.5">{String.fromCharCode(65 + j)}</span>
+                    <textarea
                       value={opt}
                       onChange={(e) => updateOption(i, j, e.target.value)}
-                      placeholder={`گزینه ${String.fromCharCode(65 + j)}`}
-                      className="flex-1 border border-line rounded-lg px-2.5 py-1.5 text-sm outline-none focus:border-primary"
+                      placeholder={`گزینه ${String.fromCharCode(65 + j)} — می‌تونه کد هم باشه: \`کد\``}
+                      rows={1}
+                      dir="auto"
+                      className="flex-1 border border-line rounded-lg px-2.5 py-1.5 text-sm outline-none focus:border-primary resize-y font-mono"
                     />
                   </div>
                 ))}
               </div>
             </div>
           ))}
+
+          <label className="flex items-center gap-2 text-sm pt-2 cursor-pointer">
+            <input type="checkbox" checked={addToLibrary} onChange={(e) => setAddToLibrary(e.target.checked)} />
+            {quiz?.shared_quiz_id ? <RefreshCw size={14} className="shrink-0" /> : <BookOpen size={14} className="shrink-0" />}
+            {quiz?.shared_quiz_id ? "نسخه‌ی کتابخانه رو با تغییرات فعلی به‌روزرسانی کن" : "این کوییز رو به کتابخانه اشتراکی اضافه کن"}
+          </label>
         </div>
 
         <div className="px-6 py-4 border-t border-line flex justify-end gap-2">

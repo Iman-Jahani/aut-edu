@@ -10,8 +10,11 @@ import { useToast } from "@/components/ToastProvider";
 import { runTestCases, type TestRunResult } from "@/lib/pyodide";
 import { noPaste } from "@/lib/editor";
 import { ListSkeleton } from "@/components/Skeleton";
+import RichText from "@/components/RichText";
+import HintButton from "@/components/HintPanel";
 import type { Exercise, ExerciseSubmission } from "@/lib/types";
 import { FileText, Target, Lightbulb, CheckCircle2, XCircle, Play, X } from "lucide-react";
+import { getErrorMessage } from "@/lib/errors";
 
 export default function ExerciseSolveModal({
   exercise,
@@ -87,7 +90,7 @@ export default function ExerciseSolveModal({
         else if (status === "partial") toast(`${passed} از ${total}`, "info");
       }
     } catch (e) {
-      toast("خطا در اجرا: " + (e as Error).message, "err");
+      toast("خطا در اجرا: " + getErrorMessage(e), "err");
     } finally {
       setRunning(false);
     }
@@ -104,13 +107,13 @@ export default function ExerciseSolveModal({
         </div>
 
         <div className="overflow-y-auto px-6 py-4 flex-1 space-y-4">
-          {exercise.description && <p className="text-sm text-ink/80 whitespace-pre-wrap">{exercise.description}</p>}
+          {exercise.description && <div className="text-sm text-ink/80"><RichText text={exercise.description} /></div>}
           <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-indigo-900 flex items-center gap-1.5">
             <Target size={13} className="shrink-0" /> {tests.length} تست — کدت باید برای همه‌ی ورودی‌ها خروجی درست بده
           </div>
           {exercise.hint && (
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-900 flex items-start gap-1.5">
-              <Lightbulb size={13} className="shrink-0 mt-0.5" /> <span><b>راهنمایی:</b> {exercise.hint}</span>
+              <Lightbulb size={13} className="shrink-0 mt-0.5" /> <span><b>راهنمایی:</b> <RichText text={exercise.hint} /></span>
             </div>
           )}
 
@@ -187,6 +190,12 @@ export default function ExerciseSolveModal({
         </div>
 
         <div className="px-6 py-4 border-t border-line flex justify-end gap-2">
+          <HintButton
+            code={code}
+            context={[exercise.description, exercise.hint].filter(Boolean).join("\n")}
+            error={results?.find((r) => !r.passed)?.actual}
+          />
+          <div className="flex-1" />
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-bold border border-line">
             بستن
           </button>

@@ -14,6 +14,7 @@ import { fetchAvatars } from "@/lib/utils";
 import { downloadNotebook, parseNotebook } from "@/lib/ipynb";
 import { Sparkles, Search } from "lucide-react";
 import type { Cell, ClassMeeting } from "@/lib/types";
+import { getErrorMessage } from "@/lib/errors";
 
 const eff = (c: Cell) => c.position ?? new Date(c.created_at).getTime();
 const sortCells = (list: Cell[]) => [...list].sort((a, b) => eff(a) - eff(b));
@@ -159,7 +160,7 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
       toast(`${parsed.length} سلول از فایل ipynb اضافه شد`, "ok");
       loadCells();
     } catch (e) {
-      toast("خطا: " + (e as Error).message, "err");
+      toast("خطا: " + getErrorMessage(e), "err");
     } finally {
       setImporting(false);
     }
@@ -195,7 +196,14 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
           loading={loadingCells}
           highlightId={highlightId}
           onAdd={addCell}
-          renderItem={(cell) => <CodeCell cell={cell} teacherMode={teacherMode} onDeleted={(id) => setCells((p) => p.filter((c) => c.id !== id))} />}
+          renderItem={(cell) => (
+            <CodeCell
+              cell={cell}
+              teacherMode={teacherMode}
+              autoFocus={cell.id === highlightId}
+              onDeleted={(id) => setCells((p) => p.filter((c) => c.id !== id))}
+            />
+          )}
           emptyIcon={<Sparkles size={44} className="mx-auto mb-3 text-primary/40" />}
           emptyTitle="آماده‌ای شروع کنی؟"
           emptyDesc="یه سلول بساز و اولین کد پایتونت رو توی این جلسه بنویس."

@@ -264,3 +264,15 @@ create policy "playground_delete_own" on playground_cells for delete using (auth
 
 -- Realtime for live notebook updates within a meeting:
 -- alter publication supabase_realtime add table class_meetings;
+
+-- ===== Quiz library (mirrors shared_exercises) =====
+create table if not exists shared_quizzes (
+  id uuid primary key default gen_random_uuid(),
+  title text not null,
+  time_limit int not null default 5,
+  questions jsonb not null default '[]',
+  created_by_name text,
+  use_count int default 0,
+  created_at timestamptz not null default now()
+);
+alter table quizzes add column if not exists shared_quiz_id uuid references shared_quizzes(id) on delete set null;

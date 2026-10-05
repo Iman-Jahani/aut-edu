@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/Skeleton";
 import {
@@ -64,7 +65,12 @@ export default function AdminPage() {
           <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-50 text-amber-600 grid place-items-center mb-3">
             <Lock size={26} />
           </div>
-          <h1 className="font-extrabold text-lg text-center mb-6">پنل مدیریت</h1>
+          <h1 className="font-extrabold text-lg text-center mb-1">پنل مدیریت</h1>
+          <p className="text-center text-xs mb-5">
+            <Link href="/dashboard" className="text-primary font-bold">
+              بازگشت به داشبورد
+            </Link>
+          </p>
           <input
             type="password"
             autoFocus
@@ -267,10 +273,13 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
   return (
     <div className="min-h-screen bg-slate-900 text-slate-100">
       <header className="sticky top-0 z-40 bg-slate-900/90 backdrop-blur border-b border-slate-700 px-6 py-4 flex items-center gap-3">
-        <h1 className="font-extrabold text-lg flex items-center gap-2">
+        <Link href="/" className="font-extrabold text-lg flex items-center gap-2 hover:text-primary2 transition">
           <Lock size={18} /> پنل مدیریت کلاس‌های پایتون
-        </h1>
+        </Link>
         <div className="flex-1" />
+        <Link href="/dashboard" className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-slate-700 hover:bg-slate-600">
+          داشبورد
+        </Link>
         <span className="text-xs text-slate-400">
           {loading ? "در حال بارگذاری…" : lastUpdated ? `آخرین به‌روزرسانی: ${lastUpdated.toLocaleTimeString("fa-IR")}` : ""}
         </span>
