@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
           ],
           max_tokens: 400,
           temperature: 0.4,
+          reasoning: { enabled: false },   // ← این خط reasoning رو خاموش می‌کنه
         }),
       });
 
