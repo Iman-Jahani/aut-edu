@@ -113,11 +113,14 @@ export default function ClassChrome({
         onTeamPicker={() => setTeamPickerOpen(true)}
         onExercises={() => setExercisesOpen(true)}
         onQuizzes={() => {
-          setQuizFromBanner(false);
+          // If a quiz is live right now, jump straight into it (same as the banner) —
+          // the list view only shows *ended* quizzes for non-teachers, so without this
+          // the top-nav button looked broken while one was actively running.
+          setQuizFromBanner(!teacherMode && !!quiz.item);
           setQuizzesOpen(true);
         }}
         onCompetitions={() => {
-          setCompFromBanner(false);
+          setCompFromBanner(!teacherMode && !!comp.item);
           setCompetitionsOpen(true);
         }}
         onProfile={() => setProfileOpen(true)}

@@ -12,11 +12,6 @@ export default function LandingPage() {
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
 
-  // Already signed in with a complete profile: this marketing page isn't for you, go to the app.
-  useEffect(() => {
-    if (ready && user && !needsProfile) router.replace("/dashboard");
-  }, [ready, user, needsProfile, router]);
-
   // Fresh Google sign-in landed here with no profile row yet: finish it, then go in.
   useEffect(() => {
     if (ready && user && needsProfile) {
@@ -36,12 +31,20 @@ export default function LandingPage() {
             دفترچه کلاس پایتون
           </span>
           <div className="flex-1" />
-          <Link href="/login" className="btn-ghost">
-            ورود
-          </Link>
-          <Link href="/signup" className="btn-primary">
-            ثبت‌نام
-          </Link>
+          {ready && user && !needsProfile ? (
+            <Link href="/dashboard" className="btn-primary">
+              برو به داشبورد
+            </Link>
+          ) : (
+            <>
+              <Link href="/login" className="btn-ghost">
+                ورود
+              </Link>
+              <Link href="/signup" className="btn-primary">
+                ثبت‌نام
+              </Link>
+            </>
+          )}
         </div>
       </nav>
 
@@ -62,9 +65,15 @@ export default function LandingPage() {
               دانشجوها در تیم کد می‌نویسن، همون لحظه اجرا می‌کنن، با هم چت می‌کنن و توی کوییز و مسابقه‌ی زنده رقابت می‌کنن؛ همه‌چیز توی مرورگر، بدون نصب.
             </p>
             <div className="flex flex-wrap gap-3">
-              <Link href="/signup" className="btn-primary !px-7 !py-3.5 !text-[15px]">
-                شروع کن ←
-              </Link>
+              {ready && user && !needsProfile ? (
+                <Link href="/dashboard" className="btn-primary !px-7 !py-3.5 !text-[15px]">
+                  برو به داشبورد ←
+                </Link>
+              ) : (
+                <Link href="/signup" className="btn-primary !px-7 !py-3.5 !text-[15px]">
+                  شروع کن ←
+                </Link>
+              )}
               <Link href="/admin" className="btn-ghost !px-6 !py-3.5">
                 پنل مدیریت
               </Link>
