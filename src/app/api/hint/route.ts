@@ -123,7 +123,7 @@ export async function POST(req: NextRequest) {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: userMessage },
           ],
-          max_tokens: 800,
+          max_tokens: 2000,
           temperature: 0.4,
           reasoning: { enabled: false },
         }),
