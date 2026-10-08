@@ -24,6 +24,7 @@ import {
   CircleDot,
   CheckCircle2,
   Clock,
+  BarChart3,
 } from "lucide-react";
 import { StudentProgressChart, TeacherActivityChart } from "@/components/ProgressChart";
 import type { ClassSession } from "@/lib/types";
@@ -382,6 +383,7 @@ function CopyCode({ code }: { code: string }) {
 }
 
 function TeacherClassCard({ cls }: { cls: TeacherClassRow }) {
+  const router = useRouter();
   return (
     <Link href={`/class/${cls.code}`} className="card p-4 hover:shadow-lift hover:-translate-y-0.5 transition group">
       <div className="flex items-center gap-3 mb-3">
@@ -413,6 +415,17 @@ function TeacherClassCard({ cls }: { cls: TeacherClassRow }) {
             <Flag size={11} /> مسابقه فعال
           </span>
         )}
+        <span
+          role="link"
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            router.push(`/class/${cls.code}/students`);
+          }}
+          className="mr-auto flex items-center gap-1 font-bold text-primary hover:underline"
+        >
+          <BarChart3 size={11} /> وضعیت دانشجوها
+        </span>
       </div>
     </Link>
   );

@@ -40,10 +40,27 @@ async function getFreeModelIds(): Promise<string[]> {
 const SYSTEM_PROMPT = `تو یه دستیار آموزشی مهربون برای یه کلاس پایتون هستی. دانشجو گیر کرده و کدش رو برات می‌فرسته.
 قوانین مهم:
 - هرگز کد کامل یا راه‌حل نهایی رو ننویس.
-- فقط یه راهنمایی کوتاه (حداکثر ۳ تا ۴ جمله) بده که ذهنش رو به سمت درست هدایت کنه: کدوم خط مشکل داره، چه مفهومی رو باید چک کنه، یا چه سوالی از خودش بپرسه.
-- اگه کد بدون خطا و درسته ولی دانشجو گفته گیر کرده، یه تشویق کوتاه بده و بپرس دقیقاً کجا گیر کرده.
-- فقط فارسی و خیلی خودمونی و مثبت بنویس.
-- هرگز اموجی زیاد استفاده نکن (حداکثر یکی).`;
+- جواب باید خیلی کوتاه باشه: حداکثر ۲ جمله‌ی کوتاه، در مجموع زیر ۴۰ کلمه. این محدودیت رو جدی بگیر، چون فضای پاسخ محدوده.
+- فقط روی یه نکته تمرکز کن: مهم‌ترین چیزی که باید چک کنه. جزئیات اضافه رو کنار بذار.
+- اگه کد بدون خطا و درسته ولی دانشجو گفته گیر کرده، یه تشویق خیلی کوتاه بده و بپرس دقیقاً کجا گیر کرده.
+- همیشه جمله‌هات رو کامل تموم کن؛ وسط جمله قطع نشه.
+- فقط فارسی و خودمونی و مثبت بنویس، بدون اموجی.`;
+
+/**
+ * If the model's answer got cut off mid-sentence (hit the token limit), trim
+ * back to the last complete sentence so the UI never shows a hint that stops
+ * mid-word — a short, complete thought beats a longer, broken one.
+ */
+function trimToCompleteSentence(text: string): string {
+  const trimmed = text.trim();
+  const lastEnd = Math.max(trimmed.lastIndexOf("."), trimmed.lastIndexOf("؟"), trimmed.lastIndexOf("!"), trimmed.lastIndexOf("۔"));
+  // Only trim if we'd still keep a reasonable chunk of the answer (avoid cutting
+  // down to almost nothing if the model front-loaded one long sentence).
+  if (lastEnd > trimmed.length * 0.4) {
+    return trimmed.slice(0, lastEnd + 1);
+  }
+  return trimmed;
+}
 
 export async function POST(req: NextRequest) {
   if (!OPENROUTER_API_KEY) {
@@ -106,9 +123,8 @@ export async function POST(req: NextRequest) {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: userMessage },
           ],
-          max_tokens: 1200,
+          max_tokens: 400,
           temperature: 0.4,
-          reasoning: { enabled: false },   // ← این خط reasoning رو خاموش می‌کنه
         }),
       });
 
@@ -118,12 +134,14 @@ export async function POST(req: NextRequest) {
       }
 
       const data = await res.json();
-      const hint = data?.choices?.[0]?.message?.content?.trim();
-      if (!hint) {
+      const rawHint: string | undefined = data?.choices?.[0]?.message?.content?.trim();
+      const finishReason = data?.choices?.[0]?.finish_reason;
+      if (!rawHint) {
         statuses.push(200);
         continue;
       }
 
+      const hint = finishReason === "length" ? trimToCompleteSentence(rawHint) : rawHint;
       return NextResponse.json({ hint, model });
     } catch {
       statuses.push(0); // network hiccup on this model — try the next one

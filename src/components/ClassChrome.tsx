@@ -22,11 +22,13 @@ export default function ClassChrome({
   access,
   meetingTitle,
   ipynb,
+  section,
   children,
 }: {
   access: ReturnType<typeof useClassAccess>;
   meetingTitle?: string;
   ipynb?: { onExport: () => void; onImport: (file: File) => void; importing: boolean };
+  section?: "students";
   children: ReactNode;
 }) {
   const { session, currentTeam, setCurrentTeam, isTeacher, isOwner, teacherMode, previewAsStudent, setPreviewAsStudent, leaveClass, loadCoTeachers } = access;
@@ -126,6 +128,7 @@ export default function ClassChrome({
         onProfile={() => setProfileOpen(true)}
         onCoTeachers={() => setCoTeachersOpen(true)}
         ipynb={ipynb}
+        section={section}
       />
 
       {children}

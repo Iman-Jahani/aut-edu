@@ -15,6 +15,7 @@ import {
   Download,
   Upload,
   ChevronRight,
+  BarChart3,
 } from "lucide-react";
 import type { CurrentTeam } from "@/components/TeamPicker";
 import type { ClassSession } from "@/lib/types";
@@ -47,6 +48,7 @@ export default function ClassHeader({
   onProfile,
   onCoTeachers,
   ipynb,
+  section,
 }: {
   session: ClassSession;
   /** When set, shows a "← جلسات" back link plus this meeting's title under the class title. */
@@ -70,6 +72,8 @@ export default function ClassHeader({
   onProfile: () => void;
   onCoTeachers: () => void;
   ipynb?: { onExport: () => void; onImport: (file: File) => void; importing: boolean };
+  /** Which top-level section is open when there is no meeting title. */
+  section?: "students";
 }) {
   const ipynbInputRef = useRef<HTMLInputElement>(null);
   const compNeedsAttention = !!comp.item && !teacherMode && (!currentTeam || !comp.answered);
@@ -189,7 +193,7 @@ export default function ClassHeader({
 
       {/* Section nav */}
       <div className="max-w-4xl mx-auto px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto">
-        {meetingTitle ? (
+        {meetingTitle || section ? (
           <Link href={`/class/${session.code}`} className={`${tabBase} text-muted hover:bg-white hover:text-ink hover:shadow-soft`}>
             <CalendarDays size={14} /> جلسات
           </Link>
@@ -197,6 +201,14 @@ export default function ClassHeader({
           <span className={`${tabBase} bg-indigo-50 text-primary`}>
             <Sparkles size={14} /> جلسات
           </span>
+        )}
+        {isTeacher && (
+          <Link
+            href={`/class/${session.code}/students`}
+            className={`${tabBase} ${section === "students" ? "bg-indigo-50 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+          >
+            <BarChart3 size={14} /> دانشجوها
+          </Link>
         )}
         <button onClick={onExercises} className={`${tabBase} text-muted hover:bg-white hover:text-ink hover:shadow-soft`}>
           <BookOpen size={14} /> تمرین‌ها
