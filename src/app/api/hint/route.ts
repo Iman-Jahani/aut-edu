@@ -24,12 +24,51 @@ async function getFreeModelIds(): Promise<string[]> {
     const res = await fetch("https://openrouter.ai/api/v1/models");
     if (!res.ok) return freeModelsCache?.ids || [];
     const data = await res.json();
-    const models: Array<{ id: string; pricing?: { prompt?: string; completion?: string }; context_length?: number }> = data?.data || [];
+
+    type ORModel = {
+      id: string;
+      name?: string;
+      pricing?: { prompt?: string; completion?: string };
+      context_length?: number;
+      supported_parameters?: string[];
+      top_provider?: { max_completion_tokens?: number | null };
+      per_request_limits?: { completion_tokens?: number } | null;
+    };
+
+    const models: ORModel[] = data?.data || [];
+
     const free = models
-      .filter((m) => m.id.endsWith(":free") || (m.pricing && Number(m.pricing.prompt) === 0 && Number(m.pricing.completion) === 0))
-      // Prefer models with a bit more context so longer code/questions still fit.
+      // ۱) فقط مدل‌های رایگان
+      .filter(
+        (m) =>
+          m.id.endsWith(":free") ||
+          (m.pricing &&
+            Number(m.pricing.prompt) === 0 &&
+            Number(m.pricing.completion) === 0)
+      )
+      // ۲) مدل‌های reasoning رو حذف کن — اینا همون‌هایی‌ان که نصفه جواب می‌دن
+      .filter((m) => {
+        const name = (m.name || m.id).toLowerCase();
+        if (/r1|qwq|thinking|reason/.test(name)) return false;
+        if ((m.supported_parameters || []).includes("reasoning")) return false;
+        return true;
+      })
+      // ۳) سقف خروجی باید بیشتر از ۱۲۰۰ توکن باشه
+      .filter((m) => {
+        const cap = m.top_provider?.max_completion_tokens; // سقف مدل
+        const perReq = m.per_request_limits?.completion_tokens; // سقف per-request (معمولاً برای free)
+        // اگه هر دو undefined/null بودن یعنی محدودیت صریحی نداره → قبولش کن
+        if (cap == null && perReq == null) return true;
+        const effective = Math.min(
+          cap ?? Infinity,
+          perReq ?? Infinity
+        );
+        return effective > 1200;
+      })
+      // ۴) ترتیب: مدل‌های non-reasoning با context متوسط اول (نه بزرگ‌ترین‌ها)
       .sort((a, b) => (b.context_length || 0) - (a.context_length || 0))
       .map((m) => m.id);
+
     freeModelsCache = { ids: free, fetchedAt: Date.now() };
     return free;
   } catch {
@@ -106,7 +145,7 @@ export async function POST(req: NextRequest) {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: userMessage },
           ],
-          max_tokens: 5000,
+          max_tokens: 1200,
           temperature: 0.4,
           reasoning: { enabled: false },   // ← این خط reasoning رو خاموش می‌کنه
         }),
