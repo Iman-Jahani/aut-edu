@@ -16,13 +16,14 @@ export default function RichTextHint({ textareaRef, value, onChange }: {
     const el = textareaRef.current;
     const start = el?.selectionStart ?? value.length;
     const end = el?.selectionEnd ?? value.length;
-    const snippet = "```\nکد اینجا\n```";
+    const placeholder = "کد اینجا";
+    const snippet = "```\n" + placeholder + "\n```";
     const next = value.slice(0, start) + snippet + value.slice(end);
     onChange(next);
     requestAnimationFrame(() => {
       el?.focus();
       const pos = start + 4;
-      el?.setSelectionRange(pos, pos + 7);
+      el?.setSelectionRange(pos, pos + placeholder.length);
     });
   };
 

@@ -24,51 +24,12 @@ async function getFreeModelIds(): Promise<string[]> {
     const res = await fetch("https://openrouter.ai/api/v1/models");
     if (!res.ok) return freeModelsCache?.ids || [];
     const data = await res.json();
-
-    type ORModel = {
-      id: string;
-      name?: string;
-      pricing?: { prompt?: string; completion?: string };
-      context_length?: number;
-      supported_parameters?: string[];
-      top_provider?: { max_completion_tokens?: number | null };
-      per_request_limits?: { completion_tokens?: number } | null;
-    };
-
-    const models: ORModel[] = data?.data || [];
-
+    const models: Array<{ id: string; pricing?: { prompt?: string; completion?: string }; context_length?: number }> = data?.data || [];
     const free = models
-      // ۱) فقط مدل‌های رایگان
-      .filter(
-        (m) =>
-          m.id.endsWith(":free") ||
-          (m.pricing &&
-            Number(m.pricing.prompt) === 0 &&
-            Number(m.pricing.completion) === 0)
-      )
-      // ۲) مدل‌های reasoning رو حذف کن — اینا همون‌هایی‌ان که نصفه جواب می‌دن
-      .filter((m) => {
-        const name = (m.name || m.id).toLowerCase();
-        if (/r1|qwq|thinking|reason/.test(name)) return false;
-        if ((m.supported_parameters || []).includes("reasoning")) return false;
-        return true;
-      })
-      // ۳) سقف خروجی باید بیشتر از ۱۲۰۰ توکن باشه
-      .filter((m) => {
-        const cap = m.top_provider?.max_completion_tokens; // سقف مدل
-        const perReq = m.per_request_limits?.completion_tokens; // سقف per-request (معمولاً برای free)
-        // اگه هر دو undefined/null بودن یعنی محدودیت صریحی نداره → قبولش کن
-        if (cap == null && perReq == null) return true;
-        const effective = Math.min(
-          cap ?? Infinity,
-          perReq ?? Infinity
-        );
-        return effective > 1200;
-      })
-      // ۴) ترتیب: مدل‌های non-reasoning با context متوسط اول (نه بزرگ‌ترین‌ها)
+      .filter((m) => m.id.endsWith(":free") || (m.pricing && Number(m.pricing.prompt) === 0 && Number(m.pricing.completion) === 0))
+      // Prefer models with a bit more context so longer code/questions still fit.
       .sort((a, b) => (b.context_length || 0) - (a.context_length || 0))
       .map((m) => m.id);
-
     freeModelsCache = { ids: free, fetchedAt: Date.now() };
     return free;
   } catch {
@@ -79,10 +40,27 @@ async function getFreeModelIds(): Promise<string[]> {
 const SYSTEM_PROMPT = `تو یه دستیار آموزشی مهربون برای یه کلاس پایتون هستی. دانشجو گیر کرده و کدش رو برات می‌فرسته.
 قوانین مهم:
 - هرگز کد کامل یا راه‌حل نهایی رو ننویس.
-- فقط یه راهنمایی کوتاه (حداکثر ۳ تا ۴ جمله) بده که ذهنش رو به سمت درست هدایت کنه: کدوم خط مشکل داره، چه مفهومی رو باید چک کنه، یا چه سوالی از خودش بپرسه.
-- اگه کد بدون خطا و درسته ولی دانشجو گفته گیر کرده، یه تشویق کوتاه بده و بپرس دقیقاً کجا گیر کرده.
-- فقط فارسی و خیلی خودمونی و مثبت بنویس.
-- هرگز اموجی زیاد استفاده نکن (حداکثر یکی).`;
+- جواب باید خیلی کوتاه باشه: حداکثر ۲ جمله‌ی کوتاه، در مجموع زیر ۴۰ کلمه. این محدودیت رو جدی بگیر، چون فضای پاسخ محدوده.
+- فقط روی یه نکته تمرکز کن: مهم‌ترین چیزی که باید چک کنه. جزئیات اضافه رو کنار بذار.
+- اگه کد بدون خطا و درسته ولی دانشجو گفته گیر کرده، یه تشویق خیلی کوتاه بده و بپرس دقیقاً کجا گیر کرده.
+- همیشه جمله‌هات رو کامل تموم کن؛ وسط جمله قطع نشه.
+- فقط فارسی و خودمونی و مثبت بنویس، بدون اموجی.`;
+
+/**
+ * If the model's answer got cut off mid-sentence (hit the token limit), trim
+ * back to the last complete sentence so the UI never shows a hint that stops
+ * mid-word — a short, complete thought beats a longer, broken one.
+ */
+function trimToCompleteSentence(text: string): string {
+  const trimmed = text.trim();
+  const lastEnd = Math.max(trimmed.lastIndexOf("."), trimmed.lastIndexOf("؟"), trimmed.lastIndexOf("!"), trimmed.lastIndexOf("۔"));
+  // Only trim if we'd still keep a reasonable chunk of the answer (avoid cutting
+  // down to almost nothing if the model front-loaded one long sentence).
+  if (lastEnd > trimmed.length * 0.4) {
+    return trimmed.slice(0, lastEnd + 1);
+  }
+  return trimmed;
+}
 
 export async function POST(req: NextRequest) {
   if (!OPENROUTER_API_KEY) {
@@ -145,9 +123,8 @@ export async function POST(req: NextRequest) {
             { role: "system", content: SYSTEM_PROMPT },
             { role: "user", content: userMessage },
           ],
-          max_tokens: 1200,
+          max_tokens: 400,
           temperature: 0.4,
-          reasoning: { enabled: false },   // ← این خط reasoning رو خاموش می‌کنه
         }),
       });
 
@@ -157,12 +134,14 @@ export async function POST(req: NextRequest) {
       }
 
       const data = await res.json();
-      const hint = data?.choices?.[0]?.message?.content?.trim();
-      if (!hint) {
+      const rawHint: string | undefined = data?.choices?.[0]?.message?.content?.trim();
+      const finishReason = data?.choices?.[0]?.finish_reason;
+      if (!rawHint) {
         statuses.push(200);
         continue;
       }
 
+      const hint = finishReason === "length" ? trimToCompleteSentence(rawHint) : rawHint;
       return NextResponse.json({ hint, model });
     } catch {
       statuses.push(0); // network hiccup on this model — try the next one

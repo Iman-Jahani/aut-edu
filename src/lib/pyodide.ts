@@ -15,32 +15,87 @@ declare global {
 
 const PYODIDE_VERSION = "0.26.2";
 const PYODIDE_CDN = `https://cdn.jsdelivr.net/pyodide/v${PYODIDE_VERSION}/full/`;
+// Same-origin copy of the runtime (filled in by `npm install` via scripts/copy-pyodide.mjs).
+// Used as an automatic fallback for students whose network can't reach the CDN.
+const PYODIDE_LOCAL = "/pyodide/";
+const SOURCE_TIMEOUT_MS = 45_000;
+
+export const PYODIDE_LOAD_ERROR = "PYODIDE_LOAD_FAILED";
 
 let pyodidePromise: Promise<PyodideInterface> | null = null;
 
 function loadScript(src: string): Promise<void> {
   return new Promise((resolve, reject) => {
-    if (document.querySelector(`script[src="${src}"]`)) {
-      resolve();
-      return;
-    }
+    const existing = document.querySelector(`script[src="${src}"]`);
+    if (existing) existing.remove(); // a previous failed attempt must not block a retry
     const script = document.createElement("script");
     script.src = src;
     script.onload = () => resolve();
-    script.onerror = () => reject(new Error("Failed to load Pyodide script"));
+    script.onerror = () => {
+      script.remove();
+      reject(new Error("Failed to load " + src));
+    };
     document.head.appendChild(script);
   });
 }
 
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return new Promise((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error("timeout")), ms);
+    p.then(
+      (v) => {
+        clearTimeout(t);
+        resolve(v);
+      },
+      (e) => {
+        clearTimeout(t);
+        reject(e);
+      }
+    );
+  });
+}
+
+async function loadFrom(base: string): Promise<PyodideInterface> {
+  // pyodide.js is tiny; if it doesn't arrive quickly this source is unreachable — give up fast.
+  if (!window.loadPyodide) await withTimeout(loadScript(`${base}pyodide.js`), 15_000);
+  if (!window.loadPyodide) throw new Error("loadPyodide missing");
+  return window.loadPyodide({ indexURL: base });
+}
+
+/**
+ * Loads Pyodide once and shares it. Tries the CDN first (so nothing changes for
+ * people it already works for), then the same-origin copy, and — importantly —
+ * forgets a failed attempt so the next "Run" click retries instead of staying
+ * broken until the page is reloaded.
+ */
 export function getPyodide(): Promise<PyodideInterface> {
   if (pyodidePromise) return pyodidePromise;
-  pyodidePromise = (async () => {
-    await loadScript(`${PYODIDE_CDN}pyodide.js`);
-    if (!window.loadPyodide) throw new Error("Pyodide failed to load");
-    return window.loadPyodide({ indexURL: PYODIDE_CDN });
+  const preferLocal = process.env.NEXT_PUBLIC_PYODIDE_PREFER_LOCAL === "1";
+  const sources = preferLocal ? [PYODIDE_LOCAL, PYODIDE_CDN] : [PYODIDE_CDN, PYODIDE_LOCAL];
+  const attempt = (async () => {
+    for (const base of sources) {
+      try {
+        return await withTimeout(loadFrom(base), SOURCE_TIMEOUT_MS);
+      } catch {
+        // try the next source
+      }
+    }
+    throw new Error(PYODIDE_LOAD_ERROR);
   })();
-  return pyodidePromise;
+  pyodidePromise = attempt;
+  attempt.catch(() => {
+    if (pyodidePromise === attempt) pyodidePromise = null;
+  });
+  return attempt;
 }
+
+/** Start downloading the Python runtime in the background (safe to call repeatedly). */
+export function preloadPyodide() {
+  getPyodide().catch(() => undefined);
+}
+
+const LOAD_FAILED_MESSAGE =
+  "موتور پایتون لود نشد. احتمالاً اینترنتت قطع یا کنده، یا مرورگرت قدیمیه.\nدوباره روی «اجرا» بزن؛ اگه بازم نشد صفحه رو رفرش کن یا با مرورگر دیگه (Chrome / Edge / Firefox به‌روز) امتحان کن.";
 
 // Captures stdout+stderr as raw bytes (exact text, including partial lines such
 // as print("x", end="")). Call the returned function to read what was written.
@@ -87,7 +142,12 @@ export interface RunResult {
  * prompt and the caller should collect the answer and call again with it appended.
  */
 export async function runPython(code: string, inputs: string[] = [], seed = 1): Promise<RunResult> {
-  const pyodide = await getPyodide();
+  let pyodide: PyodideInterface;
+  try {
+    pyodide = await getPyodide();
+  } catch {
+    return { output: LOAD_FAILED_MESSAGE, needInput: null, isError: true };
+  }
   const read = captureStdio(pyodide);
   try {
     if (inputs.length === 0) await pyodide.loadPackagesFromImports(code);
@@ -146,7 +206,12 @@ export async function runTestCases(
   code: string,
   tests: TestCaseInput[]
 ): Promise<TestRunResult[]> {
-  const pyodide = await getPyodide();
+  let pyodide: PyodideInterface;
+  try {
+    pyodide = await getPyodide();
+  } catch {
+    throw new Error(LOAD_FAILED_MESSAGE);
+  }
   await pyodide.loadPackagesFromImports(code);
   const results: TestRunResult[] = [];
 

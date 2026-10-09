@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { preloadPyodide } from "@/lib/pyodide";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
@@ -24,6 +25,10 @@ export default function PlaygroundPage() {
   const loadedOnce = useRef(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [profileOpen, setProfileOpen] = useState(false);
+
+  useEffect(() => {
+    preloadPyodide();
+  }, []);
 
   useEffect(() => {
     if (ready && !user) router.replace("/login?next=/playground");

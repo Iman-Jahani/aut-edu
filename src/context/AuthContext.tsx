@@ -82,7 +82,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       }
       if (cancelled) return;
       setUser(u);
-      const loadedProfile = u ? await loadProfile(u.id) : null;
+      let loadedProfile = u ? await loadProfile(u.id) : null;
+      // Signed up with email: name/avatar/role were saved on the account itself, so
+      // create the profile row now instead of asking the person for them again
+      // (covers confirming the email on another device, and the sign-up race).
+      if (u && !loadedProfile) {
+        const meta = (u.user_metadata || {}) as { display_name?: string; avatar?: string; role?: string };
+        if (meta.display_name && (meta.role === "teacher" || meta.role === "student")) {
+          const row = {
+            user_id: u.id,
+            display_name: meta.display_name,
+            avatar: meta.avatar || "🙂",
+            email: u.email ?? null,
+            role: meta.role as UserRole,
+            updated_at: new Date().toISOString(),
+          };
+          const { error: healError } = await supabase.from("user_profiles").upsert(row, { onConflict: "user_id" });
+          if (!healError) loadedProfile = row;
+        }
+      }
       setProfile(loadedProfile);
       if (u && !loadedProfile) {
         try {
@@ -110,7 +128,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUpWithEmail = useCallback(
     async (emailAddr: string, password: string, name: string, avatar: string, role: UserRole) => {
-      const { data, error } = await supabase.auth.signUp({ email: emailAddr, password });
+      const { data, error } = await supabase.auth.signUp({
+        email: emailAddr,
+        password,
+        options: { data: { display_name: name, avatar, role } },
+      });
       if (error) return { error: friendlyAuthError(error.message) };
       const u = data.user;
       if (!u) return { error: "ثبت‌نام ناموفق بود" };

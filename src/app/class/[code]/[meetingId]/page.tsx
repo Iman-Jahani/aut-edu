@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { preloadPyodide } from "@/lib/pyodide";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
@@ -32,6 +33,10 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
   const cellsLoadedOnce = useRef(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+
+  useEffect(() => {
+    preloadPyodide();
+  }, []);
 
   useEffect(() => {
     (async () => {
