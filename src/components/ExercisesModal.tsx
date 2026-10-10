@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { stripRich } from "@/components/RichText";
+import { getWindowState, formatDateTime, formatRemaining, urgency } from "@/lib/schedule";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
@@ -13,7 +14,7 @@ import LibraryPickerModal from "@/components/LibraryPickerModal";
 import type { Exercise, ExerciseSubmission, SharedExercise } from "@/lib/types";
 import { CardGridSkeleton } from "@/components/Skeleton";
 import { StatusBadge } from "@/components/StatusBadge";
-import { BookOpen, Plus, FileText, CheckCircle2, Eye, Pencil, Trash2, Play, RotateCcw, X } from "lucide-react";
+import { BookOpen, Plus, FileText, CheckCircle2, Eye, Pencil, Trash2, Play, RotateCcw, X, Lock, CalendarClock } from "lucide-react";
 
 export default function ExercisesModal({
   classId,
@@ -29,6 +30,11 @@ export default function ExercisesModal({
   const [exercises, setExercises] = useState<Exercise[]>([]);
   const [mySubs, setMySubs] = useState<Record<string, ExerciseSubmission>>({});
   const [loading, setLoading] = useState(true);
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
 
   const [solving, setSolving] = useState<Exercise | null>(null);
   const [editing, setEditing] = useState<Exercise | null | "new">(null);
@@ -127,6 +133,11 @@ export default function ExercisesModal({
                 const total = ex.test_cases?.length || 1;
                 const solved = status === "correct";
                 const partial = status === "partial";
+                const ws = getWindowState(ex, now);
+                const locked = !teacherMode && ws === "upcoming";
+                const closed = ws === "closed";
+                const msLeft = ex.due_at ? new Date(ex.due_at).getTime() - now : null;
+                const urg = msLeft !== null && ws === "open" && !solved ? urgency(msLeft) : null;
                 return (
                   <div
                     key={ex.id}
@@ -136,6 +147,36 @@ export default function ExercisesModal({
                   >
                     <div className="font-bold text-sm mb-1 flex items-center gap-1.5"><FileText size={14} className="text-primary shrink-0" /> {ex.title}</div>
                     {ex.description && <p className="text-xs text-muted mb-2 line-clamp-2">{stripRich(ex.description)}</p>}
+                    {ws !== "none" && (
+                      <div
+                        className={`text-[11px] font-bold mb-2 flex items-center gap-1.5 rounded-lg px-2 py-1 ${
+                          locked
+                            ? "bg-slate-100 text-slate-600"
+                            : closed
+                            ? "bg-slate-100 text-slate-500"
+                            : urg === "soon"
+                            ? "bg-red-50 text-red-700"
+                            : urg === "today"
+                            ? "bg-amber-50 text-amber-700"
+                            : "bg-sky-50 text-sky-800"
+                        }`}
+                      >
+                        <CalendarClock size={12} className="shrink-0" />
+                        {ws === "upcoming"
+                          ? `شروع: ${formatDateTime(ex.opens_at)}`
+                          : closed
+                          ? `مهلت تموم شد (${formatDateTime(ex.due_at)})`
+                          : msLeft !== null
+                          ? `${formatRemaining(msLeft)} تا مهلت تحویل`
+                          : "باز"}
+                      </div>
+                    )}
+                    {teacherMode && ws !== "none" && (
+                      <div className="text-[11px] text-muted mb-2 leading-5">
+                        {ex.opens_at && <div>شروع: {formatDateTime(ex.opens_at)}</div>}
+                        {ex.due_at && <div>پایان: {formatDateTime(ex.due_at)}</div>}
+                      </div>
+                    )}
                     {teacherMode && ex.shared_exercise_id && (
                       <div className="text-[11px] text-emerald-600 font-bold mb-1 flex items-center gap-1"><CheckCircle2 size={12} /> در کتابخانه اشتراکی</div>
                     )}
@@ -173,11 +214,14 @@ export default function ExercisesModal({
                       </div>
                     ) : (
                       <button
-                        onClick={() => setSolving(ex)}
-                        className="w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-white bg-gradient-to-br from-primary to-primary2"
+                        onClick={() => !locked && setSolving(ex)}
+                        disabled={locked}
+                        className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${
+                          locked ? "bg-slate-100 text-slate-400 cursor-not-allowed" : closed ? "border border-line text-ink bg-white" : "text-white bg-gradient-to-br from-primary to-primary2"
+                        }`}
                       >
-                        {solved ? <RotateCcw size={13} /> : <Play size={13} />}
-                        {solved ? "دوباره حل کن" : "حل کن"}
+                        {locked ? <Lock size={13} /> : closed ? <Eye size={13} /> : solved ? <RotateCcw size={13} /> : <Play size={13} />}
+                        {locked ? "هنوز باز نشده" : closed ? "مرور" : solved ? "دوباره حل کن" : "حل کن"}
                       </button>
                     )}
                   </div>

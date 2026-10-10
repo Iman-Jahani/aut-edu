@@ -127,6 +127,9 @@ export interface Exercise {
   hint: string | null;
   test_cases: TestCase[];
   shared_exercise_id?: string | null;
+  /** Students may only submit between opens_at and due_at (either can be empty). */
+  opens_at?: string | null;
+  due_at?: string | null;
   created_at: string;
   updated_at?: string | null;
 }

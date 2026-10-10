@@ -10,7 +10,6 @@ import { useToast } from "@/components/ToastProvider";
 import { runPython } from "@/lib/pyodide";
 import { noPaste } from "@/lib/editor";
 import { Skeleton } from "@/components/Skeleton";
-import HintButton from "@/components/HintPanel";
 import { fmtRelative } from "@/lib/utils";
 import type { PlaygroundCell as PlaygroundCellType } from "@/lib/types";
 
@@ -205,7 +204,6 @@ export default function PlaygroundCell({
           {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           {running ? "در حال اجرا…" : "اجرا"}
         </button>
-        <HintButton code={code} error={isError ? output : undefined} />
         <button onClick={del} className="mr-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-danger border border-red-200 bg-white">
           <Trash2 size={14} /> حذف
         </button>

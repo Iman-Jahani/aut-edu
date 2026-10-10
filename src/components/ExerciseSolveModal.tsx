@@ -11,9 +11,10 @@ import { runTestCases, type TestRunResult } from "@/lib/pyodide";
 import { noPaste } from "@/lib/editor";
 import { ListSkeleton } from "@/components/Skeleton";
 import RichText from "@/components/RichText";
-import HintButton from "@/components/HintPanel";
+import { HintButton, HintBox, useHint } from "@/components/HintPanel";
+import { getWindowState, formatDateTime, formatRemaining, friendlyWindowError } from "@/lib/schedule";
 import type { Exercise, ExerciseSubmission } from "@/lib/types";
-import { FileText, Target, Lightbulb, CheckCircle2, XCircle, Play, X } from "lucide-react";
+import { FileText, Target, Lightbulb, CheckCircle2, XCircle, Play, X, Lock, CalendarClock } from "lucide-react";
 import { getErrorMessage } from "@/lib/errors";
 
 export default function ExerciseSolveModal({
@@ -55,8 +56,26 @@ export default function ExerciseSolveModal({
 
   const tests = exercise.test_cases?.length ? exercise.test_cases : [{ input: "", expected: "" }];
 
+  // Submission window: after the deadline the exercise is view-only. (The database
+  // enforces the same rule, so this is a convenience, not the only guard.)
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    const t = setInterval(() => setNow(Date.now()), 30_000);
+    return () => clearInterval(t);
+  }, []);
+  const windowState = getWindowState(exercise, now);
+  const closed = windowState === "closed";
+  const msLeft = exercise.due_at ? new Date(exercise.due_at).getTime() - now : null;
+
+  const hintState = useHint({
+    code,
+    context: [exercise.description, exercise.hint].filter(Boolean).join("\n"),
+    error: results?.find((r) => !r.passed)?.actual,
+  });
+
   const run = async () => {
     if (!user) return;
+    if (closed) return toast("مهلت این تمرین تموم شده", "err");
     setRunning(true);
     setResults(null);
     try {
@@ -83,7 +102,7 @@ export default function ExerciseSolveModal({
       const { error } = await supabase
         .from("exercise_submissions")
         .upsert(payload, { onConflict: "exercise_id,user_id" });
-      if (error) toast("خطا: " + error.message, "err");
+      if (error) toast(friendlyWindowError(error.message) || "خطا: " + error.message, "err");
       else {
         onSubmitted(payload);
         if (status === "correct") toast("🎉 پاس شد!", "ok");
@@ -117,8 +136,21 @@ export default function ExerciseSolveModal({
             </div>
           )}
 
+          {exercise.due_at && !closed && msLeft !== null && (
+            <div className={`rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 border ${msLeft <= 3 * 3600_000 ? "bg-red-50 border-red-200 text-red-800" : "bg-sky-50 border-sky-100 text-sky-900"}`}>
+              <CalendarClock size={13} className="shrink-0" /> مهلت تحویل: {formatDateTime(exercise.due_at)} — {formatRemaining(msLeft)} مونده
+            </div>
+          )}
+          {closed && (
+            <div className="rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 border bg-slate-100 border-slate-200 text-slate-700">
+              <Lock size={13} className="shrink-0" /> مهلت این تمرین ({formatDateTime(exercise.due_at)}) تموم شده؛ فقط می‌تونی مرورش کنی.
+            </div>
+          )}
+
           <CodeMirror
             value={code}
+            editable={!closed}
+            readOnly={closed}
             onChange={setCode}
             theme={dracula}
             height="220px"
@@ -130,6 +162,8 @@ export default function ExerciseSolveModal({
               }
             }}
           />
+
+          <HintBox state={hintState} />
 
           {running && <ListSkeleton rows={2} />}
 
@@ -190,18 +224,14 @@ export default function ExerciseSolveModal({
         </div>
 
         <div className="px-6 py-4 border-t border-line flex justify-end gap-2">
-          <HintButton
-            code={code}
-            context={[exercise.description, exercise.hint].filter(Boolean).join("\n")}
-            error={results?.find((r) => !r.passed)?.actual}
-          />
+          {!closed && <HintButton onClick={hintState.ask} loading={hintState.loading} />}
           <div className="flex-1" />
           <button onClick={onClose} className="px-4 py-2 rounded-lg text-sm font-bold border border-line">
             بستن
           </button>
           <button
             onClick={run}
-            disabled={running}
+            disabled={running || closed}
             className="px-5 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-primary to-primary2 disabled:opacity-50"
           >
             <span className="flex items-center gap-1.5">{!running && <Play size={14} />} {running ? "در حال اجرا…" : "اجرا (Ctrl+Enter)"}</span>

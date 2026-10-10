@@ -5,7 +5,8 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import type { Exercise, TestCase } from "@/lib/types";
-import { Pencil, FileText, RefreshCw, BookOpen, X } from "lucide-react";
+import { Pencil, FileText, RefreshCw, BookOpen, X, CalendarClock } from "lucide-react";
+import { toLocalInput, fromLocalInput } from "@/lib/schedule";
 import RichTextHint from "@/components/RichTextHint";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -35,6 +36,8 @@ export default function ExerciseFormModal({
       : [{ input: "", expected: "" }]
   );
   const [addToLibrary, setAddToLibrary] = useState(false);
+  const [opensAt, setOpensAt] = useState(toLocalInput(exercise?.opens_at));
+  const [dueAt, setDueAt] = useState(toLocalInput(exercise?.due_at));
   const [saving, setSaving] = useState(false);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const hintRef = useRef<HTMLTextAreaElement>(null);
@@ -55,12 +58,19 @@ export default function ExerciseFormModal({
     const cleanTests = tests.map((tc) => ({ input: tc.input || "", expected: tc.expected || "" })).filter((tc) => tc.expected.trim() !== "");
     if (cleanTests.length === 0) return toast("حداقل یه تست با خروجی لازمه", "err");
 
+    const opensIso = fromLocalInput(opensAt);
+    const dueIso = fromLocalInput(dueAt);
+    if (opensIso && dueIso && new Date(dueIso) <= new Date(opensIso)) return toast("زمان پایان باید بعد از زمان شروع باشه", "err");
+    // Only send the schedule columns when they're used, so everything keeps working
+    // on databases that haven't added them yet.
+    const schedule = opensIso || dueIso || exercise?.opens_at || exercise?.due_at ? { opens_at: opensIso, due_at: dueIso } : {};
+
     setSaving(true);
     try {
       if (exercise) {
         const { error } = await supabase
           .from("exercises")
-          .update({ title: t, description, hint, test_cases: cleanTests, updated_at: new Date().toISOString() })
+          .update({ title: t, description, hint, test_cases: cleanTests, ...schedule, updated_at: new Date().toISOString() })
           .eq("id", exercise.id);
         if (error) throw error;
         if (addToLibrary) {
@@ -85,7 +95,7 @@ export default function ExerciseFormModal({
       } else {
         const { data: newEx, error } = await supabase
           .from("exercises")
-          .insert({ class_id: classId, title: t, description, hint, test_cases: cleanTests })
+          .insert({ class_id: classId, title: t, description, hint, test_cases: cleanTests, ...schedule })
           .select()
           .single();
         if (error) throw error;
@@ -195,6 +205,40 @@ export default function ExerciseFormModal({
               </div>
             </div>
           ))}
+
+          <div className="border border-line rounded-lg p-3 space-y-2.5">
+            <div className="flex items-center gap-1.5 text-sm font-bold text-muted">
+              <CalendarClock size={15} /> بازه‌ی مجاز پاسخ‌دادن <span className="text-[11px] font-normal">(اختیاری)</span>
+            </div>
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {(
+                [
+                  ["شروع", opensAt, setOpensAt],
+                  ["پایان (مهلت تحویل)", dueAt, setDueAt],
+                ] as const
+              ).map(([label, value, setter]) => (
+                <div key={label}>
+                  <label className="text-[11px] text-muted block mb-1">{label}</label>
+                  <div className="flex gap-1">
+                    <input
+                      type="datetime-local"
+                      value={value}
+                      onChange={(e) => setter(e.target.value)}
+                      className="flex-1 min-w-0 border border-line rounded-lg px-2 py-1.5 text-sm outline-none focus:border-primary"
+                    />
+                    {value && (
+                      <button type="button" onClick={() => setter("")} className="px-2 text-muted hover:text-danger" title="پاک کردن">
+                        <X size={14} />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p className="text-[11px] text-muted">
+              خالی بذاری یعنی همیشه باز. قبل از شروع دانشجوها تمرین رو قفل می‌بینن، و بعد از پایان فقط می‌تونن مرورش کنن. هر وقت خواستی از «ویرایش» عوضش کن.
+            </p>
+          </div>
 
           <label className="flex items-center gap-2 text-sm pt-2 cursor-pointer">
             <input type="checkbox" checked={addToLibrary} onChange={(e) => setAddToLibrary(e.target.checked)} />

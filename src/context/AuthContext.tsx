@@ -81,7 +81,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         u = null;
       }
       if (cancelled) return;
-      setUser(u);
+      // Load the profile BEFORE publishing the user. Setting the user first made
+      // `needsProfile` briefly true (user known, profile not yet) and flashed the
+      // "enter your name" modal on every sign-in / sign-up.
       let loadedProfile = u ? await loadProfile(u.id) : null;
       // Signed up with email: name/avatar/role were saved on the account itself, so
       // create the profile row now instead of asking the person for them again
@@ -101,6 +103,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!healError) loadedProfile = row;
         }
       }
+      if (cancelled) return;
+      setUser(u);
       setProfile(loadedProfile);
       if (u && !loadedProfile) {
         try {

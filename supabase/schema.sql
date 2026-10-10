@@ -276,3 +276,28 @@ create table if not exists shared_quizzes (
   created_at timestamptz not null default now()
 );
 alter table quizzes add column if not exists shared_quiz_id uuid references shared_quizzes(id) on delete set null;
+
+-- ===== Exercise schedule (start / deadline) =====
+alter table exercises add column if not exists opens_at timestamptz;
+alter table exercises add column if not exists due_at timestamptz;
+
+-- The database itself refuses submissions outside the window, so it can't be
+-- bypassed from the browser. Empty opens_at / due_at means "no limit".
+create or replace function enforce_exercise_window() returns trigger
+language plpgsql security definer set search_path = public as $$
+declare ex record;
+begin
+  select opens_at, due_at into ex from exercises where id = new.exercise_id;
+  if ex.opens_at is not null and now() < ex.opens_at then
+    raise exception 'EXERCISE_NOT_OPEN';
+  end if;
+  if ex.due_at is not null and now() > ex.due_at then
+    raise exception 'EXERCISE_CLOSED';
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists exercise_window_check on exercise_submissions;
+create trigger exercise_window_check
+  before insert or update on exercise_submissions
+  for each row execute function enforce_exercise_window();

@@ -12,6 +12,7 @@ import CoTeachersModal from "@/components/CoTeachersModal";
 import TeamChat from "@/components/TeamChat";
 import LiveBanner from "@/components/LiveBanner";
 import ClassHeader from "@/components/ClassHeader";
+import DeadlineReminder from "@/components/DeadlineReminder";
 import { Brain, Flag, CheckCircle2, AlertTriangle, Play, GraduationCap, Copy, Link2, LogOut } from "lucide-react";
 import { useActiveItem } from "@/hooks/useActiveItem";
 import { supabase } from "@/lib/supabase";
@@ -130,6 +131,8 @@ export default function ClassChrome({
         ipynb={ipynb}
         section={section}
       />
+
+      {!teacherMode && user && <DeadlineReminder classId={session.id} userId={user.id} onOpen={() => setExercisesOpen(true)} />}
 
       {children}
 

@@ -11,7 +11,6 @@ import { runPython } from "@/lib/pyodide";
 import { colorOf, initials, fmtRelative } from "@/lib/utils";
 import CommentsPanel from "@/components/CommentsPanel";
 import { Skeleton } from "@/components/Skeleton";
-import HintButton from "@/components/HintPanel";
 import { noPaste } from "@/lib/editor";
 import { Play, MessageCircle, Trash2, Tag, X, CornerDownLeft, Loader2 } from "lucide-react";
 import type { Cell } from "@/lib/types";
@@ -301,7 +300,6 @@ export default function CodeCell({
         >
           <MessageCircle size={14} /> نظر
         </button>
-        <HintButton code={code} error={isError ? output : undefined} />
         {canDelete && (
           <button
             onClick={del}
