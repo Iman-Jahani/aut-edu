@@ -10,6 +10,7 @@ import { useToast } from "@/components/ToastProvider";
 import { runPython } from "@/lib/pyodide";
 import { noPaste } from "@/lib/editor";
 import { Skeleton } from "@/components/Skeleton";
+import AnsiText from "@/components/AnsiText";
 import { fmtRelative } from "@/lib/utils";
 import type { PlaygroundCell as PlaygroundCellType } from "@/lib/types";
 
@@ -26,6 +27,7 @@ export default function PlaygroundCell({
   const [code, setCode] = useState(cell.code || "");
   const [output, setOutput] = useState(cell.output || "");
   const [isError, setIsError] = useState(false);
+  const [ranRemote, setRanRemote] = useState(false);
   const [running, setRunning] = useState(false);
   const [showSkeleton, setShowSkeleton] = useState(false);
   const [tags, setTags] = useState<string[]>(cell.tags || []);
@@ -54,6 +56,7 @@ export default function PlaygroundCell({
       const r = await runPython(code, inputsRef.current, seedRef.current);
       setOutput(r.output);
       setIsError(r.isError);
+      setRanRemote(!!r.remote);
       if (r.needInput !== null) {
         setPendingPrompt(r.needInput);
         return;
@@ -165,8 +168,13 @@ export default function PlaygroundCell({
       ) : (
         (output || pendingPrompt !== null) && (
           <div className={isError ? "bg-red-950/90 text-red-300" : "bg-[#0b1020] text-emerald-400"} dir="ltr">
+            {ranRemote && (
+              <div className="px-4 pt-2.5 text-[10px] text-slate-500" dir="rtl">
+                روی سرور اجرا شد (موتور پایتون مرورگرت لود نشد) — کتابخانه‌های اضافه فقط توی مرورگر در دسترسن.
+              </div>
+            )}
             {output && (
-              <pre className="px-4 pt-4 pb-3 min-h-[72px] max-h-96 overflow-auto text-[13.5px] leading-6 font-mono whitespace-pre-wrap text-left">{output}</pre>
+              <pre className="px-4 pt-4 pb-3 min-h-[72px] max-h-96 overflow-auto text-[13.5px] leading-6 font-mono whitespace-pre-wrap text-left"><AnsiText text={output} /></pre>
             )}
             {pendingPrompt !== null && (
               <form

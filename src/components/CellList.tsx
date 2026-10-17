@@ -41,18 +41,17 @@ export default function CellList<T>({
   emptyDesc: string;
   showFab?: boolean;
 }) {
-  const flashedRef = useRef<string | null>(null);
+  // Scroll to a freshly created cell exactly ONCE. This used to depend on `items`,
+  // so every realtime update from a classmate (or teacher) re-ran it and yanked the
+  // page back down to the newest cell while someone was editing elsewhere.
+  const scrolledRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!highlightId) return;
+    if (!highlightId || scrolledRef.current === highlightId) return;
     const el = document.getElementById("cell-" + highlightId);
-    if (!el) return;
+    if (!el) return; // not rendered yet — re-runs when `items` changes, until it is
+    scrolledRef.current = highlightId;
     requestAnimationFrame(() => el.scrollIntoView({ behavior: "smooth", block: "center" }));
-    flashedRef.current = highlightId;
-    const t = setTimeout(() => {
-      if (flashedRef.current === highlightId) flashedRef.current = null;
-    }, 1400);
-    return () => clearTimeout(t);
   }, [highlightId, items]);
 
   return (

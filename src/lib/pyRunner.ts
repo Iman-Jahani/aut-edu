@@ -27,6 +27,30 @@ class __NeedInput(BaseException):
 
 __STATE = {}
 
+def __missing_modules(source):
+    """Top-level modules imported by \`source\` that are neither stdlib nor installed."""
+    import importlib.util
+    try:
+        tree = __ast.parse(source)
+    except SyntaxError:
+        return []
+    names = set()
+    for node in __ast.walk(tree):
+        if isinstance(node, __ast.Import):
+            names.update(a.name.split(".")[0] for a in node.names)
+        elif isinstance(node, __ast.ImportFrom) and node.level == 0 and node.module:
+            names.add(node.module.split(".")[0])
+    missing = []
+    for name in sorted(names):
+        if name in __sys.stdlib_module_names:
+            continue
+        try:
+            if importlib.util.find_spec(name) is None:
+                missing.append(name)
+        except Exception:
+            missing.append(name)
+    return missing
+
 def __restore(snap):
     g = globals()
     for k in list(g.keys()):

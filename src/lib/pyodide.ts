@@ -3,6 +3,8 @@
 // without re-downloading the ~10MB runtime each time.
 
 import { CELL_RUNNER_SETUP, TEST_INPUT_SETUP } from "./pyRunner";
+import { stripAnsi } from "./ansi";
+import { executeOnServer, interpretRun, toStdin, cleanTraceback } from "./serverRun";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type PyodideInterface = any;
@@ -75,7 +77,11 @@ export function getPyodide(): Promise<PyodideInterface> {
   const attempt = (async () => {
     for (const base of sources) {
       try {
-        return await withTimeout(loadFrom(base), SOURCE_TIMEOUT_MS);
+        const py = await withTimeout(loadFrom(base), SOURCE_TIMEOUT_MS);
+        // Output goes to a web page that understands ANSI colors; libraries such as
+        // termcolor only emit them when asked, and they decide once, on first use.
+        py.runPython('import os\nos.environ["FORCE_COLOR"] = "1"');
+        return py;
       } catch {
         // try the next source
       }
@@ -96,6 +102,23 @@ export function preloadPyodide() {
 
 const LOAD_FAILED_MESSAGE =
   "موتور پایتون لود نشد. احتمالاً اینترنتت قطع یا کنده، یا مرورگرت قدیمیه.\nدوباره روی «اجرا» بزن؛ اگه بازم نشد صفحه رو رفرش کن یا با مرورگر دیگه (Chrome / Edge / Firefox به‌روز) امتحان کن.";
+
+/** Same message, but pointing at the likely cause when we can tell what it is. */
+function loadFailedMessage(): string {
+  if (typeof WebAssembly === "undefined") {
+    return "مرورگر این دستگاه WebAssembly رو پشتیبانی نمی‌کنه، برای همین پایتون توش اجرا نمی‌شه.\nمرورگرت رو به‌روز کن یا با Chrome / Safari / Firefox جدید باز کن.";
+  }
+  if (typeof navigator !== "undefined" && /Telegram|Instagram|FBAN|FBAV|FB_IAB|Line\/|Snapchat|MicroMessenger/i.test(navigator.userAgent)) {
+    return "این صفحه داخل مرورگر داخلیِ یه برنامه (تلگرام / اینستاگرام / ...) باز شده و معمولاً نمی‌ذاره پایتون اجرا بشه.\nلینک رو توی Chrome یا Safari باز کن.";
+  }
+  return LOAD_FAILED_MESSAGE;
+}
+
+// When the in-browser engine can't start, remember it for a few minutes so each
+// "Run" doesn't wait for another failed load before using the server instead.
+let pyodideFailedAt = 0;
+let serverUnavailable = false;
+const SERVER_PREFERENCE_MS = 5 * 60_000;
 
 // Captures stdout+stderr as raw bytes (exact text, including partial lines such
 // as print("x", end="")). Call the returned function to read what was written.
@@ -130,6 +153,8 @@ async function flushStdio(pyodide: PyodideInterface) {
 }
 
 export interface RunResult {
+  /** True when this run was executed on the server instead of in the browser. */
+  remote?: boolean;
   output: string;
   /** Prompt text when the program called input() and is waiting for an answer, else null. */
   needInput: string | null;
@@ -141,16 +166,44 @@ export interface RunResult {
  * (replayed in order); if the program asks for one more, `needInput` holds the
  * prompt and the caller should collect the answer and call again with it appended.
  */
+async function runOnServer(code: string, inputs: string[], seed: number): Promise<RunResult | null> {
+  const r = await executeOnServer({ code, stdin: toStdin(inputs), mode: "run", seed });
+  if (!r.ok) {
+    if (r.reason === "unavailable") serverUnavailable = true;
+    return null;
+  }
+  return { ...interpretRun(r.raw), remote: true };
+}
+
 export async function runPython(code: string, inputs: string[] = [], seed = 1): Promise<RunResult> {
+  const preferServer = pyodideFailedAt > 0 && !serverUnavailable && Date.now() - pyodideFailedAt < SERVER_PREFERENCE_MS;
+  if (preferServer) {
+    const remote = await runOnServer(code, inputs, seed);
+    if (remote) return remote;
+  }
+
   let pyodide: PyodideInterface;
   try {
     pyodide = await getPyodide();
+    pyodideFailedAt = 0;
   } catch {
-    return { output: LOAD_FAILED_MESSAGE, needInput: null, isError: true };
+    pyodideFailedAt = Date.now();
+    const remote = preferServer ? null : await runOnServer(code, inputs, seed);
+    if (remote) return remote;
+    return { output: loadFailedMessage(), needInput: null, isError: true };
   }
   const read = captureStdio(pyodide);
   try {
-    if (inputs.length === 0) await pyodide.loadPackagesFromImports(code);
+    if (inputs.length === 0) {
+      // Best effort: a missing package should surface as Python's own ModuleNotFoundError,
+      // not abort the run.
+      try {
+        await pyodide.loadPackagesFromImports(code);
+      } catch {
+        /* ignore */
+      }
+      await installMissingPackages(pyodide, code);
+    }
     await ensureCellRunner(pyodide);
     const runCell = pyodide.globals.get("__run_cell");
     let res: unknown;
@@ -168,6 +221,40 @@ export async function runPython(code: string, inputs: string[] = [], seed = 1): 
   }
 }
 
+/**
+ * Pyodide ships ~300 packages (numpy, pandas, termcolor, rich, ...). Anything else that
+ * is a pure-Python package on PyPI can still be installed on the fly with micropip, so
+ * students aren't blocked by a library that isn't bundled. Best effort and time-boxed.
+ */
+async function installMissingPackages(pyodide: PyodideInterface, code: string): Promise<void> {
+  try {
+    await ensureCellRunner(pyodide);
+    const find = pyodide.globals.get("__missing_modules");
+    const proxy = find(code);
+    const names: string[] = proxy.toJs();
+    proxy.destroy?.();
+    find.destroy();
+    if (!names.length) return;
+    await withTimeout(
+      (async () => {
+        await pyodide.loadPackage("micropip");
+        const micropip = pyodide.pyimport("micropip");
+        for (const name of names.slice(0, 5)) {
+          try {
+            await micropip.install(name);
+          } catch {
+            /* not on PyPI / not pure Python — Python will report the ImportError */
+          }
+        }
+        micropip.destroy?.();
+      })(),
+      25_000
+    );
+  } catch {
+    /* ignore */
+  }
+}
+
 let cellRunnerReady = false;
 async function ensureCellRunner(pyodide: PyodideInterface): Promise<void> {
   if (cellRunnerReady) return;
@@ -175,9 +262,40 @@ async function ensureCellRunner(pyodide: PyodideInterface): Promise<void> {
   cellRunnerReady = true;
 }
 
+function testStdin(input: string | undefined): string {
+  const lines = (input == null ? "" : String(input)).split("\n");
+  while (lines.length > 0 && lines[lines.length - 1] === "") lines.pop();
+  return toStdin(lines);
+}
+
+/** Exercise checking on the server, for students whose browser can't run Python. */
+async function runTestCasesOnServer(code: string, tests: TestCaseInput[]): Promise<TestRunResult[] | null> {
+  const results: TestRunResult[] = [];
+  for (const test of tests) {
+    const r = await executeOnServer({ code, stdin: testStdin(test.input), mode: "test", seed: 1 });
+    if (!r.ok) {
+      if (r.reason === "unavailable") serverUnavailable = true;
+      if (results.length === 0) return null;
+      results.push({ input: test.input || "", expected: test.expected || "", actual: "Error: " + (r.message || "اجرا روی سرور ناموفق بود"), passed: false, error: r.message || "server" });
+      continue;
+    }
+    const { stdout, stderr, code: exit, signal } = r.raw;
+    const err = signal ? "اجرا بیش از حد طول کشید" : exit !== 0 && exit !== null ? cleanTraceback(stderr) : null;
+    const rawOut = stdout.replace(/\n$/, "");
+    results.push({
+      input: test.input || "",
+      expected: test.expected || "",
+      actual: err ? "Error: " + err : rawOut || "(بدون خروجی)",
+      passed: !err && normalizeOutput(rawOut) === normalizeOutput(test.expected),
+      error: err,
+    });
+  }
+  return results;
+}
+
 function normalizeOutput(s: string | null | undefined): string {
   if (s == null) return "";
-  return String(s)
+  return stripAnsi(String(s))
     .replace(/\r\n/g, "\n")
     .replace(/\r/g, "\n")
     .split("\n")
@@ -210,9 +328,15 @@ export async function runTestCases(
   try {
     pyodide = await getPyodide();
   } catch {
-    throw new Error(LOAD_FAILED_MESSAGE);
+    const remote = serverUnavailable ? null : await runTestCasesOnServer(code, tests);
+    if (remote) return remote;
+    throw new Error(loadFailedMessage());
   }
-  await pyodide.loadPackagesFromImports(code);
+  try {
+    await pyodide.loadPackagesFromImports(code);
+  } catch {
+    /* ignore — Python reports a missing module itself */
+  }
   const results: TestRunResult[] = [];
 
   for (const test of tests) {
