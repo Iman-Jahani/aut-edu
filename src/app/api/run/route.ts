@@ -3,6 +3,8 @@ import { createClient } from "@supabase/supabase-js";
 import { buildFiles, type RunnerFile, type ServerMode } from "@/lib/serverRunCore";
 
 export const runtime = "nodejs";
+// Creating a sandbox takes a few seconds; the default function limit can be shorter than that.
+export const maxDuration = 60;
 
 /**
  * Optional server-side execution, used ONLY when a student's browser can't load the
@@ -59,7 +61,18 @@ async function runOnVercelSandbox(files: RunnerFile[], stdin: string): Promise<R
     process.env.VERCEL_TOKEN && process.env.VERCEL_TEAM_ID && process.env.VERCEL_PROJECT_ID
       ? { token: process.env.VERCEL_TOKEN, teamId: process.env.VERCEL_TEAM_ID, projectId: process.env.VERCEL_PROJECT_ID }
       : {};
-  const sandbox = await Sandbox.create({ image: "vercel/sandbox/python:3.14", timeout: 60_000, resources: { vcpus: 1 }, ...creds });
+  const base = { timeout: 60_000, resources: { vcpus: 1 }, ...creds };
+  let sandbox;
+  try {
+    sandbox = await Sandbox.create({ image: "vercel/sandbox/python:3.14", ...base });
+  } catch (firstError) {
+    // Older/other setups may not know the image name: retry with the runtime name.
+    try {
+      sandbox = await Sandbox.create({ runtime: "python3.13", ...base });
+    } catch {
+      throw firstError;
+    }
+  }
   try {
     await sandbox.writeFiles([
       ...files.map((f) => ({ path: `/vercel/sandbox/${f.name}`, content: Buffer.from(f.content, "utf8") })),
@@ -113,6 +126,7 @@ export async function POST(req: NextRequest) {
     const raw = BACKEND === "sandbox" ? await runOnVercelSandbox(files, stdin) : await runOnPiston(files, stdin);
     return NextResponse.json(raw);
   } catch (e) {
+    console.error("[api/run] executor failed:", BACKEND, e);
     const detail = e instanceof Error && e.message ? `: ${e.message.slice(0, 150)}` : "";
     return NextResponse.json({ error: "سرویس اجرا جواب نداد" + detail }, { status: 502 });
   }

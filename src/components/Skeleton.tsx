@@ -102,29 +102,172 @@ export function CellSkeleton() {
   );
 }
 
-/** Whole class page while the session is loading. */
-export function ClassPageSkeleton() {
+function ClassHeaderSkeleton() {
   return (
-    <div className="min-h-screen">
-      <div className="glass">
-        <div className="max-w-4xl mx-auto px-4 pt-3 pb-2.5 flex items-center gap-3">
-          <Skeleton className="w-9 h-9 !rounded-xl" />
-          <div className="space-y-2">
-            <Skeleton className="h-3.5 w-36" />
-            <Skeleton className="h-3 w-20" />
-          </div>
-          <div className="flex-1" />
-          <Skeleton className="h-8 w-20 !rounded-full" />
-          <Skeleton className="h-8 w-28 !rounded-full" />
+    <div className="glass">
+      <div className="max-w-4xl mx-auto px-4 pt-3 pb-2.5 flex items-center gap-3">
+        <Skeleton className="w-9 h-9 !rounded-xl" />
+        <div className="space-y-2">
+          <Skeleton className="h-3.5 w-36" />
+          <Skeleton className="h-3 w-20" />
         </div>
-        <div className="max-w-4xl mx-auto px-4 pb-2.5 flex gap-2">
-          {[0, 1, 2, 3].map((i) => (
-            <Skeleton key={i} className="h-9 w-24 !rounded-xl" />
-          ))}
+        <div className="flex-1" />
+        <Skeleton className="h-8 w-20 !rounded-full" />
+        <Skeleton className="h-8 w-28 !rounded-full" />
+      </div>
+      <div className="max-w-4xl mx-auto px-4 pb-2.5 flex gap-2">
+        {[0, 1, 2, 3].map((i) => (
+          <Skeleton key={i} className="h-9 w-24 !rounded-xl" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/** A meeting (جلسه) card: icon + title + a line of small stats. */
+export function MeetingCardSkeleton() {
+  return (
+    <div className="card p-4 flex items-center gap-3">
+      <Skeleton className="w-11 h-11 !rounded-xl shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-3.5 w-3/5" />
+        <Skeleton className="h-3 w-4/5" />
+      </div>
+      <Skeleton className="w-4 h-4 !rounded-full" />
+    </div>
+  );
+}
+
+/** A student row on the teacher's student dashboard. */
+export function StudentRowSkeleton() {
+  return (
+    <div className="card px-4 py-3 flex items-center gap-3">
+      <Skeleton className="w-10 h-10 !rounded-full shrink-0" />
+      <div className="flex-1 space-y-2">
+        <Skeleton className="h-3.5 w-2/5" />
+        <Skeleton className="h-3 w-3/5" />
+      </div>
+      <Skeleton className="hidden sm:block h-6 w-36" />
+    </div>
+  );
+}
+
+/** A dashboard class card: icon + title/code + a row of stat chips. */
+export function ClassCardSkeleton() {
+  return (
+    <div className="card p-4 space-y-3">
+      <div className="flex items-center gap-3">
+        <Skeleton className="w-11 h-11 !rounded-xl shrink-0" />
+        <div className="flex-1 space-y-2">
+          <Skeleton className="h-3.5 w-3/5" />
+          <Skeleton className="h-3 w-2/5" />
         </div>
       </div>
+      <div className="flex gap-3">
+        <Skeleton className="h-3 w-14" />
+        <Skeleton className="h-3 w-14" />
+        <Skeleton className="h-3 w-14" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Whole class page while the class is loading. The placeholder matches what the page
+ * will actually show: `meetings` → meeting cards (class home), `cells` → code cells
+ * (a meeting's notebook), `students` → stat boxes + student rows.
+ */
+export function ClassPageSkeleton({ variant = "cells" }: { variant?: "meetings" | "cells" | "students" }) {
+  return (
+    <div className="min-h-screen">
+      <ClassHeaderSkeleton />
       <div className="max-w-4xl mx-auto px-4 py-6 space-y-4">
-        <Skeleton className="h-6 w-44" />
+        {variant === "meetings" && (
+          <>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-6 w-40" />
+              <Skeleton className="h-9 w-32 !rounded-xl" />
+            </div>
+            <div className="grid sm:grid-cols-2 gap-3">
+              {[0, 1, 2, 3].map((i) => (
+                <MeetingCardSkeleton key={i} />
+              ))}
+            </div>
+          </>
+        )}
+        {variant === "students" && (
+          <>
+            <Skeleton className="h-6 w-56" />
+            <div className="grid grid-cols-2 lg:grid-cols-5 gap-2.5">
+              {[0, 1, 2, 3, 4].map((i) => (
+                <Skeleton key={i} className="h-[78px] !rounded-xl" />
+              ))}
+            </div>
+            {[0, 1, 2, 3].map((i) => (
+              <StudentRowSkeleton key={i} />
+            ))}
+          </>
+        )}
+        {variant === "cells" && (
+          <>
+            <Skeleton className="h-6 w-44" />
+            <CellSkeleton />
+            <CellSkeleton />
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+/** Dashboard shell: nav, the playground banner, a stats strip and class cards. */
+export function DashboardSkeleton() {
+  return (
+    <div className="min-h-screen">
+      <div className="glass px-6 py-3">
+        <div className="max-w-4xl mx-auto flex items-center gap-3">
+          <Skeleton className="w-9 h-9 !rounded-xl" />
+          <div className="flex-1" />
+          <Skeleton className="h-9 w-24 !rounded-xl" />
+          <Skeleton className="h-9 w-32 !rounded-full" />
+        </div>
+      </div>
+      <div className="max-w-4xl mx-auto px-6 py-8 space-y-10">
+        <Skeleton className="h-[76px] !rounded-2xl" />
+        <div className="space-y-4">
+          <Skeleton className="h-6 w-48" />
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
+            {[0, 1, 2, 3].map((i) => (
+              <Skeleton key={i} className="h-[62px] !rounded-xl" />
+            ))}
+          </div>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <ClassCardSkeleton />
+            <ClassCardSkeleton />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Playground shell: slim header + code cells. */
+export function PlaygroundSkeleton() {
+  return (
+    <div className="min-h-screen">
+      <div className="glass px-4 py-3">
+        <div className="max-w-3xl mx-auto flex items-center gap-3">
+          <Skeleton className="w-9 h-9 !rounded-xl" />
+          <div className="space-y-2">
+            <Skeleton className="h-3.5 w-24" />
+            <Skeleton className="h-3 w-48" />
+          </div>
+          <div className="flex-1" />
+          <Skeleton className="h-8 w-28 !rounded-full" />
+        </div>
+      </div>
+      <div className="max-w-3xl mx-auto px-4 py-6 space-y-4">
+        <Skeleton className="h-6 w-32" />
         <CellSkeleton />
         <CellSkeleton />
       </div>

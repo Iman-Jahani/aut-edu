@@ -166,32 +166,112 @@ export interface RunResult {
  * (replayed in order); if the program asks for one more, `needInput` holds the
  * prompt and the caller should collect the answer and call again with it appended.
  */
-async function runOnServer(code: string, inputs: string[], seed: number): Promise<RunResult | null> {
-  const r = await executeOnServer({ code, stdin: toStdin(inputs), mode: "run", seed });
-  if (!r.ok) {
-    if (r.reason === "unavailable") serverUnavailable = true;
-    return null;
-  }
-  return { ...interpretRun(r.raw), remote: true };
+interface ServerOutcome {
+  result?: RunResult;
+  /** Why the server run failed, when it was attempted and failure is worth showing. */
+  error?: string;
 }
 
-export async function runPython(code: string, inputs: string[] = [], seed = 1): Promise<RunResult> {
-  const preferServer = pyodideFailedAt > 0 && !serverUnavailable && Date.now() - pyodideFailedAt < SERVER_PREFERENCE_MS;
-  if (preferServer) {
-    const remote = await runOnServer(code, inputs, seed);
+async function runOnServer(code: string, inputs: string[], seed: number): Promise<ServerOutcome> {
+  const r = await executeOnServer({ code, stdin: toStdin(inputs), mode: "run", seed });
+  if (r.ok) return { result: { ...interpretRun(r.raw), remote: true } };
+  if (r.reason === "unavailable") {
+    serverUnavailable = true;
+    return {}; // not configured: say nothing about it
+  }
+  return { error: r.message || (r.reason === "unauthorized" ? "نشست ورود معتبر نیست" : "خطای نامشخص") };
+}
+
+function failure(serverError?: string): RunResult {
+  return {
+    output: loadFailedMessage() + (serverError ? `\n\nاجرا روی سرور هم ناموفق بود: ${serverError}` : ""),
+    needInput: null,
+    isError: true,
+  };
+}
+
+/** `?runner=server` in any page URL makes this browser run everything on the server (handy for testing); `?runner=browser` undoes it. */
+function forceServer(): boolean {
+  try {
+    const q = new URLSearchParams(window.location.search).get("runner");
+    if (q === "server") localStorage.setItem("forceServerRun", "1");
+    if (q === "browser") localStorage.removeItem("forceServerRun");
+    return localStorage.getItem("forceServerRun") === "1";
+  } catch {
+    return false;
+  }
+}
+
+const SLOW_LOAD_MS = 12_000;
+const sleep = (ms: number) => new Promise<void>((r) => setTimeout(r, ms));
+
+export interface RunOptions {
+  /**
+   * Keep using the engine a previous step of the SAME run used. input() replays the
+   * program from the start for every answer, so it must not hop between the browser
+   * and the server halfway through.
+   */
+  engine?: "remote" | "local";
+}
+
+/**
+ * Runs a code cell. `inputs` are the answers already given to input() calls
+ * (replayed in order); if the program asks for one more, `needInput` holds the
+ * prompt and the caller should collect the answer and call again with it appended.
+ *
+ * Engine choice: the in-browser Python engine, unless it fails to load, crashes, or is
+ * still loading after a few seconds — then (if the server executor is configured) the
+ * server runs it instead while the browser engine keeps loading for later runs.
+ */
+export async function runPython(code: string, inputs: string[] = [], seed = 1, opts: RunOptions = {}): Promise<RunResult> {
+  const sticky = opts.engine;
+  const canUseServer = sticky !== "local" && !serverUnavailable;
+  let triedServer = false;
+  let serverError: string | undefined;
+
+  const viaServer = async (): Promise<RunResult | null> => {
+    if (!canUseServer || triedServer || serverUnavailable) return null;
+    triedServer = true;
+    const o = await runOnServer(code, inputs, seed);
+    if (o.error) serverError = o.error;
+    return o.result ?? null;
+  };
+
+  const prefersServer =
+    sticky === "remote" || (sticky === undefined && (forceServer() || (pyodideFailedAt > 0 && Date.now() - pyodideFailedAt < SERVER_PREFERENCE_MS)));
+  if (prefersServer) {
+    const remote = await viaServer();
     if (remote) return remote;
+    if (sticky === "remote") return failure(serverError);
   }
 
   let pyodide: PyodideInterface;
-  try {
-    pyodide = await getPyodide();
+  const loading = getPyodide();
+  const first = await Promise.race([
+    loading.then(
+      (p) => ({ kind: "ok" as const, p }),
+      () => ({ kind: "fail" as const })
+    ),
+    sleep(sticky === "local" ? 10 * 60_000 : SLOW_LOAD_MS).then(() => ({ kind: "slow" as const })),
+  ]);
+
+  if (first.kind === "ok") {
+    pyodide = first.p;
     pyodideFailedAt = 0;
-  } catch {
-    pyodideFailedAt = Date.now();
-    const remote = preferServer ? null : await runOnServer(code, inputs, seed);
+  } else {
+    if (first.kind === "fail") pyodideFailedAt = Date.now();
+    // Too slow or failed: try the server for THIS run (a slow load keeps going in the background).
+    const remote = await viaServer();
     if (remote) return remote;
-    return { output: loadFailedMessage(), needInput: null, isError: true };
+    try {
+      pyodide = await loading;
+      pyodideFailedAt = 0;
+    } catch {
+      pyodideFailedAt = Date.now();
+      return failure(serverError);
+    }
   }
+
   const read = captureStdio(pyodide);
   try {
     if (inputs.length === 0) {
@@ -216,7 +296,11 @@ export async function runPython(code: string, inputs: string[] = [], seed = 1): 
     if (typeof res === "string" && res.startsWith("P:")) return { output, needInput: res.slice(2), isError: false };
     return { output, needInput: null, isError: res === "E" };
   } catch (e) {
+    // __run_cell catches every Python error itself, so an exception reaching here means
+    // the engine itself failed (out of memory, wasm abort, ...) — not the student's code.
     await flushStdio(pyodide);
+    const remote = await viaServer();
+    if (remote) return remote;
     return { output: (read() + "\nError: " + (e as Error).message).trim(), needInput: null, isError: true };
   }
 }

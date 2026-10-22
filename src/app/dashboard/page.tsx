@@ -7,7 +7,7 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
 import WelcomeModal from "@/components/WelcomeModal";
-import { Skeleton } from "@/components/Skeleton";
+import { Skeleton, ClassCardSkeleton, DashboardSkeleton } from "@/components/Skeleton";
 import {
   GraduationCap,
   BookOpen,
@@ -176,15 +176,7 @@ export default function DashboardPage() {
     }
   }, [user, loadTeacherClasses, loadStudentClasses]);
 
-  if (!ready || !user) {
-    return (
-      <div className="min-h-screen p-6 max-w-4xl mx-auto space-y-4">
-        <Skeleton className="h-12 w-full !rounded-2xl" />
-        <Skeleton className="h-40 w-full !rounded-2xl" />
-        <Skeleton className="h-40 w-full !rounded-2xl" />
-      </div>
-    );
-  }
+  if (!ready || !user) return <DashboardSkeleton />;
 
   const showTeacherSection = role === "teacher" || (teacherClasses && teacherClasses.length > 0);
 
@@ -275,8 +267,8 @@ export default function DashboardPage() {
 
             {teacherClasses === null ? (
               <div className="grid sm:grid-cols-2 gap-3">
-                <Skeleton className="h-32 !rounded-2xl" />
-                <Skeleton className="h-32 !rounded-2xl" />
+                <ClassCardSkeleton />
+                <ClassCardSkeleton />
               </div>
             ) : teacherClasses.length === 0 ? (
               <div className="card text-center py-10 px-6">
@@ -321,8 +313,8 @@ export default function DashboardPage() {
 
           {studentClasses === null ? (
             <div className="grid sm:grid-cols-2 gap-3">
-              <Skeleton className="h-32 !rounded-2xl" />
-              <Skeleton className="h-32 !rounded-2xl" />
+              <ClassCardSkeleton />
+              <ClassCardSkeleton />
             </div>
           ) : studentClasses.length === 0 ? (
             <div className="card text-center py-10 px-6">

@@ -6,7 +6,7 @@ import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import { useClassAccess } from "@/hooks/useClassAccess";
 import ClassChrome from "@/components/ClassChrome";
-import { ClassPageSkeleton } from "@/components/Skeleton";
+import { ClassPageSkeleton, MeetingCardSkeleton } from "@/components/Skeleton";
 import { CalendarDays, Plus, Users, Code2, ArrowLeft, Search, X } from "lucide-react";
 import type { ClassMeeting, Cell } from "@/lib/types";
 
@@ -78,7 +78,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
     );
   }
 
-  if (!ready || !session) return <ClassPageSkeleton />;
+  if (!ready || !session) return <ClassPageSkeleton variant="meetings" />;
 
   return (
     <ClassChrome access={access}>
@@ -100,7 +100,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
         {meetings === null ? (
           <div className="grid sm:grid-cols-2 gap-3">
             {[0, 1, 2, 3].map((i) => (
-              <div key={i} className="card h-24 animate-pulse bg-slate-100/70" />
+              <MeetingCardSkeleton key={i} />
             ))}
           </div>
         ) : meetings.length === 0 ? (

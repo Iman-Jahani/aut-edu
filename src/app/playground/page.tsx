@@ -9,7 +9,7 @@ import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
 import CellList from "@/components/CellList";
 import PlaygroundCell from "@/components/PlaygroundCell";
-import { Skeleton } from "@/components/Skeleton";
+import { PlaygroundSkeleton } from "@/components/Skeleton";
 import { Code2, LayoutDashboard } from "lucide-react";
 import type { PlaygroundCell as PlaygroundCellType } from "@/lib/types";
 
@@ -72,14 +72,7 @@ export default function PlaygroundPage() {
     setCells((prev) => sortCells([...prev.filter((c) => c.id !== data.id), data as PlaygroundCellType]));
   };
 
-  if (!ready || !user) {
-    return (
-      <div className="min-h-screen p-6 max-w-3xl mx-auto space-y-4">
-        <Skeleton className="h-12 w-full !rounded-2xl" />
-        <Skeleton className="h-40 w-full !rounded-2xl" />
-      </div>
-    );
-  }
+  if (!ready || !user) return <PlaygroundSkeleton />;
 
   return (
     <div className="min-h-screen pb-28">

@@ -35,6 +35,7 @@ export default function PlaygroundCell({
   const [inputValue, setInputValue] = useState("");
   const inputsRef = useRef<string[]>([]);
   const seedRef = useRef(1);
+  const engineRef = useRef<"remote" | "local" | undefined>(undefined);
   const inputRef = useRef<HTMLInputElement>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const extensions = useMemo(() => [python(), noPaste(() => toast("پیست کردن در سلول‌ها غیرفعاله؛ خودت تایپ کن 🙂", "err"))], [toast]);
@@ -53,10 +54,11 @@ export default function PlaygroundCell({
     setRunning(true);
     setShowSkeleton(first);
     try {
-      const r = await runPython(code, inputsRef.current, seedRef.current);
+      const r = await runPython(code, inputsRef.current, seedRef.current, { engine: engineRef.current });
       setOutput(r.output);
       setIsError(r.isError);
       setRanRemote(!!r.remote);
+      engineRef.current = r.remote ? "remote" : "local";
       if (r.needInput !== null) {
         setPendingPrompt(r.needInput);
         return;
@@ -71,6 +73,7 @@ export default function PlaygroundCell({
 
   const run = async () => {
     inputsRef.current = [];
+    engineRef.current = undefined;
     seedRef.current = Math.floor(Math.random() * 2147483647);
     setPendingPrompt(null);
     setInputValue("");

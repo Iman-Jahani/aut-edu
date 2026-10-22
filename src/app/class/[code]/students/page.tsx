@@ -21,7 +21,7 @@ import {
 import { supabase } from "@/lib/supabase";
 import { useClassAccess } from "@/hooks/useClassAccess";
 import ClassChrome from "@/components/ClassChrome";
-import { ClassPageSkeleton, Skeleton } from "@/components/Skeleton";
+import { ClassPageSkeleton, Skeleton, StudentRowSkeleton } from "@/components/Skeleton";
 import { fetchAvatars, colorOf, initials, fmtRelative } from "@/lib/utils";
 import { stripRich } from "@/components/RichText";
 import type { Exercise, ExerciseSubmission, Quiz, QuizAnswer, Team } from "@/lib/types";
@@ -222,7 +222,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
       </div>
     );
   }
-  if (!ready || !session || coTeacherIds === null) return <ClassPageSkeleton />;
+  if (!ready || !session || coTeacherIds === null) return <ClassPageSkeleton variant="students" />;
 
   if (!isTeacher) {
     return (
@@ -335,7 +335,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
         {loading ? (
           <div className="space-y-2.5">
             {[0, 1, 2, 3].map((i) => (
-              <Skeleton key={i} className="h-[72px] !rounded-xl" />
+              <StudentRowSkeleton key={i} />
             ))}
           </div>
         ) : visible.length === 0 ? (
