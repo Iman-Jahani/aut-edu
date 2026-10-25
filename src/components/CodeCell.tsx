@@ -1,0 +1,354 @@
+"use client";
+
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import CodeMirror from "@uiw/react-codemirror";
+import { python } from "@codemirror/lang-python";
+import { dracula } from "@uiw/codemirror-theme-dracula";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/components/ToastProvider";
+import { runPython } from "@/lib/pyodide";
+import { colorOf, initials, fmtRelative } from "@/lib/utils";
+import CommentsPanel from "@/components/CommentsPanel";
+import { Skeleton } from "@/components/Skeleton";
+import AnsiText from "@/components/AnsiText";
+import { noPaste } from "@/lib/editor";
+import { Play, MessageCircle, Trash2, Tag, X, CornerDownLeft, Loader2 } from "lucide-react";
+import type { Cell } from "@/lib/types";
+
+export default function CodeCell({
+  cell,
+  teacherMode = false,
+  autoFocus = false,
+  unseenCommentIds = [],
+  openComments = false,
+  onCommentsSeen,
+  onDeleted,
+}: {
+  cell: Cell;
+  teacherMode?: boolean;
+  /** Comments on this cell the viewer hasn't seen yet. When present, the comment panel opens by itself. */
+  unseenCommentIds?: string[];
+  /** Open the comment panel (e.g. arriving from a notification link). */
+  openComments?: boolean;
+  /** Called when the panel is showing unseen comments, so they can be marked as read. */
+  onCommentsSeen?: (cellId: string) => void;
+  /** Focus the editor and place the cursor in it as soon as it mounts (freshly created cell). */
+  autoFocus?: boolean;
+  onDeleted: (id: string) => void;
+}) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [code, setCode] = useState(cell.code || "");
+  const [output, setOutput] = useState(cell.output || "");
+  const [isError, setIsError] = useState(false);
+  const [ranRemote, setRanRemote] = useState(false);
+  const [running, setRunning] = useState(false);
+  const [showSkeleton, setShowSkeleton] = useState(false);
+  // Inline input(): when the program asks for input we show a field in the output
+  // area; the collected answers are replayed on every re-run (see lib/pyRunner.ts).
+  const [pendingPrompt, setPendingPrompt] = useState<string | null>(null);
+  const [inputValue, setInputValue] = useState("");
+  const inputsRef = useRef<string[]>([]);
+  const seedRef = useRef(1);
+  const engineRef = useRef<"remote" | "local" | undefined>(undefined);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [showComments, setShowComments] = useState(false);
+  const [commentCount, setCommentCount] = useState(cell.comments_count || 0);
+  const unseenCount = unseenCommentIds.length;
+
+  // New comments from someone else → open the panel right away so they're seen without hunting for the button.
+  useEffect(() => {
+    if (unseenCount > 0 || openComments) setShowComments(true);
+  }, [unseenCount, openComments]);
+
+  // The panel is open and showing new comments → they count as seen.
+  useEffect(() => {
+    if (showComments && unseenCount > 0) onCommentsSeen?.(cell.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showComments, unseenCount]);
+  const [tags, setTags] = useState<string[]>(cell.tags || []);
+  const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const lastLocalEdit = useRef(0);
+  const extensions = useMemo(() => [python(), noPaste(() => toast("پیست کردن در سلول‌ها غیرفعاله؛ خودت تایپ کن 🙂", "err"))], [toast]);
+
+  const isOwn = cell.author_id === user?.id;
+  const isPersonal = !cell.team_name;
+  const canDelete = isOwn || teacherMode;
+
+  const save = useCallback(
+    async (newCode: string, newOutput: string) => {
+      await supabase
+        .from("cells")
+        .update({ code: newCode, output: newOutput, updated_at: new Date().toISOString() })
+        .eq("id", cell.id);
+    },
+    [cell.id]
+  );
+
+  // Pull in teammates' edits (realtime) unless I'm typing right now.
+  useEffect(() => {
+    if (Date.now() - lastLocalEdit.current < 3000) return;
+    if (running || pendingPrompt !== null) return; // don't clobber a run in progress
+    if ((cell.code || "") !== code) setCode(cell.code || "");
+    if ((cell.output || "") !== output) setOutput(cell.output || "");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cell.code, cell.output, cell.updated_at]);
+
+  const handleChange = (value: string) => {
+    lastLocalEdit.current = Date.now();
+    setCode(value);
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => save(value, output), 900);
+  };
+
+  const execute = async (first: boolean) => {
+    setRunning(true);
+    setShowSkeleton(first);
+    try {
+      const r = await runPython(code, inputsRef.current, seedRef.current, { engine: engineRef.current });
+      setOutput(r.output);
+      setIsError(r.isError);
+      setRanRemote(!!r.remote);
+      engineRef.current = r.remote ? "remote" : "local";
+      if (r.needInput !== null) {
+        setPendingPrompt(r.needInput);
+        return; // wait for the user's answer, nothing to save yet
+      }
+      setPendingPrompt(null);
+      await save(code, r.output);
+    } finally {
+      setRunning(false);
+      setShowSkeleton(false);
+    }
+  };
+
+  const run = async () => {
+    inputsRef.current = [];
+    engineRef.current = undefined;
+    seedRef.current = Math.floor(Math.random() * 2147483647);
+    setPendingPrompt(null);
+    setInputValue("");
+    await execute(true);
+  };
+
+  const submitInput = async () => {
+    if (pendingPrompt === null || running) return;
+    inputsRef.current = [...inputsRef.current, inputValue];
+    setInputValue("");
+    setPendingPrompt(null);
+    await execute(false);
+  };
+
+  const cancelInput = () => {
+    setPendingPrompt(null);
+    setInputValue("");
+    setOutput((o) => (o ? o + "\n" : "") + "^C  (اجرا متوقف شد)");
+    setIsError(true);
+  };
+
+  useEffect(() => {
+    if (pendingPrompt !== null) {
+      inputRef.current?.focus();
+      inputRef.current?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    }
+  }, [pendingPrompt]);
+
+  const del = async () => {
+    if (!confirm("این سلول حذف شود؟")) return;
+    const { error } = await supabase.from("cells").delete().eq("id", cell.id);
+    if (error) return toast("خطا: " + error.message, "err");
+    toast("حذف شد", "ok");
+    onDeleted(cell.id);
+  };
+
+  const addTag = async () => {
+    const t = window.prompt("نام تگ:");
+    if (!t || !t.trim()) return;
+    const next = Array.from(new Set([...(cell.tags || []), t.trim()]));
+    const { error } = await supabase.from("cells").update({ tags: next }).eq("id", cell.id);
+    if (error) toast("خطا: " + error.message, "err");
+    else setTags(next);
+  };
+
+  const removeTag = async (tag: string) => {
+    if (!confirm(`تگ «${tag}» حذف شود؟`)) return;
+    const next = (cell.tags || []).filter((t) => t !== tag);
+    const { error } = await supabase.from("cells").update({ tags: next }).eq("id", cell.id);
+    if (error) toast("خطا: " + error.message, "err");
+    else setTags(next);
+  };
+
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+    },
+    []
+  );
+
+  return (
+    <div
+      className={`bg-white border rounded-2xl overflow-hidden shadow-soft hover:shadow-lift transition-shadow ${
+        isOwn ? "border-primary/30" : "border-line"
+      }`}
+      style={!isPersonal ? { borderTop: `3px solid ${colorOf(cell.team_name)}` } : undefined}
+    >
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-line">
+        <div
+          className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0 border border-black/5"
+          style={{ background: colorOf(cell.author_name) + "22" }}
+        >
+          {cell.author_avatar || initials(cell.author_name)}
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="font-bold text-sm truncate">
+            {cell.author_name || "ناشناس"}
+            {isOwn && (
+              <span className="mr-1.5 text-[10px] font-bold px-1.5 py-0.5 bg-primary/10 text-primary rounded">
+                شما
+              </span>
+            )}
+          </div>
+          <div className="text-[11px] text-muted">{fmtRelative(cell.created_at)}</div>
+        </div>
+        <span
+          className={`text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
+            isPersonal ? "bg-slate-100 text-slate-600" : "text-white"
+          }`}
+          style={!isPersonal ? { background: colorOf(cell.team_name) } : undefined}
+        >
+          {isPersonal && <Tag size={11} className="inline -mt-0.5 ml-0.5" />}
+          {isPersonal ? "شخصی" : cell.team_name}
+        </span>
+        <button
+          onClick={() => setShowComments((s) => !s)}
+          className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
+            unseenCount > 0 ? "bg-rose-500 text-white" : commentCount > 0 ? "bg-primary/10 text-primary" : "bg-slate-100 text-muted"
+          }`}
+        >
+          <MessageCircle size={13} /> {commentCount}
+          {unseenCount > 0 && <span>· جدید</span>}
+        </button>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 px-4 pt-2.5">
+        {tags.map((t) => (
+          <button
+            key={t}
+            onClick={() => removeTag(t)}
+            className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+            title="حذف تگ"
+          >
+            #{t} <X size={10} />
+          </button>
+        ))}
+        <button
+          onClick={addTag}
+          className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full border border-dashed border-line text-muted"
+        >
+          <Tag size={11} /> تگ
+        </button>
+      </div>
+
+      <CodeMirror
+        value={code}
+        onChange={handleChange}
+        theme={dracula}
+        extensions={extensions}
+        indentWithTab
+        autoFocus={autoFocus}
+        minHeight="100px"
+        maxHeight="420px"
+        basicSetup={{ lineNumbers: true, autocompletion: true }}
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            e.preventDefault();
+            run();
+          }
+        }}
+      />
+
+      {showSkeleton ? (
+        <div className="px-4 py-4 bg-[#0b1020] space-y-2.5 min-h-[96px]" aria-label="در حال اجرا">
+          <Skeleton dark className="h-3 w-1/4" />
+          <Skeleton dark className="h-3 w-2/3" />
+          <Skeleton dark className="h-3 w-1/2" />
+        </div>
+      ) : (
+        (output || pendingPrompt !== null) && (
+          <div className={isError ? "bg-red-950/90 text-red-300" : "bg-[#0b1020] text-emerald-400"} dir="ltr">
+            {ranRemote && (
+              <div className="px-4 pt-2.5 text-[10px] text-slate-500" dir="rtl">
+                روی سرور اجرا شد (موتور پایتون مرورگرت لود نشد) — کتابخانه‌های اضافه فقط توی مرورگر در دسترسن.
+              </div>
+            )}
+            {output && (
+              <pre className="px-4 pt-4 pb-3 min-h-[72px] max-h-96 overflow-auto text-[13.5px] leading-6 font-mono whitespace-pre-wrap text-left">
+                <AnsiText text={output} />
+              </pre>
+            )}
+            {pendingPrompt !== null && (
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  submitInput();
+                }}
+                className="flex items-center gap-2 px-4 pb-4 pt-1 font-mono text-[13.5px]"
+              >
+                <span className="text-emerald-300 whitespace-pre-wrap break-words max-w-[55%]">{pendingPrompt || "›"}</span>
+                <input
+                  ref={inputRef}
+                  value={inputValue}
+                  onChange={(e) => setInputValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Escape" && cancelInput()}
+                  placeholder="ورودی رو بنویس و Enter بزن…"
+                  autoComplete="off"
+                  spellCheck={false}
+                  className="flex-1 min-w-0 bg-white/10 text-emerald-100 placeholder:text-slate-500 rounded-lg px-3 py-1.5 outline-none ring-1 ring-emerald-400/40 focus:ring-emerald-300"
+                />
+                <button type="submit" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shrink-0">
+                  <CornerDownLeft size={13} /> ارسال
+                </button>
+                <button type="button" onClick={cancelInput} className="flex items-center gap-1 text-slate-400 hover:text-white text-xs shrink-0">
+                  <X size={13} /> لغو
+                </button>
+              </form>
+            )}
+          </div>
+        )
+      )}
+
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-t border-line">
+        <button
+          onClick={run}
+          disabled={running}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white disabled:opacity-50"
+        >
+          {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
+          {running ? "در حال اجرا…" : "اجرا"}
+        </button>
+        <button
+          onClick={() => setShowComments((s) => !s)}
+          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white"
+        >
+          <MessageCircle size={14} /> نظر
+        </button>
+        {canDelete && (
+          <button
+            onClick={del}
+            title={!isOwn ? "حذف (حالت معلم)" : "حذف"}
+            className="mr-auto flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold text-danger border border-red-200 bg-white"
+          >
+            <Trash2 size={14} /> حذف
+          </button>
+        )}
+      </div>
+
+      {showComments && (
+        <div className="px-4 pb-4">
+          <CommentsPanel cellId={cell.id} onCountChange={setCommentCount} highlightIds={unseenCommentIds} />
+        </div>
+      )}
+    </div>
+  );
+}

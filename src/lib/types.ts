@@ -95,6 +95,27 @@ export interface Cell {
   comments_count?: number;
 }
 
+/** In-app notification (named AppNotification to avoid clashing with the browser's Notification). */
+export interface AppNotification {
+  id: string;
+  user_id: string;
+  kind: string;
+  class_id: string | null;
+  class_code: string | null;
+  class_title: string | null;
+  meeting_id: string | null;
+  meeting_title: string | null;
+  cell_id: string | null;
+  comment_id: string | null;
+  cell_author_id: string | null;
+  cell_author_name: string | null;
+  actor_id: string | null;
+  actor_name: string | null;
+  preview: string | null;
+  read_at: string | null;
+  created_at: string;
+}
+
 export interface Comment {
   id: string;
   cell_id: string;
