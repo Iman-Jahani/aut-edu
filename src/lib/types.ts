@@ -127,6 +127,9 @@ export interface Exercise {
   hint: string | null;
   test_cases: TestCase[];
   shared_exercise_id?: string | null;
+  /** 1 = Basic, 2 = Easy, 3 = Medium, 4 = Hard */
+  difficulty?: number | null;
+  topic?: string | null;
   /** Students may only submit between opens_at and due_at (either can be empty). */
   opens_at?: string | null;
   due_at?: string | null;
@@ -159,6 +162,8 @@ export interface SharedExercise {
   test_cases: TestCase[];
   created_by_name: string | null;
   use_count: number;
+  difficulty?: number | null;
+  topic?: string | null;
   created_at: string;
 }
 

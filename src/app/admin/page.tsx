@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import { Skeleton } from "@/components/Skeleton";
+import LibraryAdminPanel from "@/components/LibraryAdminPanel";
+import TeachersAdminPanel from "@/components/TeachersAdminPanel";
 import {
   Lock,
   RefreshCw,
@@ -38,25 +40,52 @@ import type {
   CompetitionSubmission,
 } from "@/lib/types";
 
-const ADMIN_PASSWORD = process.env.NEXT_PUBLIC_ADMIN_PASSWORD || "admin2025";
-
 export default function AdminPage() {
   const [authed, setAuthed] = useState(false);
+  const [checking, setChecking] = useState(true);
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [busy, setBusy] = useState(false);
 
+  // The password is verified on the server, which sets an httpOnly session cookie.
   useEffect(() => {
-    if (sessionStorage.getItem("adminAuth") === "true") setAuthed(true);
+    fetch("/api/admin/session")
+      .then((r) => r.json())
+      .then((d) => setAuthed(!!d.ok))
+      .catch(() => undefined)
+      .finally(() => setChecking(false));
   }, []);
 
-  const login = () => {
-    if (password === ADMIN_PASSWORD) {
-      sessionStorage.setItem("adminAuth", "true");
-      setAuthed(true);
-    } else {
-      setError("رمز عبور اشتباه است");
+  const login = async () => {
+    if (busy) return;
+    setBusy(true);
+    setError("");
+    try {
+      const res = await fetch("/api/admin/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ password }),
+      });
+      const d = await res.json().catch(() => ({}));
+      if (res.ok) {
+        setPassword("");
+        setAuthed(true);
+      } else {
+        setError(d.error || "ورود ناموفق بود");
+      }
+    } catch {
+      setError("ارتباط با سرور برقرار نشد");
+    } finally {
+      setBusy(false);
     }
   };
+
+  const logout = async () => {
+    await fetch("/api/admin/login", { method: "DELETE" }).catch(() => undefined);
+    setAuthed(false);
+  };
+
+  if (checking) return <div className="min-h-screen bg-slate-900" />;
 
   if (!authed) {
     return (
@@ -83,7 +112,8 @@ export default function AdminPage() {
           {error && <div className="text-danger text-xs mb-3">{error}</div>}
           <button
             onClick={login}
-            className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-primary to-primary2 mt-2"
+            disabled={busy}
+            className="w-full py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-primary to-primary2 mt-2 disabled:opacity-50"
           >
             ورود
           </button>
@@ -93,12 +123,7 @@ export default function AdminPage() {
   }
 
   return (
-    <Dashboard
-      onLogout={() => {
-        sessionStorage.removeItem("adminAuth");
-        setAuthed(false);
-      }}
-    />
+    <Dashboard onLogout={logout} />
   );
 }
 
@@ -309,6 +334,12 @@ function Dashboard({ onLogout }: { onLogout: () => void }) {
             </>
           )}
         </div>
+
+        {/* Teacher accounts: invite codes + limits */}
+        <TeachersAdminPanel />
+
+        {/* Shared exercise library */}
+        <LibraryAdminPanel />
 
         {/* Search */}
         <div className="relative w-full sm:w-96 mb-5">

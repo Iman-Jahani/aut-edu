@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
-import { Sparkles, Shuffle, User, GraduationCap, BookOpen } from "lucide-react";
+import { Sparkles, Shuffle, User, GraduationCap, BookOpen, KeyRound } from "lucide-react";
 import type { UserRole } from "@/lib/types";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -22,7 +22,9 @@ export default function ProfileModal({
   const [name, setName] = useState(displayName);
   const [pickedAvatar, setPickedAvatar] = useState(avatar);
   const [pickedRole, setPickedRole] = useState<UserRole>(role || "student");
+  const [inviteCode, setInviteCode] = useState("");
   const [saving, setSaving] = useState(false);
+  const needsInvite = pickedRole === "teacher" && role !== "teacher";
 
   useEffect(() => {
     if (open) {
@@ -39,9 +41,10 @@ export default function ProfileModal({
     const trimmed = name.trim();
     if (!trimmed) return toast("اسمت رو وارد کن", "err");
     if (trimmed.length > 40) return toast("حداکثر ۴۰ کاراکتر", "err");
+    if (needsInvite && !inviteCode.trim()) return toast("برای حساب معلم، کد معرف لازمه", "err");
     setSaving(true);
     try {
-      await saveProfile(trimmed, pickedAvatar, pickedRole);
+      await saveProfile(trimmed, pickedAvatar, pickedRole, inviteCode);
       toast(firstTime ? `خوش آمدی ${trimmed}!` : "پروفایل ذخیره شد", "ok");
       onClose();
     } catch (e) {
@@ -108,6 +111,18 @@ export default function ProfileModal({
             <GraduationCap size={15} /> معلم
           </button>
         </div>
+        {needsInvite && (
+          <div className="relative mb-4">
+            <KeyRound size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="کد معرف معلم (از ادمین بگیر)"
+              dir="ltr"
+              className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right font-mono tracking-widest"
+            />
+          </div>
+        )}
         <p className="text-[11px] text-muted -mt-2 mb-4">
           فقط معلم‌ها می‌تونن کلاس بسازن. توی کلاسِ یه معلم دیگه، حتی اکانت معلم هم به‌صورت پیش‌فرض دانشجو حساب می‌شه مگر اینکه صاحب کلاس بهش دسترسی بده.
         </p>

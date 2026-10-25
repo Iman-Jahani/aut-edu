@@ -14,6 +14,7 @@ import LibraryPickerModal from "@/components/LibraryPickerModal";
 import type { Exercise, ExerciseSubmission, SharedExercise } from "@/lib/types";
 import { CardGridSkeleton } from "@/components/Skeleton";
 import { StatusBadge } from "@/components/StatusBadge";
+import { DifficultyBadge, TopicBadge } from "@/components/DifficultyBadge";
 import { BookOpen, Plus, FileText, CheckCircle2, Eye, Pencil, Trash2, Play, RotateCcw, X, Lock, CalendarClock } from "lucide-react";
 
 export default function ExercisesModal({
@@ -146,6 +147,12 @@ export default function ExercisesModal({
                     }`}
                   >
                     <div className="font-bold text-sm mb-1 flex items-center gap-1.5"><FileText size={14} className="text-primary shrink-0" /> {ex.title}</div>
+                    {(ex.difficulty || ex.topic) && (
+                      <div className="flex items-center gap-1.5 flex-wrap mb-2">
+                        <DifficultyBadge value={ex.difficulty} />
+                        <TopicBadge value={ex.topic} />
+                      </div>
+                    )}
                     {ex.description && <p className="text-xs text-muted mb-2 line-clamp-2">{stripRich(ex.description)}</p>}
                     {ws !== "none" && (
                       <div
@@ -254,6 +261,8 @@ export default function ExercisesModal({
                   description: templateForNew.description || "",
                   hint: templateForNew.hint || "",
                   test_cases: templateForNew.test_cases || [],
+                  difficulty: templateForNew.difficulty ?? null,
+                  topic: templateForNew.topic || "",
                 }
               : null
           }

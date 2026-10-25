@@ -1,44 +1,63 @@
 "use client";
 
-import { Fragment } from "react";
+import ReactMarkdown, { type Components } from "react-markdown";
+import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
+import remarkBreaks from "remark-breaks";
+import rehypeKatex from "rehype-katex";
+import "katex/dist/katex.min.css";
 
-function InlineText({ text }: { text: string }) {
-  const segments = text.split(/`([^`\n]+)`/g);
-  return (
-    <>
-      {segments.map((seg, i) =>
-        i % 2 === 1 ? (
-          <code key={i} className="rich-inline-code">
-            {seg}
-          </code>
-        ) : (
-          <Fragment key={i}>{seg}</Fragment>
-        )
-      )}
-    </>
-  );
+// Paragraphs are <span>s so <RichText> can live inside <p>/<span> without invalid nesting;
+// CSS (.rich-p) makes them behave like paragraphs.
+const components: Components = {
+  p: ({ children }) => <span className="rich-p">{children}</span>,
+  code: ({ children }) => <code className="rich-inline-code">{children}</code>,
+  pre: ({ children }) => <pre className="rich-code-block">{children}</pre>,
+  a: ({ href, children }) => (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+      {children}
+    </a>
+  ),
+  table: ({ children }) => (
+    <span className="rich-table-wrap">
+      <table>{children}</table>
+    </span>
+  ),
+};
+
+const remarkPlugins = [remarkGfm, [remarkMath, { singleDollarTextMath: true }], remarkBreaks] as const;
+const rehypePlugins = [[rehypeKatex, { throwOnError: false, strict: false }]] as const;
+
+/** `$$…$$` always means display math: put it in its own paragraph with fence lines so it renders as a block. */
+function normalizeMath(src: string): string {
+  const parts = src.split(/(```[\s\S]*?```|`[^`\n]+`)/g); // leave code (fenced and inline) untouched
+  return parts
+    .map((part, i) => (i % 2 === 1 ? part : part.replace(/(?<!\\)\$\$([\s\S]+?)(?<!\\)\$\$/g, (_m, body: string) => `\n\n$$\n${body.trim()}\n$$\n\n`)))
+    .join("");
 }
 
 /**
- * Renders mixed text+code: ```fenced blocks``` become a monospace code block,
- * single `backticks` become inline code, everything else is plain (wrapped) text.
- * Used for exercise/quiz question & option text so a question can embed a
- * snippet like `n = int(input())` or a multi-line ```code``` example.
+ * Renders Markdown with LaTeX math, used for exercise/quiz text:
+ *  - math:  $x^2 + y^2$ inline, $$\frac{a}{b}$$ as a centred block  (KaTeX)
+ *  - code:  `inline` and ```fenced blocks```
+ *  - md:    **bold**, *italic*, lists, > quotes, tables, links, ~~strike~~
+ * Single line breaks are kept. Raw HTML is NOT rendered (safe by default).
+ * Write \$ for a literal dollar sign.
  */
 export default function RichText({ text, className = "" }: { text: string; className?: string }) {
   if (!text) return null;
-  const parts = text.split(/```([\s\S]*?)```/g);
+  // Quiz rows are prefixed like "1. question" — keep that a literal label, not a one-item list.
+  const source = normalizeMath(text.replace(/^(\s*\d+)\.(\s)/, "$1\\.$2"));
   return (
     <span className={`rich-text ${className}`}>
-      {parts.map((part, i) =>
-        i % 2 === 1 ? (
-          <pre key={i} className="rich-code-block">
-            {part.replace(/^\n/, "").replace(/\n$/, "")}
-          </pre>
-        ) : (
-          <InlineText key={i} text={part} />
-        )
-      )}
+      <ReactMarkdown
+        remarkPlugins={remarkPlugins as unknown as never}
+        rehypePlugins={rehypePlugins as unknown as never}
+        components={components}
+        skipHtml
+      >
+        {source}
+      </ReactMarkdown>
     </span>
   );
 }
@@ -49,6 +68,11 @@ export function stripRich(text: string, maxLen = 140): string {
   const flat = text
     .replace(/```[\s\S]*?```/g, " [کد] ")
     .replace(/`([^`\n]+)`/g, "$1")
+    .replace(/\$\$([\s\S]*?)\$\$/g, " $1 ")
+    .replace(/(^|[^\\$])\$([^$\n]+)\$/g, "$1$2")
+    .replace(/\\\$/g, "$")
+    .replace(/(\*\*|__|~~)/g, "")
+    .replace(/^\s{0,3}(#{1,6}|>|[-*+])\s+/gm, "")
     .replace(/\s+/g, " ")
     .trim();
   return flat.length > maxLen ? flat.slice(0, maxLen) + "…" : flat;

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { supabase } from "@/lib/supabase";
+import { getErrorMessage } from "@/lib/errors";
 import { useToast } from "@/components/ToastProvider";
 import { useClassAccess } from "@/hooks/useClassAccess";
 import ClassChrome from "@/components/ClassChrome";
@@ -56,7 +57,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
       .select()
       .single();
     setCreating(false);
-    if (error || !data) return toast("خطا: " + (error?.message || ""), "err");
+    if (error || !data) return toast("خطا: " + getErrorMessage(error), "err");
     toast("جلسه ساخته شد", "ok");
     setFormOpen(false);
     setTitle("");

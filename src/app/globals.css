@@ -177,9 +177,28 @@ a svg {
 
 /* ---------- Rich text (code-aware) ---------- */
 .rich-text {
-  white-space: pre-wrap;
   word-break: break-word;
 }
+/* Markdown output: paragraphs are spans (see RichText.tsx). A lone paragraph stays inline like plain text. */
+.rich-text .rich-p { display: block; margin: 0 0 0.55em; }
+.rich-text .rich-p:last-child { margin-bottom: 0; }
+.rich-text > .rich-p:first-child:last-child { display: inline; margin: 0; }
+.rich-text ul, .rich-text ol { display: block; margin: 0.4em 0; padding-inline-start: 1.5em; }
+.rich-text ul { list-style: disc; }
+.rich-text ol { list-style: decimal; }
+.rich-text li { margin: 0.15em 0; }
+.rich-text blockquote { display: block; margin: 0.5em 0; padding: 0.2em 0.9em; border-inline-start: 3px solid rgba(99, 102, 241, 0.4); color: #475569; }
+.rich-text h1, .rich-text h2, .rich-text h3, .rich-text h4 { display: block; font-weight: 800; margin: 0.6em 0 0.3em; line-height: 1.4; }
+.rich-text h1 { font-size: 1.25em; } .rich-text h2 { font-size: 1.15em; } .rich-text h3, .rich-text h4 { font-size: 1.05em; }
+.rich-text hr { margin: 0.7em 0; border: 0; border-top: 1px solid #e2e8f0; }
+.rich-text strong { font-weight: 800; }
+.rich-text .rich-table-wrap { display: block; overflow-x: auto; margin: 0.5em 0; }
+.rich-text table { border-collapse: collapse; font-size: 0.95em; }
+.rich-text th, .rich-text td { border: 1px solid #e2e8f0; padding: 0.3em 0.7em; }
+.rich-text th { background: #f8fafc; font-weight: 700; }
+.rich-text .rich-code-block code { background: none; color: inherit; padding: 0; font-size: 1em; }
+.rich-text .katex { direction: ltr; unicode-bidi: isolate; font-size: 1.08em; }
+.rich-text .katex-display { display: block; margin: 0.6em 0; overflow-x: auto; overflow-y: hidden; }
 .rich-inline-code {
   direction: ltr;
   unicode-bidi: embed;

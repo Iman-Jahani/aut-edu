@@ -5,10 +5,11 @@ import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import type { Exercise, TestCase } from "@/lib/types";
-import { Pencil, FileText, RefreshCw, BookOpen, X, CalendarClock } from "lucide-react";
+import { Pencil, FileText, BookOpen, X, CalendarClock } from "lucide-react";
 import { toLocalInput, fromLocalInput } from "@/lib/schedule";
 import RichTextHint from "@/components/RichTextHint";
 import { getErrorMessage } from "@/lib/errors";
+import DifficultyTopicFields from "@/components/DifficultyTopicFields";
 
 export default function ExerciseFormModal({
   classId,
@@ -19,7 +20,7 @@ export default function ExerciseFormModal({
 }: {
   classId: string;
   exercise?: Exercise | null;
-  template?: { title: string; description: string; hint: string; test_cases: TestCase[] } | null;
+  template?: { title: string; description: string; hint: string; test_cases: TestCase[]; difficulty?: number | null; topic?: string | null } | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
@@ -35,6 +36,8 @@ export default function ExerciseFormModal({
       ? template.test_cases
       : [{ input: "", expected: "" }]
   );
+  const [difficulty, setDifficulty] = useState<number | null>(exercise?.difficulty ?? template?.difficulty ?? null);
+  const [topic, setTopic] = useState(exercise?.topic || template?.topic || "");
   const [addToLibrary, setAddToLibrary] = useState(false);
   const [opensAt, setOpensAt] = useState(toLocalInput(exercise?.opens_at));
   const [dueAt, setDueAt] = useState(toLocalInput(exercise?.due_at));
@@ -65,46 +68,46 @@ export default function ExerciseFormModal({
     // on databases that haven't added them yet.
     const schedule = opensIso || dueIso || exercise?.opens_at || exercise?.due_at ? { opens_at: opensIso, due_at: dueIso } : {};
 
+    // Same idea as the schedule: only send difficulty/topic when they're used, so
+    // databases that haven't run the migration yet keep working.
+    const cleanTopic = topic.trim();
+    const meta = difficulty || cleanTopic || exercise?.difficulty || exercise?.topic ? { difficulty, topic: cleanTopic || null } : {};
+
     setSaving(true);
     try {
       if (exercise) {
         const { error } = await supabase
           .from("exercises")
-          .update({ title: t, description, hint, test_cases: cleanTests, ...schedule, updated_at: new Date().toISOString() })
+          .update({ title: t, description, hint, test_cases: cleanTests, ...meta, ...schedule, updated_at: new Date().toISOString() })
           .eq("id", exercise.id);
         if (error) throw error;
-        if (addToLibrary) {
-          if (exercise.shared_exercise_id) {
-            await supabase
-              .from("shared_exercises")
-              .update({ title: t, description, hint, test_cases: cleanTests, created_by_name: displayName })
-              .eq("id", exercise.shared_exercise_id);
-            toast("ویرایش شد + کتابخانه به‌روز شد", "ok");
-          } else {
-            const { data: lib } = await supabase
-              .from("shared_exercises")
-              .insert({ title: t, description, hint, test_cases: cleanTests, created_by_name: displayName })
-              .select()
-              .single();
-            if (lib) await supabase.from("exercises").update({ shared_exercise_id: lib.id }).eq("id", exercise.id);
-            toast("ویرایش شد + به کتابخانه اضافه شد", "ok");
-          }
+        if (addToLibrary && !exercise.shared_exercise_id) {
+          // Adding is allowed; editing an existing library record is admin-only.
+          const { data: lib, error: libErr } = await supabase
+            .from("shared_exercises")
+            .insert({ title: t, description, hint, test_cases: cleanTests, ...meta, created_by_name: displayName })
+            .select()
+            .single();
+          if (libErr) throw libErr;
+          if (lib) await supabase.from("exercises").update({ shared_exercise_id: lib.id }).eq("id", exercise.id);
+          toast("ویرایش شد + به کتابخانه اضافه شد", "ok");
         } else {
           toast("تمرین ویرایش شد", "ok");
         }
       } else {
         const { data: newEx, error } = await supabase
           .from("exercises")
-          .insert({ class_id: classId, title: t, description, hint, test_cases: cleanTests, ...schedule })
+          .insert({ class_id: classId, title: t, description, hint, test_cases: cleanTests, ...meta, ...schedule })
           .select()
           .single();
         if (error) throw error;
         if (addToLibrary) {
-          const { data: lib } = await supabase
+          const { data: lib, error: libErr } = await supabase
             .from("shared_exercises")
-            .insert({ title: t, description, hint, test_cases: cleanTests, created_by_name: displayName })
+            .insert({ title: t, description, hint, test_cases: cleanTests, ...meta, created_by_name: displayName })
             .select()
             .single();
+          if (libErr) throw libErr;
           if (lib && newEx) await supabase.from("exercises").update({ shared_exercise_id: lib.id }).eq("id", newEx.id);
           toast("ساخته شد + به کتابخانه اضافه شد", "ok");
         } else {
@@ -163,6 +166,8 @@ export default function ExerciseFormModal({
             dir="auto"
           />
           <RichTextHint textareaRef={hintRef} value={hint} onChange={setHint} />
+
+          <DifficultyTopicFields difficulty={difficulty} topic={topic} onDifficulty={setDifficulty} onTopic={setTopic} />
 
           <div className="flex items-center justify-between pt-2">
             <span className="text-sm font-bold text-muted">تست‌ها</span>
@@ -240,13 +245,18 @@ export default function ExerciseFormModal({
             </p>
           </div>
 
-          <label className="flex items-center gap-2 text-sm pt-2 cursor-pointer">
-            <input type="checkbox" checked={addToLibrary} onChange={(e) => setAddToLibrary(e.target.checked)} />
-            {exercise?.shared_exercise_id ? <RefreshCw size={14} className="shrink-0" /> : <BookOpen size={14} className="shrink-0" />}
-            {exercise?.shared_exercise_id
-              ? "نسخه‌ی کتابخانه رو با تغییرات فعلی به‌روزرسانی کن"
-              : "این تمرین رو به کتابخانه اشتراکی اضافه کن"}
-          </label>
+          {exercise?.shared_exercise_id ? (
+            <div className="flex items-start gap-2 text-[12px] text-muted pt-2">
+              <BookOpen size={14} className="shrink-0 mt-0.5" />
+              این تمرین توی کتابخانه‌ی اشتراکیه. تغییرات اینجا فقط روی تمرین همین کلاس اعمال میشه؛ ویرایش نسخه‌ی کتابخانه فقط از پنل ادمین ممکنه.
+            </div>
+          ) : (
+            <label className="flex items-center gap-2 text-sm pt-2 cursor-pointer">
+              <input type="checkbox" checked={addToLibrary} onChange={(e) => setAddToLibrary(e.target.checked)} />
+              <BookOpen size={14} className="shrink-0" />
+              این تمرین رو به کتابخانه اشتراکی اضافه کن
+            </label>
+          )}
         </div>
 
         <div className="px-6 py-4 border-t border-line flex justify-end gap-2">

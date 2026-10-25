@@ -5,9 +5,10 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
+import { supabase } from "@/lib/supabase";
 import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
-import { GraduationCap, BookOpen, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck } from "lucide-react";
+import { GraduationCap, BookOpen, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck, KeyRound } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function SignupPage() {
@@ -19,6 +20,7 @@ export default function SignupPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("student");
+  const [inviteCode, setInviteCode] = useState("");
   const [avatar, setAvatar] = useState(() => AVATAR_PALETTE[Math.floor(Math.random() * AVATAR_PALETTE.length)]);
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
@@ -35,7 +37,20 @@ export default function SignupPage() {
     if (!e) return toast("ایمیل رو وارد کن", "err");
     if (password.length < 6) return toast("رمز عبور حداقل ۶ کاراکتر", "err");
     setBusy(true);
-    const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, avatar, role);
+    if (role === "teacher") {
+      // Check the code BEFORE creating the account so a typo doesn't leave a half-made account behind.
+      const code = inviteCode.trim();
+      if (!code) {
+        setBusy(false);
+        return toast("برای حساب معلم، کد معرف لازمه", "err");
+      }
+      const { data: valid, error: checkError } = await supabase.rpc("check_invite_code", { p_code: code });
+      if (checkError || !valid) {
+        setBusy(false);
+        return toast(checkError ? "خطا: " + checkError.message : "کد معرف نامعتبره، منقضی شده یا ظرفیتش پر شده", "err");
+      }
+    }
+    const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, avatar, role, inviteCode);
     setBusy(false);
     if (error) return toast("خطا: " + error, "err");
     if (needsEmailConfirmation) {
@@ -184,8 +199,20 @@ export default function SignupPage() {
           </button>
         </div>
         <p className="text-[11px] text-muted mb-5">
-          فقط معلم‌ها می‌تونن کلاس بسازن. توی کلاسِ یه معلم دیگه، همه (حتی اکانت معلم) به‌صورت پیش‌فرض دانشجو حساب می‌شن مگر اینکه صاحب کلاس دسترسی بده.
+          فقط معلم‌ها می‌تونن کلاس بسازن، و برای ساخت حساب معلم کد معرف لازمه (از ادمین بگیر). توی کلاسِ یه معلم دیگه، همه (حتی اکانت معلم) به‌صورت پیش‌فرض دانشجو حساب می‌شن مگر اینکه صاحب کلاس دسترسی بده.
         </p>
+        {role === "teacher" && (
+          <div className="relative mb-5">
+            <KeyRound size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
+            <input
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+              placeholder="کد معرف (مثلا ABCD-EF23)"
+              dir="ltr"
+              className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right font-mono tracking-widest"
+            />
+          </div>
+        )}
 
         <button onClick={submit} disabled={busy} className="btn-primary w-full !py-3">
           {busy ? <Loader2 size={16} className="animate-spin" /> : null} ثبت‌نام

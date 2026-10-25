@@ -10,6 +10,7 @@ import {
 import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { UserProfile, UserRole } from "@/lib/types";
+import { getErrorMessage } from "@/lib/errors";
 
 interface AuthContextValue {
   user: User | null;
@@ -29,12 +30,14 @@ interface AuthContextValue {
     password: string,
     displayName: string,
     avatar: string,
-    role: UserRole
+    role: UserRole,
+    inviteCode?: string
   ) => Promise<{ error: string | null; needsEmailConfirmation?: boolean }>;
   signInWithEmail: (email: string, password: string) => Promise<{ error: string | null }>;
   signInWithGoogle: () => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
-  saveProfile: (name: string, avatar: string, role: UserRole) => Promise<void>;
+  /** Becoming a teacher requires a valid invite code (checked by the database). */
+  saveProfile: (name: string, avatar: string, role: UserRole, inviteCode?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -89,8 +92,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // create the profile row now instead of asking the person for them again
       // (covers confirming the email on another device, and the sign-up race).
       if (u && !loadedProfile) {
-        const meta = (u.user_metadata || {}) as { display_name?: string; avatar?: string; role?: string };
-        if (meta.display_name && (meta.role === "teacher" || meta.role === "student")) {
+        const meta = (u.user_metadata || {}) as { display_name?: string; avatar?: string; role?: string; invite_code?: string };
+        let allowed = meta.role === "teacher" || meta.role === "student";
+        if (allowed && meta.role === "teacher") {
+          // Teacher accounts need an invite code; redeem it now (no-op if already redeemed).
+          const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: meta.invite_code || "" });
+          if (redeemError) allowed = false; // fall through to the profile modal, where they can fix it
+        }
+        if (meta.display_name && allowed) {
           const row = {
             user_id: u.id,
             display_name: meta.display_name,
@@ -131,11 +140,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUpWithEmail = useCallback(
-    async (emailAddr: string, password: string, name: string, avatar: string, role: UserRole) => {
+    async (emailAddr: string, password: string, name: string, avatar: string, role: UserRole, inviteCode?: string) => {
+      const code = role === "teacher" ? (inviteCode || "").trim().toUpperCase() : "";
       const { data, error } = await supabase.auth.signUp({
         email: emailAddr,
         password,
-        options: { data: { display_name: name, avatar, role } },
+        options: { data: { display_name: name, avatar, role, ...(code ? { invite_code: code } : {}) } },
       });
       if (error) return { error: friendlyAuthError(error.message) };
       const u = data.user;
@@ -155,11 +165,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: null, needsEmailConfirmation: true };
       }
 
+      if (role === "teacher") {
+        const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code });
+        if (redeemError) return { error: getErrorMessage(redeemError) };
+      }
       const { error: profileError } = await supabase.from("user_profiles").upsert(
         { user_id: u.id, display_name: name, avatar, email: emailAddr, role, updated_at: new Date().toISOString() },
         { onConflict: "user_id" }
       );
-      if (profileError) return { error: friendlyAuthError(profileError.message) };
+      if (profileError) return { error: getErrorMessage(profileError) };
       setUser(u);
       setProfile({ user_id: u.id, display_name: name, avatar, email: emailAddr, role, updated_at: new Date().toISOString() });
       return { error: null };
@@ -187,8 +201,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const saveProfile = useCallback(
-    async (name: string, newAvatar: string, role: UserRole) => {
+    async (name: string, newAvatar: string, role: UserRole, inviteCode?: string) => {
       if (!user) return;
+      // Becoming a teacher (new account choosing "teacher", or a student upgrading) needs an invite code.
+      if (role === "teacher" && profile?.role !== "teacher") {
+        const code = (inviteCode || "").trim();
+        if (!code) throw new Error("TEACHER_INVITE_REQUIRED");
+        const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code });
+        if (redeemError) throw redeemError;
+      }
       const oldName = profile?.display_name || "";
       const nameChanged = name !== oldName && oldName !== "";
 
@@ -202,7 +223,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ]);
       }
 
-      await supabase.from("user_profiles").upsert(
+      const { error: saveError } = await supabase.from("user_profiles").upsert(
         {
           user_id: user.id,
           display_name: name,
@@ -213,6 +234,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         { onConflict: "user_id" }
       );
+      if (saveError) throw saveError;
 
       setProfile((p) => ({
         user_id: user.id,
