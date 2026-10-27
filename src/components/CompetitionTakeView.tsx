@@ -110,7 +110,7 @@ export default function CompetitionTakeView({
   if (!currentTeam) {
     return (
       <div>
-        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-900 mb-4 whitespace-pre-wrap">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
           <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
           {competition.description}
         </div>
@@ -139,7 +139,7 @@ export default function CompetitionTakeView({
             {submittedByMe ? " (شما)" : ""} · {fmtRelative(teamSubmission.submitted_at)}
           </span>
         </div>
-        <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-900 mb-4 whitespace-pre-wrap">
+        <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
           <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
           {competition.description}
         </div>
@@ -187,7 +187,7 @@ export default function CompetitionTakeView({
           <div className="text-[11px] text-muted">دقیقه کل</div>
         </div>
       </div>
-      <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 text-sm text-indigo-900 mb-4 whitespace-pre-wrap">
+      <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
         <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
         {competition.description}
       </div>

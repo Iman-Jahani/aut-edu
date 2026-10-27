@@ -169,7 +169,7 @@ export default function SignupPage() {
                 key={a}
                 type="button"
                 onClick={() => setAvatar(a)}
-                className={`text-base rounded-lg p-1 hover:bg-slate-100 ${a === avatar ? "bg-indigo-100 ring-2 ring-primary" : ""}`}
+                className={`text-base rounded-lg p-1 hover:bg-slate-100 ${a === avatar ? "bg-zinc-200 ring-2 ring-primary" : ""}`}
               >
                 {a}
               </button>
@@ -183,7 +183,7 @@ export default function SignupPage() {
             type="button"
             onClick={() => setRole("student")}
             className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              role === "student" ? "border-primary bg-indigo-50 text-primary" : "border-line text-muted"
+              role === "student" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
             }`}
           >
             <BookOpen size={15} /> دانشجو
@@ -192,7 +192,7 @@ export default function SignupPage() {
             type="button"
             onClick={() => setRole("teacher")}
             className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              role === "teacher" ? "border-primary bg-indigo-50 text-primary" : "border-line text-muted"
+              role === "teacher" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
             }`}
           >
             <GraduationCap size={15} /> معلم

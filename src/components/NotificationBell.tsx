@@ -104,7 +104,7 @@ export default function NotificationBell() {
                   <button
                     key={g.cellId}
                     onClick={() => go(g)}
-                    className={`w-full text-right flex gap-3 px-4 py-3 border-b border-line/60 last:border-0 hover:bg-slate-50 transition ${unread ? "bg-indigo-50/50" : ""}`}
+                    className={`w-full text-right flex gap-3 px-4 py-3 border-b border-line/60 last:border-0 hover:bg-slate-50 transition ${unread ? "bg-zinc-100/50" : ""}`}
                   >
                     <span className={`w-8 h-8 rounded-full grid place-items-center shrink-0 ${unread ? "bg-primary/10 text-primary" : "bg-slate-100 text-muted"}`}>
                       <MessageCircle size={15} />

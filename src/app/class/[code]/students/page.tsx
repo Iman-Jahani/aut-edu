@@ -287,8 +287,8 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
                     contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0", direction: "rtl" }}
                     formatter={(v: unknown, name: unknown) => [String(v), name === "solved" ? "حل کامل" : "تلاش کرده"]}
                   />
-                  <Bar dataKey="attempted" fill="#c7d2fe" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="solved" fill="#6366f1" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="attempted" fill="#d4d4d8" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="solved" fill="#0a0a0a" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>

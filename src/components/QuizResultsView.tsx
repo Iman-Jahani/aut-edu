@@ -79,7 +79,7 @@ export default function QuizResultsView({ quiz, onStop }: { quiz: Quiz; onStop: 
             return (
               <div
                 key={a.user_id}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg ${isMe ? "bg-indigo-50 border border-primary/30" : "bg-slate-50"}`}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg ${isMe ? "bg-zinc-100 border border-primary/30" : "bg-slate-50"}`}
               >
                 <div className="w-8 flex items-center justify-center font-bold">{medalColor ? <Medal size={18} color={medalColor} /> : `#${i + 1}`}</div>
                 <div className="flex-1 text-sm font-bold truncate">

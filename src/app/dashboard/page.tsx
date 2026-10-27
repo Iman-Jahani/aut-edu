@@ -217,7 +217,7 @@ export default function DashboardPage() {
             onClick={() => setProfileOpen(true)}
             className="flex items-center gap-2 pl-3 pr-1.5 py-1 bg-white border border-line rounded-full text-sm font-bold text-primary hover:shadow-soft transition"
           >
-            <span className="w-7 h-7 rounded-full bg-indigo-50 grid place-items-center text-base">{avatar}</span>
+            <span className="w-7 h-7 rounded-full bg-zinc-100 grid place-items-center text-base">{avatar}</span>
             {displayName}
           </button>
           <button onClick={() => signOut().then(() => router.replace("/"))} className="btn-ghost" title="خروج">
@@ -230,7 +230,7 @@ export default function DashboardPage() {
         <Link
           href="/playground"
           className="card p-5 flex items-center gap-4 hover:shadow-lift hover:-translate-y-0.5 transition group"
-          style={{ background: "linear-gradient(135deg, rgba(99,102,241,.06), rgba(236,72,153,.06))" }}
+          style={{ background: "linear-gradient(135deg, rgba(0,0,0,.03), rgba(0,0,0,.015))" }}
         >
           <div className="w-12 h-12 rounded-xl grid place-items-center text-white shadow-glow shrink-0" style={{ background: "var(--grad)" }}>
             <Code2 size={22} />
@@ -355,7 +355,7 @@ function MiniStatCard({ icon, label, value, highlight }: { icon: React.ReactNode
 
 function CodeHeader() {
   return (
-    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 grid place-items-center text-primary shrink-0">
+    <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-zinc-50 to-zinc-100 grid place-items-center text-primary shrink-0">
       <GraduationCap size={20} />
     </div>
   );

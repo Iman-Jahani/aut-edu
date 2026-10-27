@@ -115,7 +115,7 @@ export default function CoTeachersModal({
                   </div>
                   <button
                     onClick={() => add(u)}
-                    className="flex items-center gap-1 text-xs font-bold text-primary px-2.5 py-1.5 rounded-lg hover:bg-indigo-50 shrink-0"
+                    className="flex items-center gap-1 text-xs font-bold text-primary px-2.5 py-1.5 rounded-lg hover:bg-zinc-100 shrink-0"
                   >
                     <UserPlus size={13} /> افزودن
                   </button>

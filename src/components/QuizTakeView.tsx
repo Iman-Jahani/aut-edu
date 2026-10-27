@@ -169,7 +169,7 @@ export default function QuizTakeView({
               <label
                 key={j}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
-                  selected[i] === j ? "border-primary bg-indigo-50" : "border-line"
+                  selected[i] === j ? "border-primary bg-zinc-100" : "border-line"
                 }`}
               >
                 <input

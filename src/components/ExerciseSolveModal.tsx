@@ -127,7 +127,7 @@ export default function ExerciseSolveModal({
 
         <div className="overflow-y-auto px-6 py-4 flex-1 space-y-4">
           {exercise.description && <div className="text-sm text-ink/80"><RichText text={exercise.description} /></div>}
-          <div className="bg-indigo-50 border border-indigo-100 rounded-lg px-3 py-2 text-xs text-indigo-900 flex items-center gap-1.5">
+          <div className="bg-zinc-100 border border-zinc-200 rounded-lg px-3 py-2 text-xs text-zinc-900 flex items-center gap-1.5">
             <Target size={13} className="shrink-0" /> {tests.length} تست — کدت باید برای همه‌ی ورودی‌ها خروجی درست بده
           </div>
           {exercise.hint && (

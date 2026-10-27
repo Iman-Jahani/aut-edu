@@ -98,8 +98,8 @@ export function StudentProgressChart({ userId }: { userId: string }) {
           <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="solvedGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#6366f1" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#6366f1" stopOpacity={0} />
+                <stop offset="0%" stopColor="#0a0a0a" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#0a0a0a" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef0f4" />
@@ -110,7 +110,7 @@ export function StudentProgressChart({ userId }: { userId: string }) {
               labelFormatter={(l) => `تا ${l}`}
               formatter={(v: unknown) => [String(v), "حل‌شده"]}
             />
-            <Area type="monotone" dataKey="solved" stroke="#6366f1" strokeWidth={2.5} fill="url(#solvedGradient)" />
+            <Area type="monotone" dataKey="solved" stroke="#0a0a0a" strokeWidth={2.5} fill="url(#solvedGradient)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -169,7 +169,7 @@ export function TeacherActivityChart({ classIds }: { classIds: string[] }) {
             <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} interval={1} axisLine={false} tickLine={false} />
             <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
             <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0", direction: "rtl" }} formatter={(v: unknown) => [String(v), "سلول کد"]} />
-            <Bar dataKey="cells" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
+            <Bar dataKey="cells" fill="#71717a" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

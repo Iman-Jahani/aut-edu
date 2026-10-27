@@ -128,7 +128,7 @@ export default function WelcomeModal({
             <p className="text-sm text-muted mb-4">این کد رو به دانشجوهات بده تا بتونن بپیوندن</p>
             <button
               onClick={copyCode}
-              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary/30 rounded-xl py-4 mb-4 hover:bg-indigo-50/50 transition"
+              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary/30 rounded-xl py-4 mb-4 hover:bg-zinc-100/50 transition"
             >
               <span className="text-3xl font-extrabold tracking-[0.35em] grad-text">{created.code}</span>
               {copied ? <Check size={18} className="text-emerald-600" /> : <Copy size={18} className="text-primary" />}

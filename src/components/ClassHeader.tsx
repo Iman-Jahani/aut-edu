@@ -189,7 +189,7 @@ export default function ClassHeader({
           className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white border border-line hover:shadow-soft transition"
           title="پروفایل"
         >
-          <span className="w-7 h-7 rounded-full bg-indigo-50 grid place-items-center text-base">{avatar}</span>
+          <span className="w-7 h-7 rounded-full bg-zinc-100 grid place-items-center text-base">{avatar}</span>
           <span className="text-xs font-bold max-w-[90px] truncate hidden sm:block">{displayName}</span>
         </button>
       </div>
@@ -201,14 +201,14 @@ export default function ClassHeader({
             <CalendarDays size={14} /> جلسات
           </Link>
         ) : (
-          <span className={`${tabBase} bg-indigo-50 text-primary`}>
+          <span className={`${tabBase} bg-zinc-100 text-primary`}>
             <Sparkles size={14} /> جلسات
           </span>
         )}
         {isTeacher && (
           <Link
             href={`/class/${session.code}/students`}
-            className={`${tabBase} ${section === "students" ? "bg-indigo-50 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+            className={`${tabBase} ${section === "students" ? "bg-zinc-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
           >
             <BarChart3 size={14} /> دانشجوها
           </Link>

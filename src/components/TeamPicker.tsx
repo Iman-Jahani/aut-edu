@@ -11,7 +11,7 @@ import { Users, Check } from "lucide-react";
 
 const TEAM_PALETTE = [
   "#ef4444", "#f97316", "#eab308", "#22c55e", "#06b6d4",
-  "#3b82f6", "#8b5cf6", "#ec4899", "#14b8a6", "#f43f5e",
+  "#3b82f6", "#71717a", "#ec4899", "#14b8a6", "#f43f5e",
 ];
 
 export interface CurrentTeam {
@@ -158,7 +158,7 @@ export default function TeamPicker({
                   key={t.id}
                   onClick={() => !isMine && joinTeam(t)}
                   className={`w-full text-right rounded-xl p-3 border transition ${
-                    isMine ? "border-primary bg-indigo-50" : "border-line hover:border-primary/40"
+                    isMine ? "border-primary bg-zinc-100" : "border-line hover:border-primary/40"
                   }`}
                   style={{ borderInlineEndWidth: 4, borderInlineEndColor: t.color }}
                 >

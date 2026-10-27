@@ -18,7 +18,7 @@ export function TopicBadge({ value, className = "" }: { value: string | null | u
   return (
     <span
       dir="auto"
-      className={`inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-violet-50 text-violet-700 border border-violet-200 ${className}`}
+      className={`inline-flex items-center text-[11px] font-bold px-2 py-0.5 rounded-full bg-zinc-100 text-zinc-800 border border-zinc-300 ${className}`}
     >
       {value}
     </span>

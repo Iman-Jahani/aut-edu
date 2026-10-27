@@ -96,7 +96,7 @@ export default function ProfileModal({
             type="button"
             onClick={() => setPickedRole("student")}
             className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              pickedRole === "student" ? "border-primary bg-indigo-50 text-primary" : "border-line text-muted"
+              pickedRole === "student" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
             }`}
           >
             <BookOpen size={15} /> دانشجو
@@ -105,7 +105,7 @@ export default function ProfileModal({
             type="button"
             onClick={() => setPickedRole("teacher")}
             className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              pickedRole === "teacher" ? "border-primary bg-indigo-50 text-primary" : "border-line text-muted"
+              pickedRole === "teacher" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
             }`}
           >
             <GraduationCap size={15} /> معلم
@@ -144,7 +144,7 @@ export default function ProfileModal({
               key={a}
               onClick={() => setPickedAvatar(a)}
               className={`text-xl rounded-lg p-1.5 hover:bg-slate-100 transition ${
-                a === pickedAvatar ? "bg-indigo-100 ring-2 ring-primary" : ""
+                a === pickedAvatar ? "bg-zinc-200 ring-2 ring-primary" : ""
               }`}
             >
               {a}

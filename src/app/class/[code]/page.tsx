@@ -127,7 +127,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
                   href={`/class/${session.code}/${m.id}`}
                   className="card p-4 flex items-center gap-3 hover:shadow-lift hover:-translate-y-0.5 transition group"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 grid place-items-center text-primary shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-zinc-50 to-zinc-100 grid place-items-center text-primary shrink-0">
                     <CalendarDays size={20} />
                   </div>
                   <div className="min-w-0 flex-1">
