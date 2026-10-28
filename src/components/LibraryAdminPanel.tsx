@@ -7,6 +7,7 @@ import type { SharedExercise } from "@/lib/types";
 import { DIFFICULTIES } from "@/lib/difficulty";
 import { DifficultyBadge, TopicBadge } from "@/components/DifficultyBadge";
 import SharedExerciseEditModal from "@/components/SharedExerciseEditModal";
+import { adminFetch } from "@/lib/adminFetch";
 import { Pencil, Trash2 } from "lucide-react";
 
 /** Admin view of the shared exercise library: browse, filter, edit and delete records in place. */
@@ -47,7 +48,7 @@ export default function LibraryAdminPanel() {
 
   const del = async (ex: SharedExercise) => {
     if (!confirm(`تمرین «${ex.title}» از کتابخانه حذف شود؟`)) return;
-    const res = await fetch(`/api/admin/library/${ex.id}`, { method: "DELETE" });
+    const res = await adminFetch(`/api/admin/library/${ex.id}`, { method: "DELETE" });
     if (!res.ok) {
       const d = await res.json().catch(() => ({}));
       return toast("خطا: " + (d.error || "حذف نشد"), "err");

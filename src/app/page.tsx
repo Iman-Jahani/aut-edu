@@ -267,13 +267,14 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
-  const { ready, user, needsProfile } = useAuth();
+  const { ready, user, needsProfile, role } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [code, setCode] = useState("");
   const stepRefs = useRef<(HTMLElement | null)[]>([]);
   const loggedIn = ready && user && !needsProfile;
+  const isStaff = loggedIn && (role === "admin" || role === "manager");
 
   // Fresh Google sign-in landed here with no profile row yet: finish it, then go in.
   useEffect(() => {
@@ -330,9 +331,16 @@ export default function LandingPage() {
           </Link>
           <div className="flex-1" />
           {loggedIn ? (
-            <Link href="/dashboard" className="btn-primary">
-              رفتن به داشبورد
-            </Link>
+            <>
+              {isStaff && (
+                <Link href="/admin" className="btn-ghost">
+                  {role === "admin" ? "پنل مدیریت" : "پنل مدیر"}
+                </Link>
+              )}
+              <Link href="/dashboard" className="btn-primary">
+                رفتن به داشبورد
+              </Link>
+            </>
           ) : (
             <>
               <Link href="/login" className="btn-ghost">
@@ -445,7 +453,6 @@ export default function LandingPage() {
             <span className="flex-1" />
             <Link href="/login" className="hover:text-white">ورود</Link>
             <Link href="/signup" className="hover:text-white">ثبت‌نام</Link>
-            <Link href="/admin" className="hover:text-white">مدیریت</Link>
           </div>
         </footer>
       </section>

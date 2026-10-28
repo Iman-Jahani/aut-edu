@@ -7,7 +7,7 @@ export interface AdminData {
   teamMembers: { team_id: string; user_id: string; display_name: string; joined_at: string }[];
   classMembers: { class_id: string; user_id: string; display_name: string; joined_at: string; last_seen_at: string }[];
   classTeachers: { class_id: string; user_id: string; display_name: string; email: string | null; added_at: string }[];
-  profiles: { user_id: string; display_name: string; avatar: string | null; email: string | null; role: "teacher" | "student"; updated_at: string }[];
+  profiles: { user_id: string; display_name: string; avatar: string | null; email: string | null; role: "admin" | "manager" | "teacher" | "student"; institution_id: string | null; updated_at: string }[];
   cells: { id: string; class_id: string; meeting_id: string | null; team_id: string | null; author_id: string; author_name: string; created_at: string; updated_at: string | null }[];
   comments: { id: string; cell_id: string; author_id: string; author_name: string; created_at: string }[];
   exercises: { id: string; class_id: string; title: string; difficulty: number | null; topic: string | null; opens_at: string | null; due_at: string | null; created_at: string }[];
@@ -16,6 +16,9 @@ export interface AdminData {
   quizAnswers: { quiz_id: string; user_id: string; author_name: string; score: number; total_questions: number; submitted_at: string }[];
   competitions: { id: string; class_id: string; title: string; status: string; time_limit: number; created_at: string; started_at: string | null }[];
   compSubs: { competition_id: string; team_id: string; team_name: string; user_id: string; author_name: string; submitted_at: string }[];
+  institutions: { id: string; name: string; max_teachers: number | null; created_at: string }[];
+  grants: { user_id: string; role: "teacher" | "manager"; institution_id: string | null }[];
+  scope: { role: "admin" | "manager"; institutionId: string | null; institutionName: string | null };
   warnings: string[];
   generatedAt: string;
 }
@@ -96,6 +99,9 @@ export interface Index {
   exerciseById: Map<string, AdminData["exercises"][number]>;
   profileById: Map<string, AdminData["profiles"][number]>;
   teacherIds: Set<string>;
+  /** Admins and managers — never counted as students. */
+  staffIds: Set<string>;
+  isStudent: (uid: string) => boolean;
   nameOf: (uid: string, fallback?: string) => string;
 }
 
@@ -105,6 +111,8 @@ export function buildIndex(data: AdminData): Index {
   data.profiles.forEach((p) => p.role === "teacher" && teacherIds.add(p.user_id));
   data.sessions.forEach((s) => s.created_by && teacherIds.add(s.created_by));
   data.classTeachers.forEach((c) => teacherIds.add(c.user_id));
+  const staffIds = new Set<string>();
+  data.profiles.forEach((p) => (p.role === "admin" || p.role === "manager") && staffIds.add(p.user_id));
   const fallbackNames = new Map<string, string>();
   const remember = (uid: string, name: string | null | undefined) => {
     if (name && !fallbackNames.has(uid)) fallbackNames.set(uid, name);
@@ -119,6 +127,8 @@ export function buildIndex(data: AdminData): Index {
     exerciseById: new Map(data.exercises.map((e) => [e.id, e])),
     profileById,
     teacherIds,
+    staffIds,
+    isStudent: (uid) => !teacherIds.has(uid) && !staffIds.has(uid),
     nameOf: (uid, fb) => profileById.get(uid)?.display_name || fallbackNames.get(uid) || fb || "ناشناس",
   };
 }
@@ -372,7 +382,7 @@ export function overview(ix: Index): Overview {
   const { data } = ix;
   const studentIds = new Set<string>();
   data.profiles.forEach((p) => p.role === "student" && studentIds.add(p.user_id));
-  data.classMembers.forEach((m) => !ix.teacherIds.has(m.user_id) && studentIds.add(m.user_id));
+  data.classMembers.forEach((m) => ix.isStudent(m.user_id) && studentIds.add(m.user_id));
   const now = Date.now();
   const activeSets = (from: number, to: number) => {
     const s = new Set<string>();
@@ -380,7 +390,7 @@ export function overview(ix: Index): Overview {
     data.exSubs.forEach((c) => { const x = t(c.submitted_at); if (x >= from && x < to) s.add(c.user_id); });
     data.comments.forEach((c) => { const x = t(c.created_at); if (x >= from && x < to) s.add(c.author_id); });
     data.classMembers.forEach((c) => { const x = t(c.last_seen_at); if (x >= from && x < to) s.add(c.user_id); });
-    return Array.from(s).filter((id) => !ix.teacherIds.has(id)).length;
+    return Array.from(s).filter((id) => ix.isStudent(id)).length;
   };
 
   const statusCounts: Record<SubStatus, number> = { correct: 0, partial: 0, wrong: 0, error: 0, pending: 0 };
@@ -396,7 +406,7 @@ export function overview(ix: Index): Overview {
   for (let i = 29; i >= 0; i--) days.push(dayKey(now - i * DAY));
   const joinMap = new Map(days.map((d) => [d, 0]));
   firstJoin.forEach((iso, uid) => {
-    if (ix.teacherIds.has(uid)) return;
+    if (!ix.isStudent(uid)) return;
     const k = dayKey(iso);
     if (joinMap.has(k)) joinMap.set(k, (joinMap.get(k) || 0) + 1);
   });
@@ -469,7 +479,7 @@ export function studentRows(ix: Index): StudentRow[] {
   const { data } = ix;
   const ids = new Set<string>();
   data.profiles.forEach((p) => p.role === "student" && ids.add(p.user_id));
-  data.classMembers.forEach((m) => !ix.teacherIds.has(m.user_id) && ids.add(m.user_id));
+  data.classMembers.forEach((m) => ix.isStudent(m.user_id) && ids.add(m.user_id));
   const best = bestPerExercise(data.exSubs);
   const bestBy = new Map<string, AdminData["exSubs"]>();
   best.forEach((v) => bestBy.set(v.user_id, [...(bestBy.get(v.user_id) || []), v]));
@@ -576,4 +586,55 @@ export function studentStats(ix: Index, userId: string): StudentStats | null {
     commentsReceived: data.comments.filter((c) => myCellIds.has(c.cell_id) && c.author_id !== userId).length,
     activity: activitySeries(30, { cells: myCells.map((c) => c.created_at), submissions: mySubs.map((x) => x.submitted_at), comments: myComments.map((c) => c.created_at) }),
   };
+}
+
+
+// ---------- institutions ----------
+export interface InstitutionRow {
+  id: string;
+  name: string;
+  maxTeachers: number | null;
+  teachers: number;
+  managers: { id: string; name: string; email: string | null }[];
+  classes: number;
+  students: number;
+  submissions: number;
+  activity30: number;
+  lastActive: string | null;
+  createdAt: string;
+}
+
+export function institutionRows(ix: Index): InstitutionRow[] {
+  const { data } = ix;
+  return data.institutions.map((inst) => {
+    const grants = data.grants.filter((g) => g.institution_id === inst.id);
+    const teacherIds = new Set(grants.filter((g) => g.role === "teacher").map((g) => g.user_id));
+    const managerIds = grants.filter((g) => g.role === "manager").map((g) => g.user_id);
+    const classes = data.sessions.filter((s) => s.created_by && teacherIds.has(s.created_by));
+    const students = new Set<string>();
+    let submissions = 0;
+    let activity30 = 0;
+    let last: string | null = null;
+    classes.forEach((c) => {
+      const cs = classStats(ix, c.id);
+      if (!cs) return;
+      cs.students.forEach((x) => students.add(x.userId));
+      submissions += cs.submissionCount;
+      activity30 += cs.activity.reduce((a, p) => a + p.cells + p.submissions + p.comments, 0);
+      last = latest(last, cs.lastActive);
+    });
+    return {
+      id: inst.id,
+      name: inst.name,
+      maxTeachers: inst.max_teachers,
+      teachers: teacherIds.size,
+      managers: managerIds.map((id) => ({ id, name: ix.nameOf(id), email: ix.profileById.get(id)?.email || null })),
+      classes: classes.length,
+      students: students.size,
+      submissions,
+      activity30,
+      lastActive: last,
+      createdAt: inst.created_at,
+    };
+  });
 }

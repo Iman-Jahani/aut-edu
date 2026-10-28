@@ -7,6 +7,7 @@ import { Pencil, X } from "lucide-react";
 import RichTextHint from "@/components/RichTextHint";
 import DifficultyTopicFields from "@/components/DifficultyTopicFields";
 import { getErrorMessage } from "@/lib/errors";
+import { adminFetch } from "@/lib/adminFetch";
 
 /**
  * Edits a record of the shared library in place. Goes through the admin-only API
@@ -48,7 +49,7 @@ export default function SharedExerciseEditModal({
     const patch = { title: t, description, hint, test_cases: cleanTests, difficulty, topic: topic.trim() || null };
     setSaving(true);
     try {
-      const res = await fetch(`/api/admin/library/${exercise.id}`, {
+      const res = await adminFetch(`/api/admin/library/${exercise.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(patch),

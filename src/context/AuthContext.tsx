@@ -93,19 +93,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // (covers confirming the email on another device, and the sign-up race).
       if (u && !loadedProfile) {
         const meta = (u.user_metadata || {}) as { display_name?: string; avatar?: string; role?: string; invite_code?: string };
-        let allowed = meta.role === "teacher" || meta.role === "student";
-        if (allowed && meta.role === "teacher") {
-          // Teacher accounts need an invite code; redeem it now (no-op if already redeemed).
-          const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: meta.invite_code || "" });
-          if (redeemError) allowed = false; // fall through to the profile modal, where they can fix it
+        let healedRole: UserRole | null = meta.role === "student" ? "student" : null;
+        if (meta.role === "teacher" || meta.role === "manager") {
+          // Staff roles need an invite code; redeem it now (no-op if already redeemed). The database
+          // decides which role the code actually grants.
+          const { data: granted, error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: meta.invite_code || "", p_role: meta.role });
+          if (!redeemError && (granted === "teacher" || granted === "manager")) healedRole = granted as UserRole;
+          // on error fall through to the profile modal, where they can fix it
         }
-        if (meta.display_name && allowed) {
+        if (meta.display_name && healedRole) {
           const row = {
             user_id: u.id,
             display_name: meta.display_name,
             avatar: meta.avatar || "🙂",
             email: u.email ?? null,
-            role: meta.role as UserRole,
+            role: healedRole,
             updated_at: new Date().toISOString(),
           };
           const { error: healError } = await supabase.from("user_profiles").upsert(row, { onConflict: "user_id" });
@@ -141,7 +143,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signUpWithEmail = useCallback(
     async (emailAddr: string, password: string, name: string, avatar: string, role: UserRole, inviteCode?: string) => {
-      const code = role === "teacher" ? (inviteCode || "").trim().toUpperCase() : "";
+      const isStaff = role === "teacher" || role === "manager";
+      const code = isStaff ? (inviteCode || "").trim().toUpperCase() : "";
       const { data, error } = await supabase.auth.signUp({
         email: emailAddr,
         password,
@@ -165,9 +168,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { error: null, needsEmailConfirmation: true };
       }
 
-      if (role === "teacher") {
-        const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code });
+      if (isStaff) {
+        const { data: granted, error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code, p_role: role });
         if (redeemError) return { error: getErrorMessage(redeemError) };
+        if (granted !== role) return { error: getErrorMessage("INVITE_ROLE_MISMATCH") };
       }
       const { error: profileError } = await supabase.from("user_profiles").upsert(
         { user_id: u.id, display_name: name, avatar, email: emailAddr, role, updated_at: new Date().toISOString() },
@@ -203,12 +207,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const saveProfile = useCallback(
     async (name: string, newAvatar: string, role: UserRole, inviteCode?: string) => {
       if (!user) return;
-      // Becoming a teacher (new account choosing "teacher", or a student upgrading) needs an invite code.
-      if (role === "teacher" && profile?.role !== "teacher") {
+      // Becoming a teacher or manager (new account choosing it, or a student upgrading) needs an invite code.
+      if ((role === "teacher" || role === "manager") && profile?.role !== role) {
         const code = (inviteCode || "").trim();
-        if (!code) throw new Error("TEACHER_INVITE_REQUIRED");
-        const { error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code });
+        if (!code) throw new Error("ROLE_INVITE_REQUIRED");
+        const { data: granted, error: redeemError } = await supabase.rpc("redeem_invite_code", { p_code: code, p_role: role });
         if (redeemError) throw redeemError;
+        if (granted !== role) throw new Error("INVITE_ROLE_MISMATCH");
       }
       const oldName = profile?.display_name || "";
       const nameChanged = name !== oldName && oldName !== "";

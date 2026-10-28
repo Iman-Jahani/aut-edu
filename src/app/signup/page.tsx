@@ -8,7 +8,7 @@ import { useToast } from "@/components/ToastProvider";
 import { supabase } from "@/lib/supabase";
 import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
-import { GraduationCap, BookOpen, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck, KeyRound } from "lucide-react";
+import { GraduationCap, BookOpen, Building2, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck, KeyRound } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function SignupPage() {
@@ -37,17 +37,21 @@ export default function SignupPage() {
     if (!e) return toast("ایمیل رو وارد کن", "err");
     if (password.length < 6) return toast("رمز عبور حداقل ۶ کاراکتر", "err");
     setBusy(true);
-    if (role === "teacher") {
+    if (role === "teacher" || role === "manager") {
       // Check the code BEFORE creating the account so a typo doesn't leave a half-made account behind.
       const code = inviteCode.trim();
       if (!code) {
         setBusy(false);
-        return toast("برای حساب معلم، کد معرف لازمه", "err");
+        return toast("برای این نقش، کد معرف لازمه", "err");
       }
-      const { data: valid, error: checkError } = await supabase.rpc("check_invite_code", { p_code: code });
-      if (checkError || !valid) {
+      const { data: info, error: checkError } = await supabase.rpc("check_invite_code", { p_code: code });
+      if (checkError || !info) {
         setBusy(false);
         return toast(checkError ? "خطا: " + checkError.message : "کد معرف نامعتبره، منقضی شده یا ظرفیتش پر شده", "err");
+      }
+      if (info.role !== role) {
+        setBusy(false);
+        return toast(`این کد برای نقش «${info.role === "manager" ? "مدیر موسسه" : "معلم"}» صادر شده؛ نقش درست رو انتخاب کن`, "err");
       }
     }
     const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, avatar, role, inviteCode);
@@ -178,30 +182,34 @@ export default function SignupPage() {
         </div>
 
         <div className="text-sm font-bold text-muted mt-4 mb-2">نقش شما</div>
-        <div className="grid grid-cols-2 gap-2 mb-2">
-          <button
-            type="button"
-            onClick={() => setRole("student")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              role === "student" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
-            }`}
-          >
-            <BookOpen size={15} /> دانشجو
-          </button>
-          <button
-            type="button"
-            onClick={() => setRole("teacher")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              role === "teacher" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
-            }`}
-          >
-            <GraduationCap size={15} /> معلم
-          </button>
+        <div className="grid grid-cols-3 gap-2 mb-2">
+          {(
+            [
+              ["student", "دانشجو", BookOpen],
+              ["teacher", "معلم", GraduationCap],
+              ["manager", "مدیر موسسه", Building2],
+            ] as const
+          ).map(([value, label, Icon]) => (
+            <button
+              key={value}
+              type="button"
+              onClick={() => setRole(value)}
+              className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
+                role === value ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
+              }`}
+            >
+              <Icon size={15} /> {label}
+            </button>
+          ))}
         </div>
         <p className="text-[11px] text-muted mb-5">
-          فقط معلم‌ها می‌تونن کلاس بسازن، و برای ساخت حساب معلم کد معرف لازمه (از ادمین بگیر). توی کلاسِ یه معلم دیگه، همه (حتی اکانت معلم) به‌صورت پیش‌فرض دانشجو حساب می‌شن مگر اینکه صاحب کلاس دسترسی بده.
+          {role === "student"
+            ? "با کد کلاس که معلمت می‌ده وارد کلاس می‌شی."
+            : role === "teacher"
+            ? "معلم‌ها کلاس می‌سازن. حساب معلم کد معرف می‌خواد؛ اگه موسسه‌ای هستی از مدیرش بگیر، وگرنه از ادمین سایت."
+            : "مدیر موسسه معلم‌ها و آمار موسسه‌ی خودش رو می‌بینه. حساب مدیر کد معرف می‌خواد که ادمین سایت می‌ده."}
         </p>
-        {role === "teacher" && (
+        {role !== "student" && (
           <div className="relative mb-5">
             <KeyRound size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
             <input

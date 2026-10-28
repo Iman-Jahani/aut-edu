@@ -12,6 +12,10 @@ export function getErrorMessage(e: unknown): string {
 const KNOWN_DB_ERRORS: Record<string, string> = {
   INVALID_INVITE_CODE: "کد معرف نامعتبره، منقضی شده یا ظرفیتش پر شده.",
   TEACHER_INVITE_REQUIRED: "برای داشتن حساب معلم کد معرف لازمه.",
+  ROLE_INVITE_REQUIRED: "برای این نقش کد معرف لازمه.",
+  ADMIN_ROLE_RESTRICTED: "نقش ادمین فقط توسط ادمین داده می‌شه.",
+  INVITE_ROLE_MISMATCH: "این کد برای نقش دیگه‌ای صادر شده؛ نقش درست رو انتخاب کن.",
+  INSTITUTION_FULL: "ظرفیت معلم‌های این موسسه پره. با مدیر موسسه تماس بگیر.",
   CLASS_LIMIT_REACHED: "به سقف تعداد کلاس‌های مجازت رسیدی. برای افزایشش با ادمین تماس بگیر.",
   MEETING_LIMIT_REACHED: "به سقف تعداد جلسه‌های مجاز رسیدی. برای افزایشش با ادمین تماس بگیر.",
   NOT_TEACHER: "فقط حساب معلم می‌تونه این کار رو انجام بده.",

@@ -206,9 +206,12 @@ export default function DashboardPage() {
             <span className="hidden sm:inline">دفترچه کلاس پایتون</span>
           </Link>
           <div className="flex-1" />
-          <Link href="/admin" className="btn-ghost hidden sm:inline-flex" title="پنل مدیریت کلی">
-            <Shield size={15} />
-          </Link>
+          {/* Only admins and institution managers ever see this; everyone else has no link to it. */}
+          {(role === "admin" || role === "manager") && (
+            <Link href="/admin" className="btn-ghost" title="پنل مدیریت">
+              <Shield size={15} /> <span className="hidden sm:inline">{role === "admin" ? "پنل مدیریت" : "پنل مدیر"}</span>
+            </Link>
+          )}
           <Link href="/playground" className="btn-ghost">
             <Code2 size={15} /> پلی‌گراند
           </Link>

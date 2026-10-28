@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
-import { Sparkles, Shuffle, User, GraduationCap, BookOpen, KeyRound } from "lucide-react";
+import { Sparkles, Shuffle, User, GraduationCap, BookOpen, Building2, KeyRound } from "lucide-react";
 import type { UserRole } from "@/lib/types";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -24,7 +24,9 @@ export default function ProfileModal({
   const [pickedRole, setPickedRole] = useState<UserRole>(role || "student");
   const [inviteCode, setInviteCode] = useState("");
   const [saving, setSaving] = useState(false);
-  const needsInvite = pickedRole === "teacher" && role !== "teacher";
+  const needsInvite = (pickedRole === "teacher" || pickedRole === "manager") && role !== pickedRole;
+  // Admins and managers can't change their own role from here.
+  const roleLocked = role === "admin" || role === "manager";
 
   useEffect(() => {
     if (open) {
@@ -41,7 +43,7 @@ export default function ProfileModal({
     const trimmed = name.trim();
     if (!trimmed) return toast("اسمت رو وارد کن", "err");
     if (trimmed.length > 40) return toast("حداکثر ۴۰ کاراکتر", "err");
-    if (needsInvite && !inviteCode.trim()) return toast("برای حساب معلم، کد معرف لازمه", "err");
+    if (needsInvite && !inviteCode.trim()) return toast("برای این نقش، کد معرف لازمه", "err");
     setSaving(true);
     try {
       await saveProfile(trimmed, pickedAvatar, pickedRole, inviteCode);
@@ -90,42 +92,46 @@ export default function ProfileModal({
           className="w-full border border-line rounded-xl px-4 py-2.5 mb-4 outline-none focus:border-primary transition"
         />
 
-        <div className="text-sm font-bold text-muted mb-2">نقش شما</div>
-        <div className="grid grid-cols-2 gap-2 mb-4">
-          <button
-            type="button"
-            onClick={() => setPickedRole("student")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              pickedRole === "student" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
-            }`}
-          >
-            <BookOpen size={15} /> دانشجو
-          </button>
-          <button
-            type="button"
-            onClick={() => setPickedRole("teacher")}
-            className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-              pickedRole === "teacher" ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
-            }`}
-          >
-            <GraduationCap size={15} /> معلم
-          </button>
-        </div>
-        {needsInvite && (
-          <div className="relative mb-4">
-            <KeyRound size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
-            <input
-              value={inviteCode}
-              onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-              placeholder="کد معرف معلم (از ادمین بگیر)"
-              dir="ltr"
-              className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right font-mono tracking-widest"
-            />
-          </div>
+        {!roleLocked && (
+          <>
+            <div className="text-sm font-bold text-muted mb-2">نقش شما</div>
+            <div className="grid grid-cols-3 gap-2 mb-4">
+              {(
+                [
+                  ["student", "دانشجو", BookOpen],
+                  ["teacher", "معلم", GraduationCap],
+                  ["manager", "مدیر موسسه", Building2],
+                ] as const
+              ).map(([value, label, Icon]) => (
+                <button
+                  key={value}
+                  type="button"
+                  onClick={() => setPickedRole(value)}
+                  className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
+                    pickedRole === value ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
+                  }`}
+                >
+                  <Icon size={15} /> {label}
+                </button>
+              ))}
+            </div>
+            {needsInvite && (
+              <div className="relative mb-4">
+                <KeyRound size={15} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted" />
+                <input
+                  value={inviteCode}
+                  onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                  placeholder="کد معرف (از مدیر موسسه یا ادمین سایت بگیر)"
+                  dir="ltr"
+                  className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right font-mono tracking-widest"
+                />
+              </div>
+            )}
+            <p className="text-[11px] text-muted -mt-2 mb-4">
+              فقط معلم‌ها می‌تونن کلاس بسازن. توی کلاسِ یه معلم دیگه، حتی اکانت معلم هم به‌صورت پیش‌فرض دانشجو حساب می‌شه مگر اینکه صاحب کلاس بهش دسترسی بده.
+            </p>
+          </>
         )}
-        <p className="text-[11px] text-muted -mt-2 mb-4">
-          فقط معلم‌ها می‌تونن کلاس بسازن. توی کلاسِ یه معلم دیگه، حتی اکانت معلم هم به‌صورت پیش‌فرض دانشجو حساب می‌شه مگر اینکه صاحب کلاس بهش دسترسی بده.
-        </p>
 
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-bold text-muted">انتخاب آواتار</span>

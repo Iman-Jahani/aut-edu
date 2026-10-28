@@ -31,7 +31,8 @@ export interface PlaygroundCell {
   updated_at: string | null;
 }
 
-export type UserRole = "teacher" | "student";
+/** admin = site owner, manager = head of one institution, teacher / student = classroom roles. */
+export type UserRole = "admin" | "manager" | "teacher" | "student";
 
 export interface UserProfile {
   user_id: string;
@@ -39,6 +40,8 @@ export interface UserProfile {
   avatar: string;
   email: string | null;
   role: UserRole;
+  /** Set by the database from the role grant; null for students and independent teachers. */
+  institution_id?: string | null;
   updated_at: string;
 }
 

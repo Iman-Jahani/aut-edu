@@ -1,13 +1,25 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { BookMarked, GraduationCap, KeyRound, LayoutDashboard, Loader2, Lock, LogOut, RefreshCw, School, ArrowUpRight } from "lucide-react";
+import { BookMarked, Building2, GraduationCap, KeyRound, LayoutDashboard, RefreshCw, School, ShieldCheck, ArrowUpRight, ShieldAlert } from "lucide-react";
 import { AdminData, Index, buildIndex } from "@/lib/adminStats";
 import { Panel } from "@/components/admin/ui";
+import { useAuth } from "@/context/AuthContext";
+import { adminFetch } from "@/lib/adminFetch";
+
+export interface ActorInfo {
+  userId: string;
+  email: string | null;
+  role: "admin" | "manager";
+  institutionId: string | null;
+  institutionName: string | null;
+}
 
 interface Ctx {
+  actor: ActorInfo;
+  isAdmin: boolean;
   data: AdminData | null;
   ix: Index | null;
   loading: boolean;
@@ -23,33 +35,72 @@ export function useAdminData(): Ctx {
 }
 
 const NAV = [
-  { href: "/admin", label: "نمای کلی", icon: LayoutDashboard, exact: true },
-  { href: "/admin/classes", label: "کلاس‌ها", icon: School },
-  { href: "/admin/students", label: "دانشجوها", icon: GraduationCap },
-  { href: "/admin/teachers", label: "معلم‌ها و کد معرف", icon: KeyRound },
-  { href: "/admin/library", label: "کتابخانه‌ی تمرین", icon: BookMarked },
+  { href: "/admin", label: "نمای کلی", icon: LayoutDashboard, exact: true, roles: ["admin", "manager"] },
+  { href: "/admin/classes", label: "کلاس‌ها", icon: School, roles: ["admin", "manager"] },
+  { href: "/admin/students", label: "دانشجوها", icon: GraduationCap, roles: ["admin", "manager"] },
+  { href: "/admin/teachers", label: "معلم‌ها و کد معرف", icon: KeyRound, roles: ["admin", "manager"] },
+  { href: "/admin/institutions", label: "موسسه‌ها", icon: Building2, roles: ["admin"] },
+  { href: "/admin/users", label: "کاربران و نقش‌ها", icon: ShieldCheck, roles: ["admin"] },
+  { href: "/admin/library", label: "کتابخانه‌ی تمرین", icon: BookMarked, roles: ["admin"] },
 ];
 
+/**
+ * The admin area is for signed-in accounts whose role is admin or manager. The server re-checks the
+ * role on every API call; this component only decides what to show.
+ */
 export default function AdminShell({ children }: { children: React.ReactNode }) {
-  const [authed, setAuthed] = useState<boolean | null>(null);
+  const { ready, user } = useAuth();
+  const router = useRouter();
+  const [state, setState] = useState<{ status: "checking" | "forbidden" | "ready" | "error"; actor?: ActorInfo; message?: string }>({ status: "checking" });
 
   useEffect(() => {
-    fetch("/api/admin/session")
-      .then((r) => r.json())
-      .then((d) => setAuthed(!!d.ok))
-      .catch(() => setAuthed(false));
-  }, []);
+    if (!ready) return;
+    if (!user) {
+      router.replace("/login?next=/admin");
+      return;
+    }
+    let cancelled = false;
+    adminFetch("/api/admin/session")
+      .then(async (r) => {
+        const d = await r.json().catch(() => ({}));
+        if (cancelled) return;
+        if (r.ok && d.ok) setState({ status: "ready", actor: d as ActorInfo });
+        else if (r.status === 401 || r.status === 403) setState({ status: "forbidden" });
+        else setState({ status: "error", message: d.error || "خطای سرور" });
+      })
+      .catch(() => !cancelled && setState({ status: "error", message: "ارتباط با سرور برقرار نشد" }));
+    return () => {
+      cancelled = true;
+    };
+  }, [ready, user, router]);
 
-  if (authed === null) return <div className="min-h-screen bg-primary" />;
-  if (!authed) return <Login onDone={() => setAuthed(true)} />;
+  if (state.status === "checking") return <div className="min-h-screen bg-primary" />;
+  if (state.status === "forbidden" || state.status === "error") return <Blocked message={state.status === "error" ? state.message : undefined} />;
   return (
-    <DataProvider onUnauthorized={() => setAuthed(false)}>
-      <Frame onLogout={() => fetch("/api/admin/login", { method: "DELETE" }).finally(() => setAuthed(false))}>{children}</Frame>
+    <DataProvider actor={state.actor!}>
+      <Frame>{children}</Frame>
     </DataProvider>
   );
 }
 
-function DataProvider({ children, onUnauthorized }: { children: React.ReactNode; onUnauthorized: () => void }) {
+function Blocked({ message }: { message?: string }) {
+  return (
+    <div className="min-h-screen bg-primary grid place-items-center p-5">
+      <div className="w-full max-w-sm text-center">
+        <div className="w-12 h-12 rounded-2xl bg-white/10 text-white grid place-items-center mx-auto mb-5">
+          <ShieldAlert size={22} />
+        </div>
+        <h1 className="text-white text-2xl font-black mb-2">{message ? "مشکلی پیش اومد" : "اینجا برای تو نیست"}</h1>
+        <p className="text-white/55 text-sm leading-7 mb-7">{message || "پنل مدیریت فقط برای ادمین سایت و مدیر موسسه‌هاست. اگه باید دسترسی داشته باشی، از ادمین بخواه نقشت رو عوض کنه."}</p>
+        <Link href="/dashboard" className="inline-block rounded-xl bg-white text-primary font-extrabold text-sm px-6 py-3">
+          بازگشت به سایت
+        </Link>
+      </div>
+    </div>
+  );
+}
+
+function DataProvider({ children, actor }: { children: React.ReactNode; actor: ActorInfo }) {
   const [data, setData] = useState<AdminData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -58,8 +109,7 @@ function DataProvider({ children, onUnauthorized }: { children: React.ReactNode;
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch("/api/admin/data", { cache: "no-store" });
-      if (res.status === 401) return onUnauthorized();
+      const res = await adminFetch("/api/admin/data");
       const d = await res.json();
       if (!res.ok) throw new Error(d.error || "دریافت داده ناموفق بود");
       setData(d as AdminData);
@@ -68,20 +118,23 @@ function DataProvider({ children, onUnauthorized }: { children: React.ReactNode;
     } finally {
       setLoading(false);
     }
-  }, [onUnauthorized]);
+  }, []);
 
   useEffect(() => {
     reload();
   }, [reload]);
 
   const ix = useMemo(() => (data ? buildIndex(data) : null), [data]);
-  const value = useMemo(() => ({ data, ix, loading, error, reload }), [data, ix, loading, error, reload]);
+  const value = useMemo(() => ({ actor, isAdmin: actor.role === "admin", data, ix, loading, error, reload }), [actor, data, ix, loading, error, reload]);
   return <AdminDataContext.Provider value={value}>{children}</AdminDataContext.Provider>;
 }
 
-function Frame({ children, onLogout }: { children: React.ReactNode; onLogout: () => void }) {
+function Frame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const { data, loading, reload, error } = useAdminData();
+  const { data, loading, reload, error, actor } = useAdminData();
+  const nav = NAV.filter((n) => n.roles.includes(actor.role));
+  const title = actor.role === "admin" ? "پنل مدیریت" : "پنل مدیر";
+  const sub = actor.role === "admin" ? "دفترچه کلاس پایتون" : actor.institutionName || "موسسه";
   const active = (n: (typeof NAV)[number]) => (n.exact ? pathname === n.href : pathname.startsWith(n.href));
 
   return (
@@ -91,12 +144,12 @@ function Frame({ children, onLogout }: { children: React.ReactNode; onLogout: ()
         <Link href="/admin" className="flex items-center gap-2.5 px-2 mb-8">
           <span className="w-9 h-9 rounded-xl bg-white text-primary grid place-items-center font-black font-mono text-sm">{">_"}</span>
           <span className="leading-tight">
-            <span className="block font-extrabold text-[15px]">پنل مدیریت</span>
-            <span className="block text-[11px] text-white/50">دفترچه کلاس پایتون</span>
+            <span className="block font-extrabold text-[15px]">{title}</span>
+            <span className="block text-[11px] text-white/50 max-w-[9.5rem] truncate">{sub}</span>
           </span>
         </Link>
         <nav className="space-y-1 flex-1">
-          {NAV.map((n) => (
+          {nav.map((n) => (
             <Link
               key={n.href}
               href={n.href}
@@ -113,9 +166,6 @@ function Frame({ children, onLogout }: { children: React.ReactNode; onLogout: ()
           <Link href="/dashboard" className="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-white/65 hover:text-white hover:bg-white/10">
             <ArrowUpRight size={16} /> بازگشت به سایت
           </Link>
-          <button onClick={onLogout} className="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-white/65 hover:text-white hover:bg-white/10">
-            <LogOut size={16} /> خروج
-          </button>
         </div>
       </aside>
 
@@ -123,16 +173,13 @@ function Frame({ children, onLogout }: { children: React.ReactNode; onLogout: ()
         {/* Top bar */}
         <div className="sticky top-0 z-30 bg-[#fafafa]/90 backdrop-blur border-b border-line">
           <div className="lg:hidden bg-primary text-white px-4 pt-3 flex items-center gap-2">
-            <span className="font-extrabold text-sm flex-1">پنل مدیریت</span>
+            <span className="font-extrabold text-sm flex-1">{title}</span>
             <Link href="/dashboard" className="text-xs text-white/70 px-2 py-1">
               سایت
             </Link>
-            <button onClick={onLogout} className="text-xs text-white/70 px-2 py-1">
-              خروج
-            </button>
           </div>
           <nav className="lg:hidden bg-primary flex gap-1 overflow-x-auto px-3 pb-2 pt-1">
-            {NAV.map((n) => (
+            {nav.map((n) => (
               <Link
                 key={n.href}
                 href={n.href}
@@ -190,53 +237,13 @@ function Skeleton() {
   );
 }
 
-function Login({ onDone }: { onDone: () => void }) {
-  const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const submit = async () => {
-    if (busy || !password) return;
-    setBusy(true);
-    setError("");
-    try {
-      const res = await fetch("/api/admin/login", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ password }) });
-      const d = await res.json().catch(() => ({}));
-      if (res.ok) onDone();
-      else setError(d.error || "ورود ناموفق بود");
-    } catch {
-      setError("ارتباط با سرور برقرار نشد");
-    } finally {
-      setBusy(false);
-    }
-  };
-
+/** Wrap pages only the site admin may use (managers get a plain notice; the API refuses them anyway). */
+export function AdminOnly({ children }: { children: React.ReactNode }) {
+  const { isAdmin } = useAdminData();
+  if (isAdmin) return <>{children}</>;
   return (
-    <div className="min-h-screen bg-primary grid place-items-center p-5">
-      <div className="w-full max-w-sm">
-        <div className="w-12 h-12 rounded-2xl bg-white text-primary grid place-items-center font-black font-mono mb-6">{">_"}</div>
-        <h1 className="text-white text-3xl font-black mb-2">پنل مدیریت</h1>
-        <p className="text-white/50 text-sm mb-8">آمار همه‌ی کلاس‌ها، دانشجوها و معلم‌ها یک‌جا.</p>
-        <div className="relative mb-3">
-          <Lock size={15} className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40" />
-          <input
-            type="password"
-            autoFocus
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onKeyDown={(e) => e.key === "Enter" && submit()}
-            placeholder="رمز عبور"
-            className="w-full bg-white/10 border border-white/15 text-white placeholder:text-white/35 rounded-xl pr-11 pl-4 py-3 outline-none focus:border-white/60"
-          />
-        </div>
-        {error && <div className="text-red-400 text-xs mb-3">{error}</div>}
-        <button onClick={submit} disabled={busy} className="w-full py-3 rounded-xl bg-white text-primary font-extrabold text-sm disabled:opacity-60 flex items-center justify-center gap-2">
-          {busy && <Loader2 size={15} className="animate-spin" />} ورود
-        </button>
-        <Link href="/dashboard" className="block text-center text-white/45 text-xs mt-6 hover:text-white/80">
-          بازگشت به سایت
-        </Link>
-      </div>
-    </div>
+    <Panel>
+      <div className="text-center py-10 text-sm text-muted">این بخش فقط برای ادمین سایته.</div>
+    </Panel>
   );
 }

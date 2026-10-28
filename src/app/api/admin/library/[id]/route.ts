@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
-import { adminDb, fail, requireAdmin } from "@/lib/adminServer";
+import { adminDb, fail, requireActor } from "@/lib/adminServer";
 
 export const dynamic = "force-dynamic";
 
 /** Edit a record of the shared library in place (admin only). */
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = requireAdmin(req);
-  if (denied) return denied;
+  const a = await requireActor(req, { adminOnly: true });
+  if ("error" in a) return a.error;
   try {
     const b = await req.json();
     const patch: Record<string, unknown> = {};
@@ -39,8 +39,8 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
 }
 
 export async function DELETE(req: NextRequest, { params }: { params: { id: string } }) {
-  const denied = requireAdmin(req);
-  if (denied) return denied;
+  const a = await requireActor(req, { adminOnly: true });
+  if ("error" in a) return a.error;
   try {
     const { error } = await adminDb().from("shared_exercises").delete().eq("id", params.id);
     if (error) throw error;
