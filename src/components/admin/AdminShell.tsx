@@ -8,6 +8,7 @@ import { AdminData, Index, buildIndex } from "@/lib/adminStats";
 import { Panel } from "@/components/admin/ui";
 import { useAuth } from "@/context/AuthContext";
 import { adminFetch } from "@/lib/adminFetch";
+import UserMenu from "@/components/UserMenu";
 
 export interface ActorInfo {
   userId: string;
@@ -189,13 +190,14 @@ function Frame({ children }: { children: React.ReactNode }) {
               </Link>
             ))}
           </nav>
-          <div className="px-4 lg:px-8 py-2.5 flex items-center gap-3 text-xs text-muted">
+          <div className="px-4 lg:px-8 py-2 flex items-center gap-3 text-xs text-muted">
             <span className="flex-1">
               {data ? `آخرین به‌روزرسانی: ${new Date(data.generatedAt).toLocaleTimeString("fa-IR", { hour: "2-digit", minute: "2-digit" })}` : "در حال دریافت داده…"}
             </span>
             <button onClick={reload} disabled={loading} className="inline-flex items-center gap-1.5 font-bold text-ink hover:opacity-70 disabled:opacity-40">
               <RefreshCw size={13} className={loading ? "animate-spin" : ""} /> به‌روزرسانی
             </button>
+            <UserMenu />
           </div>
         </div>
 

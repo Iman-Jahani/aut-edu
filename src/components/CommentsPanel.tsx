@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Send } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { fmtRelative, fetchAvatars, colorOf, initials } from "@/lib/utils";
@@ -110,23 +111,25 @@ export default function CommentsPanel({
           })
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex gap-2 items-end">
         <textarea
           value={text}
           onChange={(e) => setText(e.target.value)}
           onKeyDown={(e) => {
             if ((e.ctrlKey || e.metaKey) && e.key === "Enter") submit();
           }}
-          placeholder="نظر خود را اینجا بنویسید... (Ctrl+Enter برای ارسال)"
+          placeholder="نظرت رو بنویس… (Ctrl+Enter = ارسال)"
           rows={2}
           className="flex-1 border border-line rounded-lg px-3 py-2 text-sm outline-none focus:border-primary resize-none"
         />
         <button
           onClick={submit}
           disabled={sending || !text.trim()}
-          className="px-4 rounded-lg text-xs font-bold text-white bg-gradient-to-br from-primary to-primary2 disabled:opacity-40"
+          title="ارسال"
+          aria-label="ارسال نظر"
+          className="w-9 h-9 shrink-0 grid place-items-center rounded-lg text-white bg-primary hover:opacity-85 transition disabled:opacity-30"
         >
-          ارسال
+          <Send size={15} className="-scale-x-100" />
         </button>
       </div>
     </div>

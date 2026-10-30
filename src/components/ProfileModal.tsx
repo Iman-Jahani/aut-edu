@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
+import { AVATAR_PALETTE, DEFAULT_AVATAR, randomAvatar } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import { Sparkles, Shuffle, User, GraduationCap, BookOpen, Building2, KeyRound } from "lucide-react";
@@ -32,10 +32,10 @@ export default function ProfileModal({
     if (open) {
       // After an email-confirmation round trip, recover what they picked at sign-up.
       setName(displayName || pendingProfileHint?.display_name || "");
-      setPickedAvatar(avatar || pendingProfileHint?.avatar || "🙂");
+      setPickedAvatar(firstTime ? DEFAULT_AVATAR : avatar || DEFAULT_AVATAR);
       setPickedRole(role || pendingProfileHint?.role || "student");
     }
-  }, [open, displayName, avatar, role, pendingProfileHint]);
+  }, [open, firstTime, displayName, avatar, role, pendingProfileHint]);
 
   if (!open) return null;
 
@@ -72,7 +72,7 @@ export default function ProfileModal({
         </h2>
         <p className="text-sm text-muted mb-4">
           {firstTime
-            ? "قبل از شروع، بگو کی هستی و یه آواتار هم برات انتخاب کن."
+            ? "قبل از شروع، بگو کی هستی. آواتارت رو بعداً از منوی پروفایل می‌تونی عوض کنی."
             : "اسم (یا شماره دانشجویی) و آواتارت رو اینجا می‌تونی عوض کنی."}
         </p>
 
@@ -133,6 +133,8 @@ export default function ProfileModal({
           </>
         )}
 
+        {!firstTime && (
+          <>
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-bold text-muted">انتخاب آواتار</span>
           <button
@@ -157,6 +159,8 @@ export default function ProfileModal({
             </button>
           ))}
         </div>
+          </>
+        )}
 
         <div className="flex gap-2 justify-end">
           {!firstTime && (

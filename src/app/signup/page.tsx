@@ -6,9 +6,9 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import { supabase } from "@/lib/supabase";
-import { AVATAR_PALETTE, randomAvatar } from "@/lib/utils";
+import { DEFAULT_AVATAR } from "@/lib/utils";
 import type { UserRole } from "@/lib/types";
-import { GraduationCap, BookOpen, Building2, Shuffle, Mail, Lock, User as UserIcon, Loader2, MailCheck, KeyRound } from "lucide-react";
+import { GraduationCap, BookOpen, Building2, Mail, Lock, User as UserIcon, Loader2, MailCheck, KeyRound } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
 export default function SignupPage() {
@@ -21,7 +21,6 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<UserRole>("student");
   const [inviteCode, setInviteCode] = useState("");
-  const [avatar, setAvatar] = useState(() => AVATAR_PALETTE[Math.floor(Math.random() * AVATAR_PALETTE.length)]);
   const [busy, setBusy] = useState(false);
   const [googleBusy, setGoogleBusy] = useState(false);
   const [awaitingConfirmation, setAwaitingConfirmation] = useState<string | null>(null);
@@ -54,7 +53,7 @@ export default function SignupPage() {
         return toast(`این کد برای نقش «${info.role === "manager" ? "مدیر موسسه" : "معلم"}» صادر شده؛ نقش درست رو انتخاب کن`, "err");
       }
     }
-    const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, avatar, role, inviteCode);
+    const { error, needsEmailConfirmation } = await signUpWithEmail(e, password, n, DEFAULT_AVATAR, role, inviteCode);
     setBusy(false);
     if (error) return toast("خطا: " + error, "err");
     if (needsEmailConfirmation) {
@@ -101,8 +100,8 @@ export default function SignupPage() {
     <div className="min-h-screen grid place-items-center p-4">
       <div className="card w-full max-w-md p-7 anim-pop">
         <div className="text-center mb-6">
-          <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-xl shadow-glow mb-3" style={{ background: "var(--grad)" }}>
-            🐍
+          <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-base font-mono font-black bg-primary mb-3">
+            {">_"}
           </Link>
           <h1 className="font-extrabold text-xl">ساخت حساب کاربری</h1>
           <p className="text-sm text-muted mt-1">چه معلمی چه دانشجو، اول یه حساب بساز</p>
@@ -155,29 +154,6 @@ export default function SignupPage() {
               dir="ltr"
               className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right"
             />
-          </div>
-        </div>
-
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-11 h-11 rounded-full bg-slate-50 border border-line grid place-items-center text-xl shrink-0">{avatar}</div>
-          <button
-            type="button"
-            onClick={() => setAvatar(randomAvatar(avatar))}
-            className="flex items-center gap-1 text-xs text-primary font-bold"
-          >
-            <Shuffle size={12} /> آواتار تصادفی
-          </button>
-          <div className="flex-1 flex flex-wrap gap-1 justify-end max-w-[60%]">
-            {AVATAR_PALETTE.slice(0, 6).map((a) => (
-              <button
-                key={a}
-                type="button"
-                onClick={() => setAvatar(a)}
-                className={`text-base rounded-lg p-1 hover:bg-slate-100 ${a === avatar ? "bg-zinc-200 ring-2 ring-primary" : ""}`}
-              >
-                {a}
-              </button>
-            ))}
           </div>
         </div>
 

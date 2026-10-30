@@ -2,7 +2,8 @@
 
 import { useRef } from "react";
 import Link from "next/link";
-import NotificationBell from "@/components/NotificationBell";
+import Brand from "@/components/Brand";
+import { HeaderActions } from "@/components/UserMenu";
 import {
   GraduationCap,
   Users,
@@ -17,6 +18,7 @@ import {
   Upload,
   ChevronRight,
   BarChart3,
+  LineChart,
 } from "lucide-react";
 import type { CurrentTeam } from "@/components/TeamPicker";
 import type { ClassSession } from "@/lib/types";
@@ -74,7 +76,7 @@ export default function ClassHeader({
   onCoTeachers: () => void;
   ipynb?: { onExport: () => void; onImport: (file: File) => void; importing: boolean };
   /** Which top-level section is open when there is no meeting title. */
-  section?: "students";
+  section?: "students" | "insights";
 }) {
   const ipynbInputRef = useRef<HTMLInputElement>(null);
   const compNeedsAttention = !!comp.item && !teacherMode && (!currentTeam || !comp.answered);
@@ -83,14 +85,7 @@ export default function ClassHeader({
   return (
     <header className="sticky top-0 z-40 glass">
       <div className="max-w-4xl mx-auto px-4 pt-3 pb-2.5 flex items-center gap-2">
-        <Link
-          href="/dashboard"
-          className="w-9 h-9 rounded-xl grid place-items-center text-white text-lg shadow-soft shrink-0"
-          style={{ background: "var(--grad)" }}
-          title="داشبورد"
-        >
-          🐍
-        </Link>
+        <Brand href="/dashboard" showName={false} />
         <button onClick={onShare} className="min-w-0 text-right group">
           {meetingTitle ? (
             <>
@@ -182,16 +177,7 @@ export default function ClassHeader({
           </>
         )}
 
-        <NotificationBell />
-
-        <button
-          onClick={onProfile}
-          className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white border border-line hover:shadow-soft transition"
-          title="پروفایل"
-        >
-          <span className="w-7 h-7 rounded-full bg-zinc-100 grid place-items-center text-base">{avatar}</span>
-          <span className="text-xs font-bold max-w-[90px] truncate hidden sm:block">{displayName}</span>
-        </button>
+        <HeaderActions />
       </div>
 
       {/* Section nav */}
@@ -204,6 +190,14 @@ export default function ClassHeader({
           <span className={`${tabBase} bg-zinc-100 text-primary`}>
             <Sparkles size={14} /> جلسات
           </span>
+        )}
+        {isTeacher && (
+          <Link
+            href={`/class/${session.code}/insights`}
+            className={`${tabBase} ${section === "insights" ? "bg-zinc-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+          >
+            <LineChart size={14} /> آمار کلاس
+          </Link>
         )}
         {isTeacher && (
           <Link

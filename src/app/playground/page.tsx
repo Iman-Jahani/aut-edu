@@ -7,6 +7,8 @@ import { useRouter } from "next/navigation";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
+import Brand from "@/components/Brand";
+import { HeaderActions } from "@/components/UserMenu";
 import CellList from "@/components/CellList";
 import PlaygroundCell from "@/components/PlaygroundCell";
 import { PlaygroundSkeleton } from "@/components/Skeleton";
@@ -78,9 +80,7 @@ export default function PlaygroundPage() {
     <div className="min-h-screen pb-28">
       <header className="sticky top-0 z-40 glass px-4 py-3">
         <div className="max-w-3xl mx-auto flex items-center gap-3">
-          <Link href="/dashboard" className="w-9 h-9 rounded-xl grid place-items-center text-white shadow-soft shrink-0" style={{ background: "var(--grad)" }} title="داشبورد">
-            🐍
-          </Link>
+          <Brand href="/dashboard" showName={false} />
           <div>
             <div className="font-extrabold text-sm flex items-center gap-1.5">
               <Code2 size={15} className="text-primary" /> پلی‌گراند
@@ -88,16 +88,7 @@ export default function PlaygroundPage() {
             <div className="text-[11px] text-muted">دفترچه‌ی شخصی کد — مستقل از هر کلاسی</div>
           </div>
           <div className="flex-1" />
-          <Link href="/dashboard" className="btn-ghost hidden sm:inline-flex">
-            <LayoutDashboard size={14} /> داشبورد
-          </Link>
-          <button
-            onClick={() => setProfileOpen(true)}
-            className="flex items-center gap-2 pl-3 pr-1 py-1 rounded-full bg-white border border-line hover:shadow-soft transition"
-          >
-            <span className="w-7 h-7 rounded-full bg-zinc-100 grid place-items-center text-base">{avatar}</span>
-            <span className="text-xs font-bold max-w-[90px] truncate hidden sm:block">{displayName}</span>
-          </button>
+          <HeaderActions />
         </div>
       </header>
 

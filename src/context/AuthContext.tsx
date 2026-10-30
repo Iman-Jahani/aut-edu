@@ -11,6 +11,7 @@ import type { User } from "@supabase/supabase-js";
 import { supabase } from "@/lib/supabase";
 import type { UserProfile, UserRole } from "@/lib/types";
 import { getErrorMessage } from "@/lib/errors";
+import { DEFAULT_AVATAR } from "@/lib/utils";
 
 interface AuthContextValue {
   user: User | null;
@@ -105,7 +106,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           const row = {
             user_id: u.id,
             display_name: meta.display_name,
-            avatar: meta.avatar || "🙂",
+            avatar: meta.avatar || DEFAULT_AVATAR,
             email: u.email ?? null,
             role: healedRole,
             updated_at: new Date().toISOString(),
@@ -263,7 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     profile,
     displayName: profile?.display_name || "",
-    avatar: profile?.avatar || "🙂",
+    avatar: profile?.avatar || DEFAULT_AVATAR,
     role: profile?.role || null,
     email: profile?.email || user?.email || null,
     ready,

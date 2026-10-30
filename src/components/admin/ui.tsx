@@ -178,6 +178,7 @@ export function DataTable<T>({
   columns,
   rowKey,
   href,
+  onRowClick,
   defaultSort,
   empty = "موردی پیدا نشد",
   maxHeight,
@@ -186,6 +187,8 @@ export function DataTable<T>({
   columns: Column<T>[];
   rowKey: (r: T) => string;
   href?: (r: T) => string;
+  /** Alternative to `href`: run something (e.g. open a drawer) when a row is clicked. */
+  onRowClick?: (r: T) => void;
   defaultSort?: { key: string; dir: "asc" | "desc" };
   empty?: string;
   maxHeight?: string;
@@ -232,8 +235,8 @@ export function DataTable<T>({
           {sorted.map((r) => (
             <tr
               key={rowKey(r)}
-              onClick={href ? () => router.push(href(r)) : undefined}
-              className={`border-b border-line/70 last:border-0 ${href ? "cursor-pointer hover:bg-zinc-50" : ""}`}
+              onClick={href ? () => router.push(href(r)) : onRowClick ? () => onRowClick(r) : undefined}
+              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-zinc-50" : ""}`}
             >
               {columns.map((c) => (
                 <td key={c.key} className={`px-4 py-3 align-middle ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className || ""}`}>

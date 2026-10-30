@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase";
 
 export const AVATAR_PALETTE = [
+  "☀️", "🌙", "⭐", "🌈", "🔥", "🌊", "🍀", "🦊", "🐱", "🐼", "🦉", "🐢",
   "👦", "👨", "🧑", "👴", "👱", "🧔", "👨‍🦰", "👨‍🦱", "👨‍🦳", "👨‍🦲",
   "👧", "👩", "👵", "👱‍♀️", "👩‍🦰", "👩‍🦱", "👩‍🦳", "👩‍🦲", "🧓", "👶",
   "🧑‍🎓", "👨‍🎓", "👩‍🎓", "🧑‍🏫", "👨‍🏫", "👩‍🏫",
@@ -62,6 +63,9 @@ export function generateSessionCode(): string {
   for (let i = 0; i < 6; i++) code += c[Math.floor(Math.random() * c.length)];
   return code;
 }
+
+/** Everyone starts with this; they can change it later from the profile menu. */
+export const DEFAULT_AVATAR = "☀️";
 
 export function randomAvatar(exclude?: string): string {
   let pick = exclude;

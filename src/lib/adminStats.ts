@@ -638,3 +638,203 @@ export function institutionRows(ix: Index): InstitutionRow[] {
     };
   });
 }
+
+// ---------- quizzes, competitions, per-student detail (teacher insights) ----------
+export interface QuestionStat {
+  index: number;
+  question: string;
+  correctRate: number;
+  answered: number;
+}
+
+/** How many students got each quiz question right. `sheets` = each student's chosen option per question. */
+export function quizQuestionStats(questions: { question: string; correct: number }[], sheets: number[][]): QuestionStat[] {
+  return questions.map((q, i) => {
+    const answered = sheets.filter((s) => s[i] !== undefined && s[i] !== null && (s[i] as number) >= 0);
+    return { index: i, question: q.question, answered: answered.length, correctRate: pct(answered.filter((s) => s[i] === q.correct).length, answered.length) };
+  });
+}
+
+export interface CompetitionResult {
+  id: string;
+  title: string;
+  status: string;
+  startedAt: string | null;
+  totalTeams: number;
+  submittedTeams: number;
+  /** Teams in the order they handed in. */
+  ranking: { team: string; author: string; minutes: number | null; at: string }[];
+}
+
+export function competitionResults(ix: Index, classId: string): CompetitionResult[] {
+  const { data } = ix;
+  const totalTeams = data.teams.filter((x) => x.class_id === classId).length;
+  return data.competitions
+    .filter((c) => c.class_id === classId)
+    .map((c) => {
+      const subs = data.compSubs.filter((x) => x.competition_id === c.id);
+      // one row per team: its earliest hand-in
+      const byTeam = new Map<string, (typeof subs)[number]>();
+      subs.forEach((s) => {
+        const cur = byTeam.get(s.team_id);
+        if (!cur || t(s.submitted_at) < t(cur.submitted_at)) byTeam.set(s.team_id, s);
+      });
+      const ranking = Array.from(byTeam.values())
+        .sort((a, b) => t(a.submitted_at) - t(b.submitted_at))
+        .map((s) => ({
+          team: s.team_name,
+          author: s.author_name,
+          minutes: c.started_at ? Math.max(0, Math.round(((t(s.submitted_at) - t(c.started_at)) / 60_000) * 10) / 10) : null,
+          at: s.submitted_at,
+        }));
+      return { id: c.id, title: c.title, status: c.status, startedAt: c.started_at, totalTeams, submittedTeams: byTeam.size, ranking };
+    })
+    .sort((a, b) => t(b.startedAt) - t(a.startedAt));
+}
+
+export interface StudentClassDetail {
+  exercises: { id: string; title: string; difficulty: number | null; topic: string | null; status: SubStatus | null; score: number; at: string | null }[];
+  quizzes: { id: string; title: string; pct: number | null; classAvg: number }[];
+  competitions: { id: string; title: string; team: string | null; participated: boolean }[];
+  statusCounts: Record<SubStatus, number>;
+  activity: DayPoint[];
+}
+
+/** One student's progress inside one class: every exercise, quiz and competition, taken or not. */
+export function studentClassDetail(ix: Index, classId: string, userId: string): StudentClassDetail {
+  const { data } = ix;
+  const exs = data.exercises.filter((e) => e.class_id === classId).sort((a, b) => t(a.created_at) - t(b.created_at));
+  const mySubs = data.exSubs.filter((s) => s.user_id === userId && exs.some((e) => e.id === s.exercise_id));
+  const subOf = new Map(mySubs.map((s) => [s.exercise_id, s]));
+  const statusCounts: Record<SubStatus, number> = { correct: 0, partial: 0, wrong: 0, error: 0, pending: 0 };
+  mySubs.forEach((s) => (statusCounts[s.status] = (statusCounts[s.status] || 0) + 1));
+
+  const quizzes = data.quizzes
+    .filter((q) => q.class_id === classId)
+    .sort((a, b) => t(a.created_at) - t(b.created_at))
+    .map((q) => {
+      const all = data.quizAnswers.filter((a) => a.quiz_id === q.id);
+      const mine = all.find((a) => a.user_id === userId);
+      return {
+        id: q.id,
+        title: q.title,
+        pct: mine ? pct(mine.score, mine.total_questions) : null,
+        classAvg: all.length ? Math.round(all.reduce((a, b) => a + pct(b.score, b.total_questions), 0) / all.length) : 0,
+      };
+    });
+
+  const myTeamIds = new Set(data.teamMembers.filter((m) => m.user_id === userId).map((m) => m.team_id));
+  const competitions = data.competitions
+    .filter((c) => c.class_id === classId)
+    .sort((a, b) => t(a.created_at) - t(b.created_at))
+    .map((c) => {
+      const s = data.compSubs.find((x) => x.competition_id === c.id && myTeamIds.has(x.team_id));
+      return { id: c.id, title: c.title, team: s?.team_name || null, participated: !!s };
+    });
+
+  const classCells = data.cells.filter((c) => c.class_id === classId && c.author_id === userId);
+  const cellIds = new Set(data.cells.filter((c) => c.class_id === classId).map((c) => c.id));
+  return {
+    exercises: exs.map((e) => {
+      const s = subOf.get(e.id);
+      return { id: e.id, title: e.title, difficulty: e.difficulty ?? null, topic: e.topic ?? null, status: s ? s.status : null, score: s?.score || 0, at: s?.submitted_at || null };
+    }),
+    quizzes,
+    competitions,
+    statusCounts,
+    activity: activitySeries(30, {
+      cells: classCells.map((c) => c.updated_at || c.created_at),
+      submissions: mySubs.map((s) => s.submitted_at),
+      comments: data.comments.filter((c) => c.author_id === userId && cellIds.has(c.cell_id)).map((c) => c.created_at),
+    }),
+  };
+}
+
+// ---------- teacher dashboard ----------
+export interface AttentionItem {
+  userId: string;
+  name: string;
+  avatar: string | null;
+  classId: string;
+  classTitle: string;
+  reason: "inactive" | "behind";
+  detail: string;
+  /** larger = more urgent */
+  weight: number;
+}
+
+export interface TeacherOverview {
+  classes: ClassStats[];
+  totals: { classes: number; students: number; activeStudents7d: number; solveRate: number; avgScore: number; submissions: number; cells: number; weekEvents: number; weekDelta: number | null };
+  activity: DayPoint[];
+  statusCounts: Record<SubStatus, number>;
+  attention: AttentionItem[];
+  quizzes: { id: string; classId: string; classTitle: string; title: string; status: string; participants: number; avgPct: number; createdAt: string }[];
+  competitions: { id: string; classId: string; classTitle: string; title: string; status: string; submittedTeams: number; totalTeams: number; createdAt: string }[];
+}
+
+export function teacherOverview(ix: Index, classIds: string[]): TeacherOverview {
+  const { data } = ix;
+  const classes = classIds.map((id) => classStats(ix, id)).filter(Boolean) as ClassStats[];
+  const idSet = new Set(classIds);
+  const students = new Map<string, number>(); // user -> latest activity
+  classes.forEach((c) => c.students.forEach((s) => students.set(s.userId, Math.max(students.get(s.userId) || 0, t(s.lastActive)))));
+  const now = Date.now();
+
+  const cells = data.cells.filter((c) => idSet.has(c.class_id));
+  const cellIds = new Set(cells.map((c) => c.id));
+  const exIds = new Set(data.exercises.filter((e) => idSet.has(e.class_id)).map((e) => e.id));
+  const subs = data.exSubs.filter((s) => exIds.has(s.exercise_id));
+  const comments = data.comments.filter((c) => cellIds.has(c.cell_id));
+  const src = { cells: cells.map((c) => c.updated_at || c.created_at), submissions: subs.map((s) => s.submitted_at), comments: comments.map((c) => c.created_at) };
+
+  const events = (from: number, to: number) => [...src.cells, ...src.submissions, ...src.comments].filter((iso) => t(iso) >= from && t(iso) < to).length;
+  const week = events(now - 7 * DAY, now + DAY);
+  const prev = events(now - 14 * DAY, now - 7 * DAY);
+
+  const statusCounts: Record<SubStatus, number> = { correct: 0, partial: 0, wrong: 0, error: 0, pending: 0 };
+  classes.forEach((c) => (Object.keys(statusCounts) as SubStatus[]).forEach((k) => (statusCounts[k] += c.statusCounts[k])));
+
+  const pairs = classes.reduce((a, c) => a + c.studentCount * c.exercises.length, 0);
+  const solved = classes.reduce((a, c) => a + c.students.reduce((x, s) => x + s.solved, 0), 0);
+  const scored = classes.filter((c) => c.submissionCount > 0);
+
+  const attention: AttentionItem[] = [];
+  classes.forEach((c) =>
+    c.students.forEach((s) => {
+      const idleDays = s.lastActive ? Math.floor((now - t(s.lastActive)) / DAY) : null;
+      if (idleDays === null || idleDays >= 7) {
+        attention.push({ userId: s.userId, name: s.name, avatar: s.avatar, classId: c.id, classTitle: c.title, reason: "inactive", detail: idleDays === null ? "هنوز فعالیتی نداشته" : `${fa(idleDays)} روزه فعالیتی نداشته`, weight: idleDays === null ? 1000 : idleDays });
+      } else if (c.exercises.length >= 3 && s.solved / c.exercises.length < 0.3) {
+        attention.push({ userId: s.userId, name: s.name, avatar: s.avatar, classId: c.id, classTitle: c.title, reason: "behind", detail: `${fa(s.solved)} از ${fa(c.exercises.length)} تمرین رو حل کرده`, weight: 100 - pct(s.solved, c.exercises.length) });
+      }
+    })
+  );
+  attention.sort((a, b) => b.weight - a.weight);
+
+  return {
+    classes,
+    totals: {
+      classes: classes.length,
+      students: students.size,
+      activeStudents7d: Array.from(students.values()).filter((x) => x && now - x < 7 * DAY).length,
+      solveRate: pct(solved, pairs),
+      avgScore: scored.length ? Math.round(scored.reduce((a, c) => a + c.avgScore, 0) / scored.length) : 0,
+      submissions: subs.length,
+      cells: cells.length,
+      weekEvents: week,
+      weekDelta: prev > 0 ? Math.round(((week - prev) / prev) * 100) : null,
+    },
+    activity: activitySeries(30, src),
+    statusCounts,
+    attention: attention.slice(0, 8),
+    quizzes: classes
+      .flatMap((c) => c.quizzes.map((q) => ({ id: q.id, classId: c.id, classTitle: c.title, title: q.title, status: q.status, participants: q.participants, avgPct: q.avgPct, createdAt: data.quizzes.find((x) => x.id === q.id)?.created_at || "" })))
+      .sort((a, b) => t(b.createdAt) - t(a.createdAt))
+      .slice(0, 6),
+    competitions: classes
+      .flatMap((c) => competitionResults(ix, c.id).map((r) => ({ id: r.id, classId: c.id, classTitle: c.title, title: r.title, status: r.status, submittedTeams: r.submittedTeams, totalTeams: r.totalTeams, createdAt: data.competitions.find((x) => x.id === r.id)?.created_at || "" })))
+      .sort((a, b) => t(b.createdAt) - t(a.createdAt))
+      .slice(0, 6),
+  };
+}

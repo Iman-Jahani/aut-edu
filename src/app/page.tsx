@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
+import UserMenu from "@/components/UserMenu";
 
 // ---------------------------------------------------------------------------
 // Small helpers
@@ -267,14 +268,13 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
-  const { ready, user, needsProfile, role } = useAuth();
+  const { ready, user, needsProfile } = useAuth();
   const router = useRouter();
   const [profileOpen, setProfileOpen] = useState(false);
   const [active, setActive] = useState(0);
   const [code, setCode] = useState("");
   const stepRefs = useRef<(HTMLElement | null)[]>([]);
   const loggedIn = ready && user && !needsProfile;
-  const isStaff = loggedIn && (role === "admin" || role === "manager");
 
   // Fresh Google sign-in landed here with no profile row yet: finish it, then go in.
   useEffect(() => {
@@ -332,14 +332,10 @@ export default function LandingPage() {
           <div className="flex-1" />
           {loggedIn ? (
             <>
-              {isStaff && (
-                <Link href="/admin" className="btn-ghost">
-                  {role === "admin" ? "پنل مدیریت" : "پنل مدیر"}
-                </Link>
-              )}
               <Link href="/dashboard" className="btn-primary">
                 رفتن به داشبورد
               </Link>
+              <UserMenu />
             </>
           ) : (
             <>

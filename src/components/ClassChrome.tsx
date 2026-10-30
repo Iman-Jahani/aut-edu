@@ -29,7 +29,7 @@ export default function ClassChrome({
   access: ReturnType<typeof useClassAccess>;
   meetingTitle?: string;
   ipynb?: { onExport: () => void; onImport: (file: File) => void; importing: boolean };
-  section?: "students";
+  section?: "students" | "insights";
   children: ReactNode;
 }) {
   const { session, currentTeam, setCurrentTeam, isTeacher, isOwner, teacherMode, previewAsStudent, setPreviewAsStudent, leaveClass, loadCoTeachers } = access;
