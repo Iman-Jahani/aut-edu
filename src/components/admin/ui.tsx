@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, ArrowRight, Search } from "lucide-react";
+import { ArrowDown, ArrowUp, Search } from "lucide-react";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { fa } from "@/lib/adminStats";
 
 export function PageHeader({
@@ -22,9 +23,14 @@ export function PageHeader({
   return (
     <header className="mb-6">
       {back && (
-        <Link href={back.href} className="inline-flex items-center gap-1 text-xs font-bold text-muted hover:text-ink mb-3">
-          <ArrowRight size={13} /> {back.label}
-        </Link>
+        <Breadcrumbs
+          className="mb-3"
+          items={[
+            { label: "پنل مدیریت", href: "/admin" },
+            { label: back.label, href: back.href },
+            { label: title },
+          ]}
+        />
       )}
       <div className="flex items-start gap-4 flex-wrap">
         {lead}
@@ -105,7 +111,7 @@ export function StatStrip({ items, cols = "xl:grid-cols-6" }: { items: Stat[]; c
 export function Avatar({ name, avatar, size = 32 }: { name: string; avatar?: string | null; size?: number }) {
   return (
     <span
-      className="rounded-full bg-zinc-100 border border-line grid place-items-center shrink-0 font-extrabold text-zinc-600 select-none"
+      className="rounded-full bg-accent/20 border border-accent/30 grid place-items-center shrink-0 font-extrabold text-primary select-none"
       style={{ width: size, height: size, fontSize: size * 0.46 }}
       aria-hidden
     >
@@ -116,7 +122,7 @@ export function Avatar({ name, avatar, size = 32 }: { name: string; avatar?: str
 
 export function Bar({ value, className = "" }: { value: number; className?: string }) {
   return (
-    <span className={`block h-1.5 w-full rounded-full bg-zinc-100 overflow-hidden ${className}`}>
+    <span className={`block h-1.5 w-full rounded-full bg-stone-100 overflow-hidden ${className}`}>
       <span className="block h-full rounded-full bg-primary" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
     </span>
   );
@@ -236,7 +242,7 @@ export function DataTable<T>({
             <tr
               key={rowKey(r)}
               onClick={href ? () => router.push(href(r)) : onRowClick ? () => onRowClick(r) : undefined}
-              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-zinc-50" : ""}`}
+              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-stone-50" : ""}`}
             >
               {columns.map((c) => (
                 <td key={c.key} className={`px-4 py-3 align-middle ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className || ""}`}>
@@ -253,7 +259,7 @@ export function DataTable<T>({
 
 export function Chip({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "dark" | "ok" | "warn" | "bad" }) {
   const cls = {
-    neutral: "bg-zinc-100 text-zinc-700",
+    neutral: "bg-stone-100 text-stone-700",
     dark: "bg-primary text-white",
     ok: "bg-emerald-50 text-emerald-700",
     warn: "bg-amber-50 text-amber-700",

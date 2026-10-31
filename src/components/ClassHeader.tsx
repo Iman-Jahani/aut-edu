@@ -3,6 +3,7 @@
 import { useRef } from "react";
 import Link from "next/link";
 import Brand from "@/components/Brand";
+import Breadcrumbs, { Crumb } from "@/components/Breadcrumbs";
 import { HeaderActions } from "@/components/UserMenu";
 import {
   GraduationCap,
@@ -16,7 +17,6 @@ import {
   UserCog,
   Download,
   Upload,
-  ChevronRight,
   BarChart3,
   LineChart,
 } from "lucide-react";
@@ -80,33 +80,34 @@ export default function ClassHeader({
 }) {
   const ipynbInputRef = useRef<HTMLInputElement>(null);
   const compNeedsAttention = !!comp.item && !teacherMode && (!currentTeam || !comp.answered);
+  const crumbs: Crumb[] = [
+    { label: "داشبورد", href: "/dashboard" },
+    { label: session.title, href: meetingTitle || section ? `/class/${session.code}` : undefined },
+    ...(meetingTitle ? [{ label: meetingTitle }] : []),
+    ...(section ? [{ label: section === "insights" ? "آمار کلاس" : "دانشجوها" }] : []),
+  ];
   const tabBase = "relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition";
 
   return (
     <header className="sticky top-0 z-40 glass">
       <div className="max-w-4xl mx-auto px-4 pt-3 pb-2.5 flex items-center gap-2">
         <Brand href="/dashboard" showName={false} />
-        <button onClick={onShare} className="min-w-0 text-right group">
-          {meetingTitle ? (
-            <>
-              <div className="flex items-center gap-1 text-[11px] text-muted group-hover:text-primary transition">
-                <ChevronRight size={12} /> {session.title}
-              </div>
-              <div className="font-extrabold text-sm truncate">{meetingTitle}</div>
-            </>
-          ) : (
-            <>
-              <div className="font-extrabold text-sm truncate group-hover:text-primary transition">{session.title}</div>
-              <div className="text-[11px] text-muted font-mono tracking-widest">کد: {session.code}</div>
-            </>
-          )}
-        </button>
+        <div className="min-w-0 flex items-center gap-2.5">
+          <Breadcrumbs items={crumbs} />
+          <button
+            onClick={onShare}
+            title="اشتراک‌گذاری کد کلاس"
+            className="shrink-0 rounded-full border border-line bg-white px-2.5 py-1 font-mono text-[11px] tracking-widest text-muted hover:text-primary hover:border-primary/40 transition"
+          >
+            {session.code}
+          </button>
+        </div>
         <div className="flex-1" />
 
         <button
           onClick={onTeamPicker}
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border bg-white hover:shadow-soft transition"
-          style={{ borderColor: currentTeam?.color || "#e2e8f0", color: currentTeam?.color || "#64748b" }}
+          style={{ borderColor: currentTeam?.color || "#e7e2d6", color: currentTeam?.color || "#64748b" }}
         >
           {currentTeam ? (
             <>
@@ -187,14 +188,14 @@ export default function ClassHeader({
             <CalendarDays size={14} /> جلسات
           </Link>
         ) : (
-          <span className={`${tabBase} bg-zinc-100 text-primary`}>
+          <span className={`${tabBase} bg-stone-100 text-primary`}>
             <Sparkles size={14} /> جلسات
           </span>
         )}
         {isTeacher && (
           <Link
             href={`/class/${session.code}/insights`}
-            className={`${tabBase} ${section === "insights" ? "bg-zinc-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+            className={`${tabBase} ${section === "insights" ? "bg-stone-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
           >
             <LineChart size={14} /> آمار کلاس
           </Link>
@@ -202,7 +203,7 @@ export default function ClassHeader({
         {isTeacher && (
           <Link
             href={`/class/${session.code}/students`}
-            className={`${tabBase} ${section === "students" ? "bg-zinc-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+            className={`${tabBase} ${section === "students" ? "bg-stone-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
           >
             <BarChart3 size={14} /> دانشجوها
           </Link>

@@ -10,6 +10,7 @@ import { ClassPageSkeleton, Skeleton } from "@/components/Skeleton";
 import { Avatar, Bar, Chip, Column, DataTable, Empty, Panel, SearchBox, StatStrip, Tabs } from "@/components/admin/ui";
 import { ActivityChart, Columns, HBars, StatusDonut } from "@/components/admin/charts";
 import { DifficultyBadge, TopicBadge } from "@/components/DifficultyBadge";
+import StudentDetailModal from "@/components/dash/StudentDetailModal";
 import { loadInsightData, InsightData } from "@/lib/classData";
 import {
   ClassStats,
@@ -111,7 +112,7 @@ export default function InsightsPage() {
             {tab === "exercises" && <ExercisesTab cs={cs} />}
             {tab === "quizzes" && <QuizzesTab cs={cs} ix={ix} insight={insight} />}
             {tab === "competitions" && <CompetitionsTab ix={ix} classId={session.id} />}
-            {studentId && <StudentDrawer cs={cs} ix={ix} classId={session.id} code={session.code} userId={studentId} onClose={() => setStudentId(null)} />}
+            {studentId && <StudentDetailModal cs={cs} ix={ix} classId={session.id} code={session.code} userId={studentId} onClose={() => setStudentId(null)} />}
           </>
         )}
       </main>
@@ -238,7 +239,7 @@ function StudentsTab({ cs, ix, classId, onOpen }: { cs: ClassStats; ix: Index; c
       render: (r) =>
         r.teamName ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-bold">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#a1a1aa" }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#a8a29e" }} />
             {r.teamName}
           </span>
         ) : (
@@ -359,7 +360,7 @@ function QuizzesTab({ cs, ix, insight }: { cs: ClassStats; ix: Index; insight: I
             ) : (
               <div className="grid lg:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-xs font-bold text-zinc-600 mb-3">درصد پاسخ درست هر سؤال</div>
+                  <div className="text-xs font-bold text-stone-600 mb-3">درصد پاسخ درست هر سؤال</div>
                   {stats.length ? (
                     <HBars rows={stats.map((s) => ({ label: `${fa(s.index + 1)}. ${s.question.length > 46 ? s.question.slice(0, 46) + "…" : s.question}`, value: s.correctRate, sub: `${fa(s.answered)} پاسخ` }))} suffix="٪" max={100} />
                   ) : (
@@ -367,7 +368,7 @@ function QuizzesTab({ cs, ix, insight }: { cs: ClassStats; ix: Index; insight: I
                   )}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-zinc-600 mb-3">نمره‌ی دانشجوها</div>
+                  <div className="text-xs font-bold text-stone-600 mb-3">نمره‌ی دانشجوها</div>
                   <ul className="space-y-2 max-h-72 overflow-y-auto pl-1">
                     {results.map((r) => (
                       <li key={r.id} className="flex items-center gap-3 text-sm">
@@ -405,7 +406,7 @@ function CompetitionsTab({ ix, classId }: { ix: Index; classId: string }) {
             <ol className="space-y-2">
               {c.ranking.map((r, i) => (
                 <li key={r.team} className="flex items-center gap-3 rounded-xl border border-line px-4 py-2.5">
-                  <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black ${i === 0 ? "bg-primary text-white" : "bg-zinc-100 text-zinc-600"}`}>{i === 0 ? <Trophy size={13} /> : fa(i + 1)}</span>
+                  <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black ${i === 0 ? "bg-primary text-white" : "bg-stone-100 text-stone-600"}`}>{i === 0 ? <Trophy size={13} /> : fa(i + 1)}</span>
                   <span className="flex-1 min-w-0">
                     <span className="block font-bold text-sm truncate">{r.team}</span>
                     <span className="block text-[11px] text-muted truncate">تحویل توسط {r.author}</span>
@@ -418,116 +419,6 @@ function CompetitionsTab({ ix, classId }: { ix: Index; classId: string }) {
           <p className="text-[11px] text-muted mt-3">ترتیب بر اساس زمان تحویل است؛ برای دیدن کد هر تیم از خود صفحه‌ی مسابقه استفاده کن.</p>
         </Panel>
       ))}
-    </div>
-  );
-}
-
-function StudentDrawer({ cs, ix, classId, code, userId, onClose }: { cs: ClassStats; ix: Index; classId: string; code: string; userId: string; onClose: () => void }) {
-  const stu = cs.students.find((s) => s.userId === userId);
-  const d = useMemo(() => studentClassDetail(ix, classId, userId), [ix, classId, userId]);
-  useEffect(() => {
-    const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
-    document.addEventListener("keydown", onKey);
-    return () => document.removeEventListener("keydown", onKey);
-  }, [onClose]);
-  if (!stu) return null;
-  const quizTaken = d.quizzes.filter((q) => q.pct !== null);
-  const quizAvg = quizTaken.length ? Math.round(quizTaken.reduce((a, b) => a + (b.pct || 0), 0) / quizTaken.length) : null;
-
-  return (
-    <div className="fixed inset-0 z-[130] bg-slate-900/50 backdrop-blur-sm" onClick={(e) => e.target === e.currentTarget && onClose()}>
-      <aside className="mr-auto h-full w-full max-w-2xl bg-[#fafafa] overflow-y-auto anim-fade shadow-2xl">
-        <div className="sticky top-0 z-10 bg-[#fafafa]/95 backdrop-blur border-b border-line px-5 py-4 flex items-center gap-3">
-          <Avatar name={stu.name} avatar={stu.avatar} size={44} />
-          <div className="flex-1 min-w-0">
-            <h3 className="font-black text-lg leading-tight truncate">{stu.name}</h3>
-            <div className="text-xs text-muted">
-              {stu.teamName ? `تیم ${stu.teamName} · ` : ""}آخرین فعالیت {ago(stu.lastActive)}
-            </div>
-          </div>
-          <button onClick={onClose} className="w-9 h-9 grid place-items-center rounded-full hover:bg-zinc-100" aria-label="بستن">
-            <X size={18} />
-          </button>
-        </div>
-        <div className="p-5 space-y-5">
-          <StatStrip
-            cols="xl:grid-cols-3"
-            items={[
-              { label: "تمرین حل‌شده", value: `${fa(stu.solved)}/${fa(cs.exercises.length)}`, hint: cs.exercises.length ? `${fa(pct(stu.solved, cs.exercises.length))}٪` : undefined },
-              { label: "میانگین نمره", value: stu.attempts ? fa(stu.avgScore) : "—" },
-              { label: "میانگین کوییز", value: quizAvg === null ? "—" : `${fa(quizAvg)}٪`, hint: `${fa(quizTaken.length)} از ${fa(d.quizzes.length)}` },
-              { label: "مسابقه", value: `${fa(d.competitions.filter((c) => c.participated).length)}/${fa(d.competitions.length)}` },
-              { label: "سلول کد", value: fa(stu.cells) },
-              { label: "نظر نوشته", value: fa(stu.comments) },
-            ]}
-          />
-          <Panel title="فعالیت ۳۰ روز اخیر">
-            <ActivityChart data={d.activity} height={200} />
-          </Panel>
-          <div className="grid sm:grid-cols-2 gap-5">
-            <Panel title="نتیجه‌ی پاسخ‌ها">
-              <StatusDonut counts={d.statusCounts} />
-            </Panel>
-            <Panel title="کوییزها" flush>
-              {d.quizzes.length === 0 ? (
-                <Empty>کوییزی نبوده.</Empty>
-              ) : (
-                <ul className="divide-y divide-line/70">
-                  {d.quizzes.map((q) => (
-                    <li key={q.id} className="px-5 py-3">
-                      <div className="flex items-center justify-between gap-2 mb-1.5">
-                        <span className="text-sm font-bold truncate">{q.title}</span>
-                        {q.pct === null ? <Chip tone="bad">شرکت نکرده</Chip> : <b className="text-sm tabular-nums">{fa(q.pct)}٪</b>}
-                      </div>
-                      <Bar value={q.pct ?? 0} />
-                      {q.pct !== null && q.classAvg > 0 && <div className="text-[11px] text-muted mt-1">میانگین کلاس {fa(q.classAvg)}٪</div>}
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </Panel>
-          </div>
-          <Panel title="تمرین‌ها" subtitle="همه‌ی تمرین‌های کلاس، حل‌شده یا نه" flush>
-            {d.exercises.length === 0 ? (
-              <Empty>تمرینی نیست.</Empty>
-            ) : (
-              <ul className="divide-y divide-line/70">
-                {d.exercises.map((e) => (
-                  <li key={e.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                    {e.status ? <Chip tone={toneOf[e.status]}>{STATUS_LABEL[e.status]}</Chip> : <Chip>بدون پاسخ</Chip>}
-                    <span className="flex-1 min-w-0">
-                      <span className="flex items-center gap-1.5">
-                        <span className="font-bold truncate">{e.title}</span>
-                        <DifficultyBadge value={e.difficulty} />
-                      </span>
-                      {e.at && <span className="block text-[11px] text-muted">{ago(e.at)}</span>}
-                    </span>
-                    <span className="w-24 hidden sm:block">
-                      <Bar value={e.score} />
-                    </span>
-                    <b className="text-xs tabular-nums w-8 text-left">{e.status ? fa(e.score) : "—"}</b>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </Panel>
-          {d.competitions.length > 0 && (
-            <Panel title="مسابقه‌ها" flush>
-              <ul className="divide-y divide-line/70">
-                {d.competitions.map((c) => (
-                  <li key={c.id} className="flex items-center gap-3 px-5 py-3 text-sm">
-                    <span className="flex-1 font-bold truncate">{c.title}</span>
-                    {c.participated ? <Chip tone="ok">تیم {c.team} تحویل داد</Chip> : <Chip>شرکت نکرد</Chip>}
-                  </li>
-                ))}
-              </ul>
-            </Panel>
-          )}
-          <Link href={`/class/${code}/students`} className="btn-ghost w-full justify-center">
-            دیدن کدها و پاسخ‌های این کلاس
-          </Link>
-        </div>
-      </aside>
     </div>
   );
 }

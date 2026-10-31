@@ -98,13 +98,13 @@ export default function LibraryAdminPanel() {
           {loading ? (
             <div className="text-xs text-muted py-6 text-center">در حال بارگذاری…</div>
           ) : filtered.length === 0 ? (
-            <div className="text-xs text-muted bg-zinc-50 rounded-lg px-3 py-4 text-center">
+            <div className="text-xs text-muted bg-stone-50 rounded-lg px-3 py-4 text-center">
               {items.length ? "چیزی پیدا نشد" : "کتابخانه خالیه"}
             </div>
           ) : (
             <div className="space-y-1.5 max-h-[420px] overflow-y-auto">
               {filtered.map((ex) => (
-                <div key={ex.id} className="flex items-center gap-2.5 bg-zinc-50 rounded-lg px-3 py-2 text-xs">
+                <div key={ex.id} className="flex items-center gap-2.5 bg-stone-50 rounded-lg px-3 py-2 text-xs">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-1.5 flex-wrap">
                       <span className="font-bold truncate">{ex.title}</span>
@@ -117,7 +117,7 @@ export default function LibraryAdminPanel() {
                   </div>
                   <button
                     onClick={() => setEditing(ex)}
-                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold bg-zinc-100 hover:bg-zinc-200 shrink-0"
+                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg font-bold bg-stone-100 hover:bg-stone-200 shrink-0"
                   >
                     <Pencil size={12} /> ویرایش
                   </button>

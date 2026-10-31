@@ -67,7 +67,7 @@ export default function NotificationBell() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative w-9 h-9 grid place-items-center rounded-full bg-white border border-line hover:shadow-soft transition text-slate-600"
+        className="relative w-9 h-9 grid place-items-center rounded-full bg-white border border-line hover:shadow-soft transition text-stone-600"
         title="اعلان‌ها"
         aria-label="اعلان‌ها"
       >
@@ -104,9 +104,9 @@ export default function NotificationBell() {
                   <button
                     key={g.cellId}
                     onClick={() => go(g)}
-                    className={`w-full text-right flex gap-3 px-4 py-3 border-b border-line/60 last:border-0 hover:bg-slate-50 transition ${unread ? "bg-zinc-100/50" : ""}`}
+                    className={`w-full text-right flex gap-3 px-4 py-3 border-b border-line/60 last:border-0 hover:bg-stone-50 transition ${unread ? "bg-stone-100/50" : ""}`}
                   >
-                    <span className={`w-8 h-8 rounded-full grid place-items-center shrink-0 ${unread ? "bg-primary/10 text-primary" : "bg-slate-100 text-muted"}`}>
+                    <span className={`w-8 h-8 rounded-full grid place-items-center shrink-0 ${unread ? "bg-primary/10 text-primary" : "bg-stone-100 text-muted"}`}>
                       <MessageCircle size={15} />
                     </span>
                     <span className="min-w-0 flex-1">

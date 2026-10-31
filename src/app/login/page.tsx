@@ -45,7 +45,7 @@ export default function LoginPage() {
       <div className="card w-full max-w-sm p-7 anim-pop">
         <div className="text-center mb-6">
           <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-base font-mono font-black bg-primary mb-3">
-            {">_"}
+            {">"}<span className="text-accent">_</span>
           </Link>
           <h1 className="font-extrabold text-xl">ورود</h1>
           <p className="text-sm text-muted mt-1">به دفترچه‌ی کلاس پایتون خوش اومدی</p>

@@ -36,8 +36,8 @@ export const STATUS_COLOR: Record<SubStatus, string> = {
   correct: "#10b981",
   partial: "#f59e0b",
   wrong: "#ef4444",
-  error: "#a1a1aa",
-  pending: "#d4d4d8",
+  error: "#a8a29e",
+  pending: "#bfdcdc",
 };
 export const DIFF_LABEL: Record<number, string> = { 1: "پایه", 2: "آسان", 3: "متوسط", 4: "سخت" };
 

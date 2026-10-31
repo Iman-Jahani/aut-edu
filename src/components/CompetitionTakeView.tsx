@@ -110,7 +110,7 @@ export default function CompetitionTakeView({
   if (!currentTeam) {
     return (
       <div>
-        <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
+        <div className="bg-stone-100 border border-stone-200 rounded-lg p-3 text-sm text-stone-900 mb-4 whitespace-pre-wrap">
           <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
           {competition.description}
         </div>
@@ -139,7 +139,7 @@ export default function CompetitionTakeView({
             {submittedByMe ? " (شما)" : ""} · {fmtRelative(teamSubmission.submitted_at)}
           </span>
         </div>
-        <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
+        <div className="bg-stone-100 border border-stone-200 rounded-lg p-3 text-sm text-stone-900 mb-4 whitespace-pre-wrap">
           <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
           {competition.description}
         </div>
@@ -178,16 +178,16 @@ export default function CompetitionTakeView({
         <span className="text-xs text-muted">هر عضوی از تیم می‌تونه پاسخ رو بفرسته — بعد از ارسال همه‌ی اعضا می‌بیننش</span>
       </div>
       <div className="grid grid-cols-2 gap-2 mb-4 text-center">
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{fmtClock(remaining)}</div>
           <div className="text-[11px] text-muted">زمان باقی‌مانده</div>
         </div>
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{competition.time_limit}</div>
           <div className="text-[11px] text-muted">دقیقه کل</div>
         </div>
       </div>
-      <div className="bg-zinc-100 border border-zinc-200 rounded-lg p-3 text-sm text-zinc-900 mb-4 whitespace-pre-wrap">
+      <div className="bg-stone-100 border border-stone-200 rounded-lg p-3 text-sm text-stone-900 mb-4 whitespace-pre-wrap">
         <div className="font-bold text-xs mb-1 flex items-center gap-1"><ClipboardList size={12} /> صورت سوال</div>
         {competition.description}
       </div>

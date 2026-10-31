@@ -67,7 +67,7 @@ export default function SharedExerciseEditModal({
 
   return (
     <div
-      className="fixed inset-0 z-[130] bg-slate-900/60 backdrop-blur-sm anim-fade flex items-center justify-center p-4 text-ink"
+      className="fixed inset-0 z-[130] bg-stone-900/60 backdrop-blur-sm anim-fade flex items-center justify-center p-4 text-ink"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-2xl max-h-[90vh] flex flex-col">

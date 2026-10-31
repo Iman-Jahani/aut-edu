@@ -96,7 +96,7 @@ export default function CommentsPanel({
               >
                 {c.author_avatar || initials(c.author_name)}
               </div>
-              <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 text-sm ${isNew ? "bg-rose-50 ring-2 ring-rose-300" : "bg-slate-50"}`}>
+              <div className={`flex-1 min-w-0 rounded-lg px-3 py-2 text-sm ${isNew ? "bg-rose-50 ring-2 ring-rose-300" : "bg-stone-50"}`}>
                 <div className="flex items-center justify-between mb-0.5">
                   <span className="font-bold text-xs flex items-center gap-1.5">
                     {c.author_name || "ناشناس"}

@@ -84,7 +84,7 @@ export default function ExercisesModal({
 
   return (
     <div
-      className="fixed inset-0 z-[105] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[105] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-3xl max-h-[88vh] flex flex-col">
@@ -158,9 +158,9 @@ export default function ExercisesModal({
                       <div
                         className={`text-[11px] font-bold mb-2 flex items-center gap-1.5 rounded-lg px-2 py-1 ${
                           locked
-                            ? "bg-slate-100 text-slate-600"
+                            ? "bg-stone-100 text-stone-600"
                             : closed
-                            ? "bg-slate-100 text-slate-500"
+                            ? "bg-stone-100 text-stone-500"
                             : urg === "soon"
                             ? "bg-red-50 text-red-700"
                             : urg === "today"
@@ -194,7 +194,7 @@ export default function ExercisesModal({
                           text={partial ? `${sub?.passed_tests || 0}/${total}` : undefined}
                         />
                       )}
-                      <span className="px-2 py-0.5 rounded-full bg-slate-100">{total} تست</span>
+                      <span className="px-2 py-0.5 rounded-full bg-stone-100">{total} تست</span>
                       {teacherMode && <span>{fmtRelative(ex.created_at)}</span>}
                     </div>
 
@@ -224,7 +224,7 @@ export default function ExercisesModal({
                         onClick={() => !locked && setSolving(ex)}
                         disabled={locked}
                         className={`w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold ${
-                          locked ? "bg-slate-100 text-slate-400 cursor-not-allowed" : closed ? "border border-line text-ink bg-white" : "text-white bg-gradient-to-br from-primary to-primary2"
+                          locked ? "bg-stone-100 text-stone-400 cursor-not-allowed" : closed ? "border border-line text-ink bg-white" : "text-white bg-gradient-to-br from-primary to-primary2"
                         }`}
                       >
                         {locked ? <Lock size={13} /> : closed ? <Eye size={13} /> : solved ? <RotateCcw size={13} /> : <Play size={13} />}

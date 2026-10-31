@@ -22,11 +22,11 @@ import {
 } from "recharts";
 import { DayPoint, STATUS_COLOR, STATUS_LABEL, SubStatus, fa } from "@/lib/adminStats";
 
-const INK = "#0a0a0a";
-const GREY = "#71717a";
-const LIGHT = "#d4d4d8";
-const tick = { fontSize: 11, fill: "#a1a1aa" };
-const tooltipStyle = { fontSize: 12, borderRadius: 12, border: "1px solid #e4e4e7", direction: "rtl" as const, boxShadow: "none" };
+const INK = "#0b6b70";
+const GREY = "#f2a93b";
+const LIGHT = "#bfdcdc";
+const tick = { fontSize: 11, fill: "#a8a29e" };
+const tooltipStyle = { fontSize: 12, borderRadius: 12, border: "1px solid #e7e2d6", direction: "rtl" as const, boxShadow: "none" };
 
 function Box({ height, children }: { height: number; children: React.ReactNode }) {
   return (
@@ -41,7 +41,7 @@ function Box({ height, children }: { height: number; children: React.ReactNode }
 const SERIES = [
   { key: "submissions", name: "پاسخ تمرین", color: INK },
   { key: "cells", name: "سلول کد", color: GREY },
-  { key: "comments", name: "نظر", color: "#a1a1aa" },
+  { key: "comments", name: "نظر", color: "#a8a29e" },
 ] as const;
 
 export function ActivityChart({ data, height = 250 }: { data: DayPoint[]; height?: number }) {
@@ -65,11 +65,11 @@ export function ActivityChart({ data, height = 250 }: { data: DayPoint[]; height
               <stop offset="100%" stopColor={INK} stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f2" />
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1ede2" />
           <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} interval={Math.max(0, Math.floor(data.length / 7))} />
           <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} tickFormatter={(v) => fa(v)} width={34} />
           <Tooltip contentStyle={tooltipStyle} formatter={(v, n) => [fa(Number(v)), SERIES.find((s) => s.key === n)?.name || String(n)]} />
-          <Area type="monotone" dataKey="comments" stroke="#a1a1aa" strokeWidth={1.5} strokeDasharray="4 3" fill="none" />
+          <Area type="monotone" dataKey="comments" stroke="#a8a29e" strokeWidth={1.5} strokeDasharray="4 3" fill="none" />
           <Area type="monotone" dataKey="cells" stroke={GREY} strokeWidth={1.8} fill="none" />
           <Area type="monotone" dataKey="submissions" stroke={INK} strokeWidth={2.4} fill="url(#act-fill)" />
         </AreaChart>
@@ -143,7 +143,7 @@ export function HBars({
                 {suffix}
               </span>
             </div>
-            <span className="block h-2 rounded-full bg-zinc-100 overflow-hidden">
+            <span className="block h-2 rounded-full bg-stone-100 overflow-hidden">
               <span className="block h-full rounded-full bg-primary" style={{ width: `${(r.value / m) * 100}%` }} />
             </span>
           </>
@@ -183,10 +183,10 @@ export function Columns({
   return (
     <Box height={height}>
       <BarChart data={data} margin={{ top: 6, right: 6, left: -22, bottom: 0 }} barGap={3}>
-        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f2" />
+        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1ede2" />
         <XAxis dataKey={xKey} tick={tick} axisLine={false} tickLine={false} interval={data.length > 12 ? Math.floor(data.length / 8) : 0} />
         <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} domain={domain} tickFormatter={(v) => fa(v)} width={34} />
-        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#f4f4f5" }} formatter={(v, n) => [fa(Number(v)) + unit, String(n)]} />
+        <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#f3efe4" }} formatter={(v, n) => [fa(Number(v)) + unit, String(n)]} />
         {bars.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
         {bars.map((b, i) => (
           <Bar key={b.key} dataKey={b.key} name={b.name} fill={b.color || [INK, LIGHT][i % 2]} radius={[5, 5, 0, 0]} maxBarSize={28} />
@@ -200,7 +200,7 @@ export function TopicRadar({ data }: { data: { topic: string; correctRate: numbe
   return (
     <Box height={230}>
       <RadarChart data={data} outerRadius="72%">
-        <PolarGrid stroke="#e4e4e7" />
+        <PolarGrid stroke="#e7e2d6" />
         <PolarAngleAxis dataKey="topic" tick={{ fontSize: 11, fill: "#52525b" }} />
         <Tooltip contentStyle={tooltipStyle} formatter={(v) => [fa(Number(v)) + "٪", "درصد درست"]} />
         <Radar dataKey="correctRate" stroke={INK} fill={INK} fillOpacity={0.18} strokeWidth={2} />

@@ -65,7 +65,7 @@ export default function LibraryPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-[120] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[120] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-xl max-h-[85vh] flex flex-col">
@@ -150,8 +150,8 @@ export default function LibraryPickerModal({
                   </div>
                   {ex.description && <div className="text-xs text-muted line-clamp-2 mt-0.5">{ex.description}</div>}
                   <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted">
-                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">{(ex.test_cases || []).length} تست</span>
-                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">{ex.use_count || 0} بار</span>
+                    <span className="px-1.5 py-0.5 bg-stone-100 rounded">{(ex.test_cases || []).length} تست</span>
+                    <span className="px-1.5 py-0.5 bg-stone-100 rounded">{ex.use_count || 0} بار</span>
                     <span className="mr-auto">
                       {ex.created_by_name || "ناشناس"} · {fmtRelative(ex.created_at)}
                     </span>

@@ -228,7 +228,7 @@ export default function ClassChrome({
 
       {shareOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
           onClick={(e) => e.target === e.currentTarget && setShareOpen(false)}
         >
           <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-sm p-6">

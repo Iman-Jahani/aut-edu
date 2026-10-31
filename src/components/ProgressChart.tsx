@@ -77,7 +77,7 @@ export function StudentProgressChart({ userId }: { userId: string }) {
   if (data === null) {
     return (
       <CardShell icon={<TrendingUp size={16} />} title="روند پیشرفت" subtitle="تمرین‌های حل‌شده در ۳۰ روز اخیر">
-        <div className="h-40 animate-pulse bg-slate-100 rounded-lg" />
+        <div className="h-40 animate-pulse bg-stone-100 rounded-lg" />
       </CardShell>
     );
   }
@@ -98,19 +98,19 @@ export function StudentProgressChart({ userId }: { userId: string }) {
           <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="solvedGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" stopColor="#0a0a0a" stopOpacity={0.35} />
-                <stop offset="100%" stopColor="#0a0a0a" stopOpacity={0} />
+                <stop offset="0%" stopColor="#0b6b70" stopOpacity={0.35} />
+                <stop offset="100%" stopColor="#0b6b70" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef0f4" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} interval={6} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#efe9dc" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#a8a29e" }} interval={6} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: "#a8a29e" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
             <Tooltip
-              contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0", direction: "rtl" }}
+              contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e7e2d6", direction: "rtl" }}
               labelFormatter={(l) => `تا ${l}`}
               formatter={(v: unknown) => [String(v), "حل‌شده"]}
             />
-            <Area type="monotone" dataKey="solved" stroke="#0a0a0a" strokeWidth={2.5} fill="url(#solvedGradient)" />
+            <Area type="monotone" dataKey="solved" stroke="#0b6b70" strokeWidth={2.5} fill="url(#solvedGradient)" />
           </AreaChart>
         </ResponsiveContainer>
       </div>
@@ -146,7 +146,7 @@ export function TeacherActivityChart({ classIds }: { classIds: string[] }) {
   if (data === null) {
     return (
       <CardShell icon={<Activity size={16} />} title="فعالیت کلاس‌ها" subtitle="تعداد سلول کد نوشته‌شده در ۱۴ روز اخیر">
-        <div className="h-40 animate-pulse bg-slate-100 rounded-lg" />
+        <div className="h-40 animate-pulse bg-stone-100 rounded-lg" />
       </CardShell>
     );
   }
@@ -165,11 +165,11 @@ export function TeacherActivityChart({ classIds }: { classIds: string[] }) {
       <div dir="ltr" className="h-40 -mr-2">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef0f4" />
-            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#94a3b8" }} interval={1} axisLine={false} tickLine={false} />
-            <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
-            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0", direction: "rtl" }} formatter={(v: unknown) => [String(v), "سلول کد"]} />
-            <Bar dataKey="cells" fill="#71717a" radius={[4, 4, 0, 0]} />
+            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#efe9dc" />
+            <XAxis dataKey="label" tick={{ fontSize: 10, fill: "#a8a29e" }} interval={1} axisLine={false} tickLine={false} />
+            <YAxis tick={{ fontSize: 10, fill: "#a8a29e" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
+            <Tooltip contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e7e2d6", direction: "rtl" }} formatter={(v: unknown) => [String(v), "سلول کد"]} />
+            <Bar dataKey="cells" fill="#f2a93b" radius={[4, 4, 0, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

@@ -11,7 +11,7 @@ const STATUS_CONFIG: Record<
   partial: { icon: <CircleDashed size={12} />, label: "ناقص", className: "bg-amber-100 text-amber-700" },
   wrong: { icon: <XCircle size={12} />, label: "نادرست", className: "bg-red-100 text-red-700" },
   error: { icon: <AlertTriangle size={12} />, label: "خطا", className: "bg-red-100 text-red-700" },
-  pending: { icon: <Circle size={12} />, label: "حل نشده", className: "bg-slate-100 text-slate-600" },
+  pending: { icon: <Circle size={12} />, label: "حل نشده", className: "bg-stone-100 text-stone-600" },
 };
 
 export function StatusBadge({ status, text }: { status: keyof typeof STATUS_CONFIG; text?: string }) {

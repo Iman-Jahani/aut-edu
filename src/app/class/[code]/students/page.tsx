@@ -280,15 +280,15 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
             <div dir="ltr" className="h-48 -mr-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={exSolveRate} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
-                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef0f4" />
-                  <XAxis dataKey="title" tick={{ fontSize: 10, fill: "#94a3b8" }} axisLine={false} tickLine={false} interval={0} />
-                  <YAxis tick={{ fontSize: 10, fill: "#94a3b8" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
+                  <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#efe9dc" />
+                  <XAxis dataKey="title" tick={{ fontSize: 10, fill: "#a8a29e" }} axisLine={false} tickLine={false} interval={0} />
+                  <YAxis tick={{ fontSize: 10, fill: "#a8a29e" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
                   <Tooltip
-                    contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e2e8f0", direction: "rtl" }}
+                    contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #e7e2d6", direction: "rtl" }}
                     formatter={(v: unknown, name: unknown) => [String(v), name === "solved" ? "حل کامل" : "تلاش کرده"]}
                   />
-                  <Bar dataKey="attempted" fill="#d4d4d8" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="solved" fill="#0a0a0a" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="attempted" fill="#bfdcdc" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="solved" fill="#0b6b70" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -352,7 +352,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
               const isOpen = open === r.userId;
               return (
                 <div key={r.userId} className={`card overflow-hidden ${r.atRisk ? "border-red-200" : ""}`}>
-                  <button onClick={() => setOpen(isOpen ? null : r.userId)} className="w-full flex items-center gap-3 px-4 py-3 text-right hover:bg-slate-50/60 transition">
+                  <button onClick={() => setOpen(isOpen ? null : r.userId)} className="w-full flex items-center gap-3 px-4 py-3 text-right hover:bg-stone-50/60 transition">
                     <div className="w-10 h-10 rounded-full grid place-items-center text-lg shrink-0" style={{ background: colorOf(r.name) + "22" }}>
                       {r.avatar || initials(r.name)}
                     </div>
@@ -392,12 +392,12 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
                           {r.solved}/{exercises.length}
                         </span>
                       </div>
-                      <div className="h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                      <div className="h-1.5 rounded-full bg-stone-100 overflow-hidden">
                         <div
                           className="h-full rounded-full"
                           style={{
                             width: `${pct ?? 0}%`,
-                            background: pct === null ? "#cbd5e1" : pct >= 70 ? "#10b981" : pct >= 30 ? "#f59e0b" : "#ef4444",
+                            background: pct === null ? "#d6d3d1" : pct >= 70 ? "#10b981" : pct >= 30 ? "#f59e0b" : "#ef4444",
                           }}
                         />
                       </div>
@@ -424,7 +424,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
                                   ? { t: "ناقص", c: "bg-amber-50 text-amber-700" }
                                   : st
                                   ? { t: "نادرست", c: "bg-red-50 text-red-700" }
-                                  : { t: "شروع نکرده", c: "bg-slate-100 text-slate-500" };
+                                  : { t: "شروع نکرده", c: "bg-stone-100 text-stone-500" };
                               return (
                                 <div key={e.id} className="flex items-center gap-2 text-xs">
                                   <span className="flex-1 truncate">{stripRich(e.title, 40)}</span>
@@ -455,7 +455,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
                                         {sc.pct}%
                                       </span>
                                     ) : (
-                                      <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-slate-100 text-slate-500">شرکت نکرده</span>
+                                      <span className="px-2 py-0.5 rounded-full font-bold text-[10px] bg-stone-100 text-stone-500">شرکت نکرده</span>
                                     )}
                                   </div>
                                 );

@@ -213,7 +213,7 @@ export default function CodeCell({
         </div>
         <span
           className={`text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
-            isPersonal ? "bg-slate-100 text-slate-600" : "text-white"
+            isPersonal ? "bg-stone-100 text-stone-600" : "text-white"
           }`}
           style={!isPersonal ? { background: colorOf(cell.team_name) } : undefined}
         >
@@ -223,7 +223,7 @@ export default function CodeCell({
         <button
           onClick={() => setShowComments((s) => !s)}
           className={`flex items-center gap-1 text-[11px] font-bold px-2.5 py-1 rounded-full shrink-0 ${
-            unseenCount > 0 ? "bg-rose-500 text-white" : commentCount > 0 ? "bg-primary/10 text-primary" : "bg-slate-100 text-muted"
+            unseenCount > 0 ? "bg-rose-500 text-white" : commentCount > 0 ? "bg-primary/10 text-primary" : "bg-stone-100 text-muted"
           }`}
         >
           <MessageCircle size={13} /> {commentCount}
@@ -236,7 +236,7 @@ export default function CodeCell({
           <button
             key={t}
             onClick={() => removeTag(t)}
-            className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+            className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 hover:bg-red-50 hover:text-red-600"
             title="حذف تگ"
           >
             #{t} <X size={10} />
@@ -278,7 +278,7 @@ export default function CodeCell({
         (output || pendingPrompt !== null) && (
           <div className={isError ? "bg-red-950/90 text-red-300" : "bg-[#0b1020] text-emerald-400"} dir="ltr">
             {ranRemote && (
-              <div className="px-4 pt-2.5 text-[10px] text-slate-500" dir="rtl">
+              <div className="px-4 pt-2.5 text-[10px] text-stone-500" dir="rtl">
                 روی سرور اجرا شد (موتور پایتون مرورگرت لود نشد) — کتابخانه‌های اضافه فقط توی مرورگر در دسترسن.
               </div>
             )}
@@ -304,12 +304,12 @@ export default function CodeCell({
                   placeholder="ورودی رو بنویس و Enter بزن…"
                   autoComplete="off"
                   spellCheck={false}
-                  className="flex-1 min-w-0 bg-white/10 text-emerald-100 placeholder:text-slate-500 rounded-lg px-3 py-1.5 outline-none ring-1 ring-emerald-400/40 focus:ring-emerald-300"
+                  className="flex-1 min-w-0 bg-white/10 text-emerald-100 placeholder:text-stone-500 rounded-lg px-3 py-1.5 outline-none ring-1 ring-emerald-400/40 focus:ring-emerald-300"
                 />
                 <button type="submit" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shrink-0">
                   <CornerDownLeft size={13} /> ارسال
                 </button>
-                <button type="button" onClick={cancelInput} className="flex items-center gap-1 text-slate-400 hover:text-white text-xs shrink-0">
+                <button type="button" onClick={cancelInput} className="flex items-center gap-1 text-stone-400 hover:text-white text-xs shrink-0">
                   <X size={13} /> لغو
                 </button>
               </form>
@@ -318,7 +318,7 @@ export default function CodeCell({
         )
       )}
 
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-t border-line">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-stone-50 border-t border-line">
         <button
           onClick={run}
           disabled={running}

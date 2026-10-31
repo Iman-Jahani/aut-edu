@@ -14,6 +14,7 @@ import { Skeleton, DashboardSkeleton } from "@/components/Skeleton";
 import { Tabs } from "@/components/admin/ui";
 import StudentDashboard from "@/components/dash/StudentDashboard";
 import TeacherDashboard from "@/components/dash/TeacherDashboard";
+import StudentDetailModal from "@/components/dash/StudentDetailModal";
 import { buildIndex, Index, teacherOverview, TeacherOverview } from "@/lib/adminStats";
 import { loadInsightData, loadStudentData } from "@/lib/classData";
 import { buildStudentDash, StudentDash } from "@/lib/studentDash";
@@ -32,6 +33,7 @@ export default function DashboardPage() {
   const [teach, setTeach] = useState<Teaching | null>(null);
   const [learn, setLearn] = useState<StudentDash | null>(null);
   const [tab, setTab] = useState<"teach" | "learn" | null>(null);
+  const [student, setStudent] = useState<{ classId: string; userId: string } | null>(null);
 
   useEffect(() => {
     if (ready && !user) router.replace("/login");
@@ -60,7 +62,8 @@ export default function DashboardPage() {
   useEffect(() => {
     if (!user) return;
     loadTeaching().catch(() => setTeach({ ix: buildIndex(emptyData()), ov: emptyOverview(), ownedIds: new Set() }));
-    loadLearning().catch(() => undefined);
+    // a failed load must not leave the page on its skeleton forever
+    loadLearning().catch(() => setLearn(buildStudentDash({ classes: [], exercises: [], subs: [], cells: [], commentsWritten: [], commentsReceived: [], quizzes: [], quizAnswers: [], competitions: [], compSubs: [] })));
   }, [user, loadTeaching, loadLearning]);
 
   const hasTeach = role === "teacher" || (teach?.ov.classes.length ?? 0) > 0;
@@ -71,7 +74,9 @@ export default function DashboardPage() {
   if (!ready || !user) return <DashboardSkeleton />;
 
   const name = displayName || "دوست من";
-  const loading = (active === "teach" && !teach) || (active === "learn" && !learn);
+  // Decide which side to show only once BOTH loads have finished. Otherwise someone who teaches but whose
+  // role isn't "teacher" (e.g. the site admin) would see the student view first and then get switched.
+  const loading = !teach || !learn;
 
   return (
     <div className="min-h-screen">
@@ -105,7 +110,7 @@ export default function DashboardPage() {
             </div>
           </div>
         ) : active === "teach" && teach ? (
-          <TeacherDashboard ov={teach.ov} ix={teach.ix} ownedIds={teach.ownedIds} name={name} avatar={avatar} canCreate={role === "teacher"} onCreate={() => setWelcome("create")} />
+          <TeacherDashboard ov={teach.ov} ix={teach.ix} ownedIds={teach.ownedIds} name={name} avatar={avatar} canCreate={role === "teacher"} onCreate={() => setWelcome("create")} onOpenStudent={(classId, userId) => setStudent({ classId, userId })} />
         ) : learn ? (
           <StudentDashboard dash={learn} name={name} avatar={avatar} onJoin={() => setWelcome("join")} />
         ) : null}
@@ -121,6 +126,11 @@ export default function DashboardPage() {
           <ArrowLeft size={16} className="text-muted group-hover:-translate-x-1 transition" />
         </Link>
       </main>
+
+      {student && teach && (() => {
+        const cs = teach.ov.classes.find((c) => c.id === student.classId);
+        return cs ? <StudentDetailModal cs={cs} ix={teach.ix} classId={cs.id} code={cs.code} userId={student.userId} onClose={() => setStudent(null)} /> : null;
+      })()}
 
       <ProfileModal open={needsProfile} firstTime={needsProfile} onClose={() => undefined} />
       <WelcomeModal

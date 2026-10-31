@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 
 const STATUS_META: Record<string, { label: string; className: string; icon: ReactNode }> = {
   active: { label: "فعال", className: "bg-emerald-100 text-emerald-700", icon: <CircleDot size={11} className="animate-pulse" /> },
-  ended: { label: "پایان یافته", className: "bg-slate-100 text-slate-600", icon: <Square size={10} /> },
+  ended: { label: "پایان یافته", className: "bg-stone-100 text-stone-600", icon: <Square size={10} /> },
   draft: { label: "پیش‌نویس", className: "bg-amber-100 text-amber-700", icon: <Pencil size={10} /> },
 };
 function StatusPill({ status }: { status: string }) {
@@ -123,7 +123,7 @@ export default function QuizzesModal({
 
   return (
     <div
-      className="fixed inset-0 z-[105] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[105] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-2xl max-h-[88vh] flex flex-col">
@@ -183,8 +183,8 @@ export default function QuizzesModal({
                     <div key={q.id} className="border border-line rounded-xl p-4">
                       <div className="font-bold text-sm mb-1.5 flex items-center gap-1.5"><Brain size={14} className="text-primary shrink-0" /> {q.title}</div>
                       <div className="flex gap-2 text-[11px] text-muted mb-2">
-                        <span className="px-2 py-0.5 bg-slate-100 rounded-full">{q.questions.length} سوال</span>
-                        <span className="px-2 py-0.5 bg-slate-100 rounded-full">{q.time_limit} دقیقه</span>
+                        <span className="px-2 py-0.5 bg-stone-100 rounded-full">{q.questions.length} سوال</span>
+                        <span className="px-2 py-0.5 bg-stone-100 rounded-full">{q.time_limit} دقیقه</span>
                       </div>
                       <div className="flex justify-end mb-2.5">
                         <StatusPill status={q.status} />
@@ -259,8 +259,8 @@ export default function QuizzesModal({
                         <div key={q.id} className="border border-line rounded-xl p-4">
                           <div className="font-bold text-sm mb-1.5 flex items-center gap-1.5"><Brain size={14} className="text-primary shrink-0" /> {q.title}</div>
                           <div className="flex gap-2 text-[11px] text-muted mb-3">
-                            <span className="px-2 py-0.5 bg-slate-100 rounded-full">{q.questions.length} سوال</span>
-                            <span className="px-2 py-0.5 bg-slate-100 rounded-full">{q.time_limit} دقیقه</span>
+                            <span className="px-2 py-0.5 bg-stone-100 rounded-full">{q.questions.length} سوال</span>
+                            <span className="px-2 py-0.5 bg-stone-100 rounded-full">{q.time_limit} دقیقه</span>
                           </div>
                           {myAns ? (
                             <div className="flex items-center justify-between">

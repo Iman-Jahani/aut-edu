@@ -50,8 +50,8 @@ function Hl({ code }: { code: string }) {
       {parts.map((p, i) => {
         if (!p) return null;
         if (/^(def|return|print|for|in|if|len|sum)$/.test(p)) return <span key={i} className="text-white font-bold">{p}</span>;
-        if (/^"/.test(p) || /^\d/.test(p)) return <span key={i} className="text-zinc-300">{p}</span>;
-        return <span key={i} className="text-zinc-500">{p}</span>;
+        if (/^"/.test(p) || /^\d/.test(p)) return <span key={i} className="text-stone-300">{p}</span>;
+        return <span key={i} className="text-stone-500">{p}</span>;
       })}
     </>
   );
@@ -91,7 +91,7 @@ function SceneCode({ on }: { on: boolean }) {
         {!done && <span className="lp-caret inline-block w-[9px] h-[1.1em] bg-white align-middle ml-px" />}
       </pre>
       <div className="border-t border-white/10 pt-4 flex items-center gap-4 min-h-[64px]">
-        <span className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-bold transition ${ran ? "bg-white text-black" : "bg-white/10 text-white/60"}`}>
+        <span className={`inline-flex items-center gap-1.5 rounded-lg px-3.5 py-1.5 text-sm font-bold transition ${ran ? "bg-accent text-ink" : "bg-white/10 text-white/60"}`}>
           ▶ اجرا
         </span>
         {ran && (
@@ -149,7 +149,7 @@ function SceneExercise({ on }: { on: boolean }) {
       <ul className="space-y-3 flex-1">
         {tests.map(([i, o, ok], k) => (
           <li key={k} className="lp-rise flex items-center gap-3 rounded-xl border border-white/10 px-4 py-3" style={{ ["--d" as string]: `${0.3 + k * 0.5}s` }}>
-            <span className={`w-6 h-6 rounded-full grid place-items-center text-xs font-black ${ok ? "bg-emerald-500 text-black" : "bg-red-500 text-white"}`}>{ok ? "✓" : "✗"}</span>
+            <span className={`w-6 h-6 rounded-full grid place-items-center text-xs font-black ${ok ? "bg-emerald-500 text-ink" : "bg-red-500 text-white"}`}>{ok ? "✓" : "✗"}</span>
             <span className="text-sm text-white/55">ورودی</span>
             <span dir="ltr" className="font-mono text-sm">{i}</span>
             <span dir="ltr" className="font-mono text-sm mr-auto text-white/70">{o}</span>
@@ -167,16 +167,16 @@ function SceneExercise({ on }: { on: boolean }) {
 function SceneComment({ on }: { on: boolean }) {
   return (
     <div key={on ? "on" : "off"} className="flex flex-col h-full relative">
-      <span className="lp-pop absolute top-0 left-0 inline-flex items-center gap-2 rounded-full bg-white text-black text-xs font-bold px-3 py-1.5" style={{ ["--d" as string]: "1.5s" }}>
+      <span className="lp-pop absolute top-0 left-0 inline-flex items-center gap-2 rounded-full bg-accent text-ink text-xs font-bold px-3 py-1.5" style={{ ["--d" as string]: "1.5s" }}>
         <span className="w-2 h-2 rounded-full bg-red-500" /> یک نظر جدید روی کد تو
       </span>
       <div className="text-sm text-white/50 mb-4 mt-11">کد علی · جلسه‌ی ۳</div>
       <pre dir="ltr" className="font-mono text-[14px] sm:text-[15px] leading-8 text-left rounded-xl border border-white/10 px-4 py-3 whitespace-pre overflow-hidden">
         <Hl code={`def mean(xs):\n    return sum(xs) / len(xs)`} />
       </pre>
-      <div className="lp-rise mt-5 rounded-2xl rounded-tr-sm bg-white text-black px-4 py-3 max-w-[92%]" style={{ ["--d" as string]: "0.6s" }}>
-        <div className="text-xs font-bold text-zinc-500 mb-1">استاد</div>
-        <div className="text-sm leading-7">اگه لیست خالی باشه چی؟ <span dir="ltr" className="font-mono text-[13px] bg-zinc-100 rounded px-1">len(xs)</span> صفر می‌شه.</div>
+      <div className="lp-rise mt-5 rounded-2xl rounded-tr-sm bg-white text-ink px-4 py-3 max-w-[92%]" style={{ ["--d" as string]: "0.6s" }}>
+        <div className="text-xs font-bold text-stone-500 mb-1">استاد</div>
+        <div className="text-sm leading-7">اگه لیست خالی باشه چی؟ <span dir="ltr" className="font-mono text-[13px] bg-stone-100 rounded px-1">len(xs)</span> صفر می‌شه.</div>
       </div>
       <div className="lp-rise mt-auto text-sm text-white/55" style={{ ["--d" as string]: "2s" }}>
         علی با باز کردن کلاس، پنل نظر رو بازشده می‌بینه.
@@ -194,7 +194,7 @@ function SceneQuiz({ on }: { on: boolean }) {
         <div className="relative w-[130px] h-[130px] shrink-0">
           <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90" aria-hidden>
             <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="8" />
-            <circle cx="60" cy="60" r="52" fill="none" stroke="#fff" strokeWidth="8" strokeLinecap="round" strokeDasharray={len} className="lp-ring" style={{ ["--len" as string]: `${len * 0.68}` }} />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#f2a93b" strokeWidth="8" strokeLinecap="round" strokeDasharray={len} className="lp-ring" style={{ ["--len" as string]: `${len * 0.68}` }} />
           </svg>
           <div className="absolute inset-0 grid place-items-center">
             <span className="text-3xl font-black tabular-nums" dir="ltr">0:42</span>
@@ -213,7 +213,7 @@ function SceneQuiz({ on }: { on: boolean }) {
               <span className="text-white/60 tabular-nums">{v.toLocaleString("fa-IR")}٪</span>
             </div>
             <span className="block h-2.5 rounded-full bg-white/10 overflow-hidden">
-              <span className="lp-growx block h-full rounded-full bg-white" style={{ ["--w" as string]: `${v}%`, ["--d" as string]: `${0.2 + i * 0.2}s` }} />
+              <span className="lp-growx block h-full rounded-full bg-accent" style={{ ["--w" as string]: `${v}%`, ["--d" as string]: `${0.2 + i * 0.2}s` }} />
             </span>
           </li>
         ))}
@@ -238,7 +238,7 @@ function SceneStats({ on }: { on: boolean }) {
       <div dir="ltr" className="flex items-end gap-2.5 flex-1 min-h-[140px] border-b border-white/15 pb-0">
         {bars.map((b, i) => (
           <div key={i} className="flex-1 flex flex-col items-center justify-end h-full">
-            <span className="lp-growy block w-full rounded-t-md bg-white" style={{ ["--h" as string]: `${b * 10}%`, ["--d" as string]: `${0.15 + i * 0.1}s`, opacity: i > 5 ? 0.45 : 1 }} />
+            <span className="lp-growy block w-full rounded-t-md bg-accent" style={{ ["--h" as string]: `${b * 10}%`, ["--d" as string]: `${0.15 + i * 0.1}s`, opacity: i > 5 ? 0.45 : 1 }} />
           </div>
         ))}
       </div>
@@ -322,11 +322,11 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#fafafa]">
-      <nav className="sticky top-0 z-50 bg-[#fafafa]/85 backdrop-blur-xl border-b border-line">
+    <div className="min-h-screen overflow-x-clip bg-[#fbf8f1]">
+      <nav className="sticky top-0 z-50 bg-[#fbf8f1]/85 backdrop-blur-xl border-b border-line">
         <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 font-extrabold">
-            <span className="w-9 h-9 rounded-xl bg-primary text-white grid place-items-center font-mono text-sm font-black">{">_"}</span>
+            <span className="w-9 h-9 rounded-xl bg-primary text-white grid place-items-center font-mono text-sm font-black">{">"}<span className="text-accent">_</span></span>
             <span className="hidden sm:inline">دفترچه کلاس پایتون</span>
           </Link>
           <div className="flex-1" />
@@ -352,8 +352,8 @@ export default function LandingPage() {
 
       {/* The story: text on one side, one sticky panel that plays the current moment on the other */}
       <section className="max-w-7xl mx-auto px-5 lg:px-8 lg:grid lg:grid-cols-12 lg:gap-12">
-        <div className="order-1 lg:order-2 lg:col-span-7 sticky top-16 lg:top-[5.5rem] z-20 lg:self-start pt-3 lg:pt-8 bg-[#fafafa] lg:bg-transparent -mx-5 px-5 lg:mx-0 lg:px-0">
-          <div className="relative rounded-[24px] lg:rounded-[32px] bg-primary text-white overflow-hidden h-[54vh] lg:h-[min(660px,calc(100vh-8rem))] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)]">
+        <div className="order-1 lg:order-2 lg:col-span-7 sticky top-16 lg:top-[5.5rem] z-20 lg:self-start pt-3 lg:pt-8 bg-[#fbf8f1] lg:bg-transparent -mx-5 px-5 lg:mx-0 lg:px-0">
+          <div className="hero-panel relative rounded-[24px] lg:rounded-[32px] text-white overflow-hidden h-[54vh] lg:h-[min(660px,calc(100vh-8rem))] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)]">
             {SCENES.map((Scene, i) => (
               <div key={i} className={`absolute inset-0 p-5 pb-8 md:p-8 md:pb-10 transition-opacity duration-500 ${active === i ? "opacity-100" : "opacity-0 pointer-events-none"}`} aria-hidden={active !== i}>
                 <Scene on={active === i} />
@@ -361,7 +361,7 @@ export default function LandingPage() {
             ))}
             <div className="absolute bottom-0 inset-x-0 flex gap-1 p-3 pointer-events-none" aria-hidden>
               {STEPS.map((s, i) => (
-                <span key={s.id} className={`h-[3px] flex-1 rounded-full transition-colors duration-300 ${i === active ? "bg-white" : "bg-white/20"}`} />
+                <span key={s.id} className={`h-[3px] flex-1 rounded-full transition-colors duration-300 ${i === active ? "bg-accent" : "bg-white/20"}`} />
               ))}
             </div>
           </div>
@@ -379,9 +379,9 @@ export default function LandingPage() {
               {i === 0 ? (
                 <>
                   <h1 className="text-[2.6rem] sm:text-6xl lg:text-[4.4rem] font-black leading-[1.18] tracking-tight mb-6">
-                    کدِ همه‌ی کلاس، روی یک صفحه.
+                    کدِ همه‌ی کلاس، روی <span className="underline decoration-accent decoration-[7px] underline-offset-[12px]">یک صفحه</span>.
                   </h1>
-                  <p className="text-[17px] leading-9 text-zinc-600 max-w-md mb-9">
+                  <p className="text-[17px] leading-9 text-stone-600 max-w-md mb-9">
                     دانشجوها توی مرورگر پایتون می‌نویسن و اجرا می‌کنن، تمرین‌هاشون خودکار تست می‌شه و تو زیر هر سلول نظر می‌ذاری. بدون نصب، بدون فایل فرستادن.
                   </p>
                   <div className="flex flex-wrap gap-3">
@@ -402,7 +402,7 @@ export default function LandingPage() {
               ) : (
                 <>
                   <h2 className="text-3xl md:text-[2.6rem] font-black leading-[1.3] tracking-tight mb-4">{s.title}</h2>
-                  <p className="text-[16px] leading-9 text-zinc-600 max-w-md">{s.body}</p>
+                  <p className="text-[16px] leading-9 text-stone-600 max-w-md">{s.body}</p>
                 </>
               )}
             </article>
@@ -411,7 +411,7 @@ export default function LandingPage() {
       </section>
 
       {/* Join / create */}
-      <section id="join" className="bg-primary text-white mt-10">
+      <section id="join" className="hero-panel text-white mt-10">
         <div className="max-w-7xl mx-auto px-5 lg:px-8 py-24 md:py-32">
           <h2 className="text-4xl md:text-6xl lg:text-7xl font-black leading-[1.2] tracking-tight max-w-4xl">
             معلمی؟ کلاس بساز.
@@ -428,10 +428,10 @@ export default function LandingPage() {
                 maxLength={12}
                 dir="ltr"
                 placeholder="K7QM2R"
-                className="w-full bg-transparent border-b-2 border-white/30 focus:border-white outline-none font-mono font-extrabold text-4xl md:text-5xl tracking-[0.2em] py-3 placeholder:text-white/20 text-left"
+                className="w-full bg-transparent border-b-2 border-white/30 focus:border-accent outline-none font-mono font-extrabold text-4xl md:text-5xl tracking-[0.2em] py-3 placeholder:text-white/20 text-left"
               />
             </label>
-            <button onClick={join} disabled={!code.trim()} className="rounded-xl bg-white text-primary font-extrabold px-8 py-4 text-[15px] disabled:opacity-30 transition hover:opacity-90">
+            <button onClick={join} disabled={!code.trim()} className="rounded-xl bg-accent text-ink font-extrabold px-8 py-4 text-[15px] disabled:opacity-30 transition hover:opacity-90">
               ورود به کلاس
             </button>
           </div>

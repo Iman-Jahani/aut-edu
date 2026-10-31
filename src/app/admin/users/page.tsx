@@ -163,7 +163,7 @@ function RoleDialog({ user, institutions, onClose, onDone }: { user: UserRow; in
   };
 
   return (
-    <div className="fixed inset-0 z-[120] bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
+    <div className="fixed inset-0 z-[120] bg-stone-900/50 backdrop-blur-sm flex items-center justify-center p-4" onClick={(e) => e.target === e.currentTarget && onClose()}>
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md p-6 anim-pop">
         <div className="flex items-start justify-between mb-4">
           <div>
@@ -176,7 +176,7 @@ function RoleDialog({ user, institutions, onClose, onDone }: { user: UserRow; in
         </div>
         <div className="space-y-2">
           {(["admin", "manager", "teacher", "student"] as Role[]).map((r) => (
-            <label key={r} className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition ${role === r ? "border-primary bg-zinc-50" : "border-line hover:border-zinc-300"}`}>
+            <label key={r} className={`flex gap-3 p-3 rounded-xl border cursor-pointer transition ${role === r ? "border-primary bg-stone-50" : "border-line hover:border-stone-300"}`}>
               <input type="radio" name="role" checked={role === r} onChange={() => setRole(r)} className="mt-1 accent-black" />
               <span>
                 <span className="block font-bold text-sm">{ROLE_LABEL[r]}</span>

@@ -144,15 +144,15 @@ export default function QuizTakeView({
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{qs.length}</div>
           <div className="text-[11px] text-muted">سوال</div>
         </div>
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{fmtClock(remaining)}</div>
           <div className="text-[11px] text-muted">زمان باقی</div>
         </div>
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{answeredCount}</div>
           <div className="text-[11px] text-muted">پاسخ داده</div>
         </div>
@@ -169,7 +169,7 @@ export default function QuizTakeView({
               <label
                 key={j}
                 className={`flex items-center gap-2.5 px-3 py-2 rounded-lg border cursor-pointer text-sm ${
-                  selected[i] === j ? "border-primary bg-zinc-100" : "border-line"
+                  selected[i] === j ? "border-primary bg-stone-100" : "border-line"
                 }`}
               >
                 <input

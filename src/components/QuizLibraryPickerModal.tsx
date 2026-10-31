@@ -53,7 +53,7 @@ export default function QuizLibraryPickerModal({
 
   return (
     <div
-      className="fixed inset-0 z-[120] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[120] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-lg max-h-[85vh] flex flex-col">
@@ -88,9 +88,9 @@ export default function QuizLibraryPickerModal({
                 <div className="flex-1 min-w-0">
                   <div className="font-bold text-sm">{quiz.title}</div>
                   <div className="flex items-center gap-2 mt-1.5 text-[11px] text-muted">
-                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">{(quiz.questions || []).length} سوال</span>
-                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">{quiz.time_limit} دقیقه</span>
-                    <span className="px-1.5 py-0.5 bg-slate-100 rounded">{quiz.use_count || 0} بار</span>
+                    <span className="px-1.5 py-0.5 bg-stone-100 rounded">{(quiz.questions || []).length} سوال</span>
+                    <span className="px-1.5 py-0.5 bg-stone-100 rounded">{quiz.time_limit} دقیقه</span>
+                    <span className="px-1.5 py-0.5 bg-stone-100 rounded">{quiz.use_count || 0} بار</span>
                     <span className="mr-auto">
                       {quiz.created_by_name || "ناشناس"} · {fmtRelative(quiz.created_at)}
                     </span>

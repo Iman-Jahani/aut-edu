@@ -50,7 +50,7 @@ export default function UserMenu() {
   }
 
   const staff = role === "admin" || role === "manager";
-  const item = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-ink hover:bg-zinc-50 transition text-right";
+  const item = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-ink hover:bg-stone-50 transition text-right";
 
   return (
     <div ref={ref} className="relative">
@@ -61,7 +61,7 @@ export default function UserMenu() {
         aria-expanded={open}
         title="حساب کاربری"
       >
-        <span className="w-8 h-8 rounded-full bg-zinc-100 grid place-items-center text-lg">{avatar}</span>
+        <span className="w-8 h-8 rounded-full bg-accent/20 grid place-items-center text-lg">{avatar}</span>
         <span className="text-xs font-bold max-w-[100px] truncate hidden sm:block">{displayName}</span>
         <ChevronDown size={13} className={`text-muted transition-transform ${open ? "rotate-180" : ""}`} />
       </button>
@@ -72,7 +72,7 @@ export default function UserMenu() {
           className="fixed inset-x-3 top-16 z-[150] sm:absolute sm:inset-x-auto sm:top-auto sm:left-0 sm:mt-2 sm:w-64 bg-white border border-line rounded-2xl shadow-2xl anim-pop overflow-hidden"
         >
           <div className="flex items-center gap-3 px-4 py-4 border-b border-line">
-            <span className="w-11 h-11 rounded-full bg-zinc-100 grid place-items-center text-2xl shrink-0">{avatar}</span>
+            <span className="w-11 h-11 rounded-full bg-accent/20 grid place-items-center text-2xl shrink-0">{avatar}</span>
             <div className="min-w-0">
               <div className="font-extrabold text-sm truncate">{displayName}</div>
               <div className="text-[11px] text-muted">{ROLE_LABEL[role || "student"]}</div>

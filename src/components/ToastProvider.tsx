@@ -22,7 +22,7 @@ const ICONS: Record<ToastType, React.ReactNode> = {
 const COLORS: Record<ToastType, string> = {
   ok: "bg-emerald-600",
   err: "bg-red-600",
-  info: "bg-slate-700",
+  info: "bg-stone-700",
 };
 
 export function ToastProvider({ children }: { children: React.ReactNode }) {

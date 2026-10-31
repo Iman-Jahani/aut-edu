@@ -55,7 +55,7 @@ export default function CompetitionFormModal({
 
   return (
     <div
-      className="fixed inset-0 z-[115] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[115] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-lg p-6">

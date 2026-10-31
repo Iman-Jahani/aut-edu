@@ -133,7 +133,7 @@ export default function PlaygroundCell({
             <button
               key={t}
               onClick={() => removeTag(t)}
-              className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+              className="flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-stone-100 text-stone-600 hover:bg-red-50 hover:text-red-600"
             >
               #{t} <X size={10} />
             </button>
@@ -172,7 +172,7 @@ export default function PlaygroundCell({
         (output || pendingPrompt !== null) && (
           <div className={isError ? "bg-red-950/90 text-red-300" : "bg-[#0b1020] text-emerald-400"} dir="ltr">
             {ranRemote && (
-              <div className="px-4 pt-2.5 text-[10px] text-slate-500" dir="rtl">
+              <div className="px-4 pt-2.5 text-[10px] text-stone-500" dir="rtl">
                 روی سرور اجرا شد (موتور پایتون مرورگرت لود نشد) — کتابخانه‌های اضافه فقط توی مرورگر در دسترسن.
               </div>
             )}
@@ -196,12 +196,12 @@ export default function PlaygroundCell({
                   placeholder="ورودی رو بنویس و Enter بزن…"
                   autoComplete="off"
                   spellCheck={false}
-                  className="flex-1 min-w-0 bg-white/10 text-emerald-100 placeholder:text-slate-500 rounded-lg px-3 py-1.5 outline-none ring-1 ring-emerald-400/40 focus:ring-emerald-300"
+                  className="flex-1 min-w-0 bg-white/10 text-emerald-100 placeholder:text-stone-500 rounded-lg px-3 py-1.5 outline-none ring-1 ring-emerald-400/40 focus:ring-emerald-300"
                 />
                 <button type="submit" className="flex items-center gap-1 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-white text-xs font-bold shrink-0">
                   <CornerDownLeft size={13} /> ارسال
                 </button>
-                <button type="button" onClick={cancelInput} className="flex items-center gap-1 text-slate-400 hover:text-white text-xs shrink-0">
+                <button type="button" onClick={cancelInput} className="flex items-center gap-1 text-stone-400 hover:text-white text-xs shrink-0">
                   <X size={13} /> لغو
                 </button>
               </form>
@@ -210,7 +210,7 @@ export default function PlaygroundCell({
         )
       )}
 
-      <div className="flex items-center gap-2 px-4 py-2.5 bg-slate-50 border-t border-line">
+      <div className="flex items-center gap-2 px-4 py-2.5 bg-stone-50 border-t border-line">
         <button onClick={run} disabled={running} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold bg-emerald-600 text-white disabled:opacity-50">
           {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           {running ? "در حال اجرا…" : "اجرا"}

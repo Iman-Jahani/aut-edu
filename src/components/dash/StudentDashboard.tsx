@@ -35,7 +35,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
   return (
     <div className="space-y-5">
       {/* Hero */}
-      <section className="rounded-3xl bg-primary text-white p-6 md:p-8">
+      <section className="hero-panel relative overflow-hidden rounded-3xl text-white p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-4">
@@ -47,7 +47,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             </div>
             <p className="text-white/70 text-[15px] leading-8 max-w-lg">{message}</p>
             <div className="flex flex-wrap gap-2 mt-5">
-              <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold ${dash.streak > 0 ? "bg-white text-primary" : "bg-white/10 text-white/70"}`}>
+              <span className={`inline-flex items-center gap-1.5 rounded-full px-3.5 py-1.5 text-sm font-bold ${dash.streak > 0 ? "bg-accent text-ink" : "bg-white/10 text-white/70"}`}>
                 <Flame size={15} /> {dash.streak > 0 ? `${fa(dash.streak)} روز پیاپی` : "رشته‌ات از امروز شروع می‌شه"}
               </span>
               <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-3.5 py-1.5 text-sm font-bold">
@@ -63,13 +63,13 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
                 <span>{fa(dash.xpToNext)} امتیاز</span>
               </div>
               <span className="block h-1.5 rounded-full bg-white/15 overflow-hidden">
-                <span className="block h-full rounded-full bg-white" style={{ width: `${dash.levelProgress}%`, transition: "width .8s" }} />
+                <span className="block h-full rounded-full bg-accent" style={{ width: `${dash.levelProgress}%`, transition: "width .8s" }} />
               </span>
             </div>
           </div>
           <div className="flex flex-col items-center gap-3 md:pl-4">
             <ProgressRing value={overall} onDark label={`${fa(overall)}٪`} sub={`${fa(T.solved)} از ${fa(T.total)} تمرین`} />
-            <button onClick={onJoin} className="inline-flex items-center gap-1.5 rounded-xl bg-white text-primary font-extrabold text-sm px-4 py-2 hover:opacity-90">
+            <button onClick={onJoin} className="inline-flex items-center gap-1.5 rounded-xl bg-accent text-ink font-extrabold text-sm px-4 py-2 hover:opacity-90">
               <Plus size={14} /> پیوستن به کلاس با کد
             </button>
           </div>
@@ -102,8 +102,8 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.deadlines.map((d) => (
                 <li key={d.id}>
-                  <Link href={`/class/${d.classCode}`} className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50">
-                    <span className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${d.overdue ? "bg-red-50 text-red-600" : "bg-zinc-100 text-zinc-600"}`}>
+                  <Link href={`/class/${d.classCode}`} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50">
+                    <span className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${d.overdue ? "bg-red-50 text-red-600" : "bg-stone-100 text-stone-600"}`}>
                       {d.overdue ? <AlertTriangle size={16} /> : <CalendarClock size={16} />}
                     </span>
                     <span className="flex-1 min-w-0">
@@ -132,7 +132,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.classes.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/class/${c.code}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-zinc-50">
+                  <Link href={`/class/${c.code}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-stone-50">
                     <span className="flex-1 min-w-0">
                       <span className="flex items-center gap-1.5 text-sm font-bold">
                         <span className="truncate">{c.title}</span>
@@ -223,7 +223,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.competitions.map((c, i) => (
                 <li key={i} className="flex items-center gap-3 px-5 py-3 text-sm">
-                  <span className="w-8 h-8 rounded-full bg-zinc-100 grid place-items-center text-zinc-600 shrink-0">
+                  <span className="w-8 h-8 rounded-full bg-stone-100 grid place-items-center text-stone-600 shrink-0">
                     <CheckCircle2 size={15} />
                   </span>
                   <span className="flex-1 min-w-0">

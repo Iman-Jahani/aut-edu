@@ -59,7 +59,7 @@ export function CommentsSkeleton() {
   return (
     <div className="space-y-2.5">
       {[0, 1].map((i) => (
-        <div key={i} className="bg-slate-50 rounded-lg px-3 py-2.5 space-y-2">
+        <div key={i} className="bg-stone-50 rounded-lg px-3 py-2.5 space-y-2">
           <Skeleton className="h-3 w-1/4" />
           <Skeleton className="h-3 w-4/5" />
         </div>
@@ -93,7 +93,7 @@ export function CellSkeleton() {
         </div>
         <Skeleton className="h-6 w-16 !rounded-full" />
       </div>
-      <Skeleton className="!rounded-none h-40 !bg-slate-800/90" dark />
+      <Skeleton className="!rounded-none h-40 !bg-stone-800/90" dark />
       <div className="px-4 py-3 border-t border-line flex gap-2">
         <Skeleton className="h-8 w-20" />
         <Skeleton className="h-8 w-16" />

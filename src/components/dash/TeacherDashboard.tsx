@@ -18,6 +18,7 @@ export default function TeacherDashboard({
   avatar,
   canCreate,
   onCreate,
+  onOpenStudent,
 }: {
   ov: TeacherOverview;
   ix: Index;
@@ -26,6 +27,8 @@ export default function TeacherDashboard({
   avatar: string;
   canCreate: boolean;
   onCreate: () => void;
+  /** Open one student's progress without leaving the dashboard. */
+  onOpenStudent: (classId: string, userId: string) => void;
 }) {
   const T = ov.totals;
   const live = useMemo(() => {
@@ -102,7 +105,7 @@ export default function TeacherDashboard({
 
   return (
     <div className="space-y-5">
-      <section className="rounded-3xl bg-primary text-white p-6 md:p-8">
+      <section className="hero-panel relative overflow-hidden rounded-3xl text-white p-6 md:p-8">
         <div className="flex flex-col md:flex-row md:items-center gap-6">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-3 mb-4">
@@ -118,7 +121,7 @@ export default function TeacherDashboard({
                 : `${fa(T.classes)} کلاس و ${fa(T.students)} دانشجو. ${ov.attention.length ? `${fa(ov.attention.length)} نفر نیاز به توجه دارن.` : "الان همه‌چیز روبه‌راهه."}`}
             </p>
             {canCreate && (
-              <button onClick={onCreate} className="inline-flex items-center gap-1.5 rounded-xl bg-white text-primary font-extrabold text-sm px-5 py-2.5 mt-5 hover:opacity-90">
+              <button onClick={onCreate} className="inline-flex items-center gap-1.5 rounded-xl bg-accent text-ink font-extrabold text-sm px-5 py-2.5 mt-5 hover:opacity-90">
                 <Plus size={15} /> کلاس جدید
               </button>
             )}
@@ -157,25 +160,22 @@ export default function TeacherDashboard({
                 <Empty>همه‌ی دانشجوها فعالن و پیش می‌رن.</Empty>
               ) : (
                 <ul className="divide-y divide-line/70">
-                  {ov.attention.map((a) => {
-                    const code = ix.sessionById.get(a.classId)?.code;
-                    return (
-                      <li key={a.classId + a.userId}>
-                        <Link href={`/class/${code}/insights?student=${a.userId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50">
-                          <Avatar name={a.name} avatar={a.avatar} size={32} />
-                          <span className="flex-1 min-w-0">
-                            <span className="block text-sm font-bold truncate">{a.name}</span>
-                            <span className="block text-[11px] text-muted truncate">
-                              {a.detail} · {a.classTitle}
-                            </span>
+                  {ov.attention.map((a) => (
+                    <li key={a.classId + a.userId}>
+                      <button onClick={() => onOpenStudent(a.classId, a.userId)} className="w-full text-right flex items-center gap-3 px-5 py-3 hover:bg-stone-50 transition">
+                        <Avatar name={a.name} avatar={a.avatar} size={32} />
+                        <span className="flex-1 min-w-0">
+                          <span className="block text-sm font-bold truncate">{a.name}</span>
+                          <span className="block text-[11px] text-muted truncate">
+                            {a.detail} · {a.classTitle}
                           </span>
-                          <span className={`w-7 h-7 rounded-full grid place-items-center shrink-0 ${a.reason === "inactive" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
-                            {a.reason === "inactive" ? <UserX size={14} /> : <AlertTriangle size={14} />}
-                          </span>
-                        </Link>
-                      </li>
-                    );
-                  })}
+                        </span>
+                        <span className={`w-7 h-7 rounded-full grid place-items-center shrink-0 ${a.reason === "inactive" ? "bg-red-50 text-red-600" : "bg-amber-50 text-amber-600"}`}>
+                          {a.reason === "inactive" ? <UserX size={14} /> : <AlertTriangle size={14} />}
+                        </span>
+                      </button>
+                    </li>
+                  ))}
                 </ul>
               )}
             </Panel>

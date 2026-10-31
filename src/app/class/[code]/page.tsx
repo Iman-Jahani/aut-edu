@@ -127,7 +127,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
                   href={`/class/${session.code}/${m.id}`}
                   className="card p-4 flex items-center gap-3 hover:shadow-lift hover:-translate-y-0.5 transition group"
                 >
-                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-zinc-50 to-zinc-100 grid place-items-center text-primary shrink-0">
+                  <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-stone-50 to-stone-100 grid place-items-center text-primary shrink-0">
                     <CalendarDays size={20} />
                   </div>
                   <div className="min-w-0 flex-1">
@@ -152,7 +152,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
 
       {formOpen && (
         <div
-          className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+          className="fixed inset-0 z-[100] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
           onClick={(e) => e.target === e.currentTarget && setFormOpen(false)}
         >
           <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-sm p-6">

@@ -65,7 +65,7 @@ export default function AdminOverviewPage() {
                 const Icon = r.kind === "cell" ? Code2 : r.kind === "comment" ? MessageCircle : CheckCircle2;
                 const body = (
                   <>
-                    <span className="w-8 h-8 rounded-full bg-zinc-100 grid place-items-center shrink-0 text-zinc-600">
+                    <span className="w-8 h-8 rounded-full bg-stone-100 grid place-items-center shrink-0 text-stone-600">
                       <Icon size={15} />
                     </span>
                     <span className="flex-1 min-w-0 text-sm">
@@ -77,7 +77,7 @@ export default function AdminOverviewPage() {
                 return (
                   <li key={i}>
                     {r.classId ? (
-                      <Link href={`/admin/classes/${r.classId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-zinc-50">
+                      <Link href={`/admin/classes/${r.classId}`} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50">
                         {body}
                       </Link>
                     ) : (

@@ -15,7 +15,7 @@ function getStoredTeam(sessionId: string): CurrentTeam | null {
   const id = localStorage.getItem(teamKey(sessionId, "Id"));
   const name = localStorage.getItem(teamKey(sessionId, "Name"));
   const color = localStorage.getItem(teamKey(sessionId, "Color"));
-  if (id && name) return { id, name, color: color || "#0a0a0a" };
+  if (id && name) return { id, name, color: color || "#0b6b70" };
   return null;
 }
 function storeTeam(sessionId: string, t: CurrentTeam) {

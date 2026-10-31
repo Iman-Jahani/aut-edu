@@ -53,7 +53,7 @@ export default function RichTextHint({ textareaRef, value, onChange }: {
         Markdown و LaTeX پشتیبانی میشه — مثلا <code className="rich-inline-code">$\frac{"{a}{b}"}$</code>، <code className="rich-inline-code">**پررنگ**</code> یا <code className="rich-inline-code">`کد کوتاه`</code>. برای نوشتن خودِ علامت دلار از <code className="rich-inline-code">\$</code> استفاده کن.
       </div>
       {preview && (
-        <div className="border border-dashed border-line rounded-lg px-3 py-2 text-sm bg-slate-50/60 min-h-[2.5rem]" dir="auto">
+        <div className="border border-dashed border-line rounded-lg px-3 py-2 text-sm bg-stone-50/60 min-h-[2.5rem]" dir="auto">
           {value.trim() ? <RichText text={value} /> : <span className="text-muted text-xs">چیزی برای نمایش نیست</span>}
         </div>
       )}

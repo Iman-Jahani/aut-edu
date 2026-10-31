@@ -54,15 +54,15 @@ export default function QuizResultsView({ quiz, onStop }: { quiz: Quiz; onStop: 
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-3 gap-2 text-center">
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{answers.length}</div>
           <div className="text-[11px] text-muted">شرکت کردن</div>
         </div>
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{avg}</div>
           <div className="text-[11px] text-muted">میانگین</div>
         </div>
-        <div className="bg-slate-50 rounded-lg py-2.5">
+        <div className="bg-stone-50 rounded-lg py-2.5">
           <div className="text-lg font-extrabold">{notSubmitted}</div>
           <div className="text-[11px] text-muted">شرکت نکردن</div>
         </div>
@@ -74,12 +74,12 @@ export default function QuizResultsView({ quiz, onStop }: { quiz: Quiz; onStop: 
       ) : (
         <div className="space-y-1.5">
           {answers.map((a, i) => {
-            const medalColor = i === 0 ? "#eab308" : i === 1 ? "#94a3b8" : i === 2 ? "#b45309" : null;
+            const medalColor = i === 0 ? "#eab308" : i === 1 ? "#a8a29e" : i === 2 ? "#b45309" : null;
             const isMe = a.user_id === user?.id;
             return (
               <div
                 key={a.user_id}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg ${isMe ? "bg-zinc-100 border border-primary/30" : "bg-slate-50"}`}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg ${isMe ? "bg-stone-100 border border-primary/30" : "bg-stone-50"}`}
               >
                 <div className="w-8 flex items-center justify-center font-bold">{medalColor ? <Medal size={18} color={medalColor} /> : `#${i + 1}`}</div>
                 <div className="flex-1 text-sm font-bold truncate">

@@ -101,7 +101,7 @@ export default function SignupPage() {
       <div className="card w-full max-w-md p-7 anim-pop">
         <div className="text-center mb-6">
           <Link href="/" className="w-12 h-12 mx-auto rounded-2xl grid place-items-center text-white text-base font-mono font-black bg-primary mb-3">
-            {">_"}
+            {">"}<span className="text-accent">_</span>
           </Link>
           <h1 className="font-extrabold text-xl">ساخت حساب کاربری</h1>
           <p className="text-sm text-muted mt-1">چه معلمی چه دانشجو، اول یه حساب بساز</p>
@@ -171,7 +171,7 @@ export default function SignupPage() {
               type="button"
               onClick={() => setRole(value)}
               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-                role === value ? "border-primary bg-zinc-100 text-primary" : "border-line text-muted"
+                role === value ? "border-primary bg-stone-100 text-primary" : "border-line text-muted"
               }`}
             >
               <Icon size={15} /> {label}

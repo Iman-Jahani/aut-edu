@@ -39,7 +39,7 @@ export default function SubmissionsModal({
 
   return (
     <div
-      className="fixed inset-0 z-[110] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[110] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-xl max-h-[85vh] flex flex-col">
@@ -81,7 +81,7 @@ export default function SubmissionsModal({
                         <StatusBadge status={(s.status as any) || "pending"} />
                       </button>
                       {expanded === s.user_id && (
-                        <div className="mt-1.5 mb-2 border border-line rounded-lg p-3 bg-slate-50">
+                        <div className="mt-1.5 mb-2 border border-line rounded-lg p-3 bg-stone-50">
                           <div className="text-[11px] font-bold text-muted mb-1.5 flex items-center gap-1"><Code2 size={12} /> کد</div>
                           <pre
                             className="bg-[#0b1020] text-emerald-200 rounded-lg p-3 text-xs font-mono overflow-x-auto max-h-56 whitespace-pre-wrap"
@@ -117,7 +117,7 @@ export default function SubmissionsModal({
 
 function StatBox({ label, value, color }: { label: string; value: number; color?: string }) {
   return (
-    <div className="text-center bg-slate-50 rounded-lg py-2.5">
+    <div className="text-center bg-stone-50 rounded-lg py-2.5">
       <div className={`text-lg font-extrabold ${color || ""}`}>{value}</div>
       <div className="text-[11px] text-muted">{label}</div>
     </div>

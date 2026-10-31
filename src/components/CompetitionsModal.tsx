@@ -15,7 +15,7 @@ import type { ReactNode } from "react";
 
 const STATUS_META: Record<string, { label: string; className: string; icon: ReactNode }> = {
   active: { label: "فعال", className: "bg-emerald-100 text-emerald-700", icon: <CircleDot size={11} className="animate-pulse" /> },
-  ended: { label: "پایان یافته", className: "bg-slate-100 text-slate-600", icon: <Square size={10} /> },
+  ended: { label: "پایان یافته", className: "bg-stone-100 text-stone-600", icon: <Square size={10} /> },
   draft: { label: "پیش‌نویس", className: "bg-amber-100 text-amber-700", icon: <Pencil size={10} /> },
 };
 function StatusPill({ status }: { status: string }) {
@@ -126,7 +126,7 @@ export default function CompetitionsModal({
 
   return (
     <div
-      className="fixed inset-0 z-[105] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[105] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-2xl max-h-[88vh] flex flex-col">
@@ -173,8 +173,8 @@ export default function CompetitionsModal({
                     <div key={c.id} className="border border-line rounded-xl p-4">
                       <div className="font-bold text-sm mb-1.5 flex items-center gap-1.5"><Flag size={14} className="text-primary shrink-0" /> {c.title}</div>
                       <div className="flex gap-2 text-[11px] text-muted mb-2">
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 rounded-full"><Timer size={11} /> {c.time_limit} دقیقه</span>
-                        <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 rounded-full"><Users size={11} /> {subCounts[c.id] || 0} تیم</span>
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-stone-100 rounded-full"><Timer size={11} /> {c.time_limit} دقیقه</span>
+                        <span className="flex items-center gap-1 px-2 py-0.5 bg-stone-100 rounded-full"><Users size={11} /> {subCounts[c.id] || 0} تیم</span>
                       </div>
                       <div className="flex justify-end mb-2.5">
                         <StatusPill status={c.status} />
@@ -237,7 +237,7 @@ export default function CompetitionsModal({
                         <div key={c.id} className="border border-line rounded-xl p-4">
                           <div className="font-bold text-sm mb-1.5 flex items-center gap-1.5"><Flag size={14} className="text-primary shrink-0" /> {c.title}</div>
                           <div className="text-[11px] text-muted mb-3">
-                            <span className="flex items-center gap-1 px-2 py-0.5 bg-slate-100 rounded-full w-fit"><Timer size={11} /> {c.time_limit} دقیقه</span>
+                            <span className="flex items-center gap-1 px-2 py-0.5 bg-stone-100 rounded-full w-fit"><Timer size={11} /> {c.time_limit} دقیقه</span>
                           </div>
                           {teamSub ? (
                             <div className="text-xs text-emerald-700 font-bold flex items-center gap-1"><CheckCircle2 size={13} /> پاسخ تیم ثبت شد · {fmtRelative(teamSub.submitted_at)}</div>

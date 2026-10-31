@@ -115,7 +115,7 @@ export default function WelcomeModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
     >
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-md p-6">
@@ -128,7 +128,7 @@ export default function WelcomeModal({
             <p className="text-sm text-muted mb-4">این کد رو به دانشجوهات بده تا بتونن بپیوندن</p>
             <button
               onClick={copyCode}
-              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary/30 rounded-xl py-4 mb-4 hover:bg-zinc-100/50 transition"
+              className="w-full flex items-center justify-center gap-2 border-2 border-dashed border-primary/30 rounded-xl py-4 mb-4 hover:bg-stone-100/50 transition"
             >
               <span className="text-3xl font-extrabold tracking-[0.35em] grad-text">{created.code}</span>
               {copied ? <Check size={18} className="text-emerald-600" /> : <Copy size={18} className="text-primary" />}
@@ -139,7 +139,7 @@ export default function WelcomeModal({
           </div>
         ) : (
           <>
-            <div className="flex gap-2 mb-5 bg-slate-100 p-1 rounded-xl">
+            <div className="flex gap-2 mb-5 bg-stone-100 p-1 rounded-xl">
               {(["join", "create"] as const).map((tKey) => (
                 <button
                   key={tKey}

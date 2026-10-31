@@ -119,7 +119,7 @@ export default function TeamChat({ classId, team }: { classId: string; team: Cur
             </button>
           </div>
 
-          <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-1 bg-slate-50">
+          <div ref={listRef} className="flex-1 overflow-y-auto px-3 py-3 space-y-1 bg-stone-50">
             {!loaded ? (
               <ChatSkeleton />
             ) : messages.length === 0 ? (

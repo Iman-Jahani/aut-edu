@@ -75,7 +75,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
     };
   }, [ready, user, router]);
 
-  if (state.status === "checking") return <div className="min-h-screen bg-primary" />;
+  if (state.status === "checking") return <div className="min-h-screen bg-deep" />;
   if (state.status === "forbidden" || state.status === "error") return <Blocked message={state.status === "error" ? state.message : undefined} />;
   return (
     <DataProvider actor={state.actor!}>
@@ -86,7 +86,7 @@ export default function AdminShell({ children }: { children: React.ReactNode }) 
 
 function Blocked({ message }: { message?: string }) {
   return (
-    <div className="min-h-screen bg-primary grid place-items-center p-5">
+    <div className="min-h-screen bg-deep grid place-items-center p-5">
       <div className="w-full max-w-sm text-center">
         <div className="w-12 h-12 rounded-2xl bg-white/10 text-white grid place-items-center mx-auto mb-5">
           <ShieldAlert size={22} />
@@ -141,7 +141,7 @@ function Frame({ children }: { children: React.ReactNode }) {
   return (
     <div className="min-h-screen lg:flex">
       {/* Sidebar (desktop) */}
-      <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-primary text-white sticky top-0 h-screen px-4 py-6">
+      <aside className="hidden lg:flex flex-col w-60 shrink-0 bg-deep text-white sticky top-0 h-screen px-4 py-6">
         <Link href="/admin" className="flex items-center gap-2.5 px-2 mb-8">
           <span className="w-9 h-9 rounded-xl bg-white text-primary grid place-items-center font-black font-mono text-sm">{">_"}</span>
           <span className="leading-tight">
@@ -172,14 +172,14 @@ function Frame({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 min-w-0">
         {/* Top bar */}
-        <div className="sticky top-0 z-30 bg-[#fafafa]/90 backdrop-blur border-b border-line">
-          <div className="lg:hidden bg-primary text-white px-4 pt-3 flex items-center gap-2">
+        <div className="sticky top-0 z-30 bg-[#fbf8f1]/90 backdrop-blur border-b border-line">
+          <div className="lg:hidden bg-deep text-white px-4 pt-3 flex items-center gap-2">
             <span className="font-extrabold text-sm flex-1">{title}</span>
             <Link href="/dashboard" className="text-xs text-white/70 px-2 py-1">
               سایت
             </Link>
           </div>
-          <nav className="lg:hidden bg-primary flex gap-1 overflow-x-auto px-3 pb-2 pt-1">
+          <nav className="lg:hidden bg-deep flex gap-1 overflow-x-auto px-3 pb-2 pt-1">
             {nav.map((n) => (
               <Link
                 key={n.href}
@@ -229,11 +229,11 @@ function Frame({ children }: { children: React.ReactNode }) {
 function Skeleton() {
   return (
     <div className="space-y-5 animate-pulse">
-      <div className="h-9 w-56 bg-zinc-200 rounded-lg" />
-      <div className="h-24 bg-zinc-200/70 rounded-2xl" />
+      <div className="h-9 w-56 bg-stone-200 rounded-lg" />
+      <div className="h-24 bg-stone-200/70 rounded-2xl" />
       <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 h-72 bg-zinc-200/70 rounded-2xl" />
-        <div className="h-72 bg-zinc-200/70 rounded-2xl" />
+        <div className="lg:col-span-2 h-72 bg-stone-200/70 rounded-2xl" />
+        <div className="h-72 bg-stone-200/70 rounded-2xl" />
       </div>
     </div>
   );
