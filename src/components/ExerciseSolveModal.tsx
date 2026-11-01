@@ -5,6 +5,7 @@ import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { dracula } from "@uiw/codemirror-theme-dracula";
 import { supabase } from "@/lib/supabase";
+import { growGarden } from "@/lib/garden";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
 import { runTestCases, type TestRunResult } from "@/lib/pyodide";
@@ -105,6 +106,7 @@ export default function ExerciseSolveModal({
       if (error) toast(friendlyWindowError(error.message) || "خطا: " + error.message, "err");
       else {
         onSubmitted(payload);
+        growGarden(status === "correct" ? 15 : 5, status === "correct" ? "solved" : "submit");
         if (status === "correct") toast("🎉 پاس شد!", "ok");
         else if (status === "partial") toast(`${passed} از ${total}`, "info");
       }
@@ -116,7 +118,7 @@ export default function ExerciseSolveModal({
   };
 
   return (
-    <div className="fixed inset-0 z-[110] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[110] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl anim-pop w-full max-w-2xl max-h-[90vh] flex flex-col">
         <div className="flex items-center justify-between px-6 py-4 border-b border-line">
           <h2 className="font-extrabold flex items-center gap-2"><FileText size={17} /> {exercise.title}</h2>
@@ -127,7 +129,7 @@ export default function ExerciseSolveModal({
 
         <div className="overflow-y-auto px-6 py-4 flex-1 space-y-4">
           {exercise.description && <div className="text-sm text-ink/80"><RichText text={exercise.description} /></div>}
-          <div className="bg-stone-100 border border-stone-200 rounded-lg px-3 py-2 text-xs text-stone-900 flex items-center gap-1.5">
+          <div className="bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 flex items-center gap-1.5">
             <Target size={13} className="shrink-0" /> {tests.length} تست — کدت باید برای همه‌ی ورودی‌ها خروجی درست بده
           </div>
           {exercise.hint && (
@@ -142,7 +144,7 @@ export default function ExerciseSolveModal({
             </div>
           )}
           {closed && (
-            <div className="rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 border bg-stone-100 border-stone-200 text-stone-700">
+            <div className="rounded-lg px-3 py-2 text-xs flex items-center gap-1.5 border bg-slate-100 border-slate-200 text-slate-700">
               <Lock size={13} className="shrink-0" /> مهلت این تمرین ({formatDateTime(exercise.due_at)}) تموم شده؛ فقط می‌تونی مرورش کنی.
             </div>
           )}

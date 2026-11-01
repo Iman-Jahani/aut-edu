@@ -122,7 +122,7 @@ export function Avatar({ name, avatar, size = 32 }: { name: string; avatar?: str
 
 export function Bar({ value, className = "" }: { value: number; className?: string }) {
   return (
-    <span className={`block h-1.5 w-full rounded-full bg-stone-100 overflow-hidden ${className}`}>
+    <span className={`block h-1.5 w-full rounded-full bg-slate-100 overflow-hidden ${className}`}>
       <span className="block h-full rounded-full bg-primary" style={{ width: `${Math.max(0, Math.min(100, value))}%` }} />
     </span>
   );
@@ -242,7 +242,7 @@ export function DataTable<T>({
             <tr
               key={rowKey(r)}
               onClick={href ? () => router.push(href(r)) : onRowClick ? () => onRowClick(r) : undefined}
-              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-stone-50" : ""}`}
+              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
             >
               {columns.map((c) => (
                 <td key={c.key} className={`px-4 py-3 align-middle ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className || ""}`}>
@@ -259,7 +259,7 @@ export function DataTable<T>({
 
 export function Chip({ children, tone = "neutral" }: { children: React.ReactNode; tone?: "neutral" | "dark" | "ok" | "warn" | "bad" }) {
   const cls = {
-    neutral: "bg-stone-100 text-stone-700",
+    neutral: "bg-slate-100 text-slate-700",
     dark: "bg-primary text-white",
     ok: "bg-emerald-50 text-emerald-700",
     warn: "bg-amber-50 text-amber-700",

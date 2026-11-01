@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { ToastProvider } from "@/components/ToastProvider";
 import { NotificationsProvider } from "@/context/NotificationsContext";
+import GardenCompanion from "@/components/garden/GardenCompanion";
 
 export const metadata: Metadata = {
   title: "دفترچه اشتراکی کلاس پایتون",
@@ -19,7 +20,10 @@ export default function RootLayout({
       <body className="font-sans antialiased">
         <ToastProvider>
           <AuthProvider>
-            <NotificationsProvider>{children}</NotificationsProvider>
+            <NotificationsProvider>
+              {children}
+              <GardenCompanion />
+            </NotificationsProvider>
           </AuthProvider>
         </ToastProvider>
       </body>

@@ -170,7 +170,7 @@ function StudentsTab({ cs }: { cs: ClassStats }) {
       render: (r) =>
         r.teamName ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-bold">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#a8a29e" }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#9db0b6" }} />
             {r.teamName}
           </span>
         ) : (
@@ -287,8 +287,8 @@ function StructureTab({ cs }: { cs: ClassStats }) {
             data={cs.meetings.map((m) => ({ label: m.title.length > 10 ? m.title.slice(0, 10) + "…" : m.title, cells: m.cells, comments: m.comments }))}
             xKey="label"
             bars={[
-              { key: "cells", name: "سلول", color: "#0b6b70" },
-              { key: "comments", name: "نظر", color: "#bfdcdc" },
+              { key: "cells", name: "سلول", color: "#1b6ca8" },
+              { key: "comments", name: "نظر", color: "#bcdcf0" },
             ]}
             height={220}
           />

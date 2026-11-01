@@ -3,7 +3,8 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { ChevronDown, Code2, LayoutDashboard, LogOut, Shield, UserRound } from "lucide-react";
+import { ChevronDown, Code2, LayoutDashboard, LogOut, Shield, Sprout, UserRound } from "lucide-react";
+import { isGardenHidden, setGardenHidden } from "@/lib/garden";
 import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
 import NotificationBell from "@/components/NotificationBell";
@@ -19,6 +20,7 @@ export default function UserMenu() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
+  const [gardenOff, setGardenOff] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -50,12 +52,15 @@ export default function UserMenu() {
   }
 
   const staff = role === "admin" || role === "manager";
-  const item = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-ink hover:bg-stone-50 transition text-right";
+  const item = "w-full flex items-center gap-3 px-4 py-2.5 text-sm font-semibold text-ink hover:bg-slate-50 transition text-right";
 
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={() => setOpen((o) => !o)}
+        onClick={() => {
+          if (!open) setGardenOff(isGardenHidden());
+          setOpen((o) => !o);
+        }}
         className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full bg-white border border-line hover:shadow-soft transition"
         aria-haspopup="menu"
         aria-expanded={open}
@@ -94,6 +99,21 @@ export default function UserMenu() {
             <Link href="/playground" className={item} onClick={() => setOpen(false)}>
               <Code2 size={16} className="text-muted" /> پلی‌گراند
             </Link>
+            <button
+              className={item}
+              role="switch"
+              aria-checked={!gardenOff}
+              onClick={() => {
+                setGardenHidden(!gardenOff);
+                setGardenOff(!gardenOff);
+              }}
+            >
+              <Sprout size={16} className="text-muted" />
+              <span className="flex-1">جوانه، همراه باغبان</span>
+              <span className={`w-9 h-5 rounded-full p-0.5 transition ${gardenOff ? "bg-slate-300" : "bg-accent"}`}>
+                <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform ${gardenOff ? "translate-x-0" : "-translate-x-4"}`} />
+              </span>
+            </button>
             {staff && (
               <Link href="/admin" className={item} onClick={() => setOpen(false)}>
                 <Shield size={16} className="text-muted" /> {role === "admin" ? "پنل مدیریت" : "پنل مدیر"}

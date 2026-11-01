@@ -102,8 +102,8 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.deadlines.map((d) => (
                 <li key={d.id}>
-                  <Link href={`/class/${d.classCode}`} className="flex items-center gap-3 px-5 py-3 hover:bg-stone-50">
-                    <span className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${d.overdue ? "bg-red-50 text-red-600" : "bg-stone-100 text-stone-600"}`}>
+                  <Link href={`/class/${d.classCode}`} className="flex items-center gap-3 px-5 py-3 hover:bg-slate-50">
+                    <span className={`w-9 h-9 rounded-full grid place-items-center shrink-0 ${d.overdue ? "bg-red-50 text-red-600" : "bg-slate-100 text-slate-600"}`}>
                       {d.overdue ? <AlertTriangle size={16} /> : <CalendarClock size={16} />}
                     </span>
                     <span className="flex-1 min-w-0">
@@ -132,7 +132,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.classes.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/class/${c.code}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-stone-50">
+                  <Link href={`/class/${c.code}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
                     <span className="flex-1 min-w-0">
                       <span className="flex items-center gap-1.5 text-sm font-bold">
                         <span className="truncate">{c.title}</span>
@@ -223,7 +223,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.competitions.map((c, i) => (
                 <li key={i} className="flex items-center gap-3 px-5 py-3 text-sm">
-                  <span className="w-8 h-8 rounded-full bg-stone-100 grid place-items-center text-stone-600 shrink-0">
+                  <span className="w-8 h-8 rounded-full bg-slate-100 grid place-items-center text-slate-600 shrink-0">
                     <CheckCircle2 size={15} />
                   </span>
                   <span className="flex-1 min-w-0">

@@ -20,13 +20,13 @@ export default function ProgressRing({
   return (
     <div className="relative shrink-0" style={{ width: size, height: size }} role="img" aria-label={`${label ?? v}`}>
       <svg width={size} height={size} className="-rotate-90" aria-hidden>
-        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={onDark ? "rgba(255,255,255,.16)" : "#e7e2d6"} strokeWidth={stroke} />
+        <circle cx={size / 2} cy={size / 2} r={r} fill="none" stroke={onDark ? "rgba(255,255,255,.16)" : "#d9e8e3"} strokeWidth={stroke} />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={r}
           fill="none"
-          stroke={onDark ? "#f2a93b" : "#0b6b70"}
+          stroke={onDark ? "#3fbf7f" : "#1b6ca8"}
           strokeWidth={stroke}
           strokeLinecap="round"
           strokeDasharray={c}

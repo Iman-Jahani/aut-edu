@@ -107,7 +107,7 @@ export default function ClassHeader({
         <button
           onClick={onTeamPicker}
           className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border bg-white hover:shadow-soft transition"
-          style={{ borderColor: currentTeam?.color || "#e7e2d6", color: currentTeam?.color || "#64748b" }}
+          style={{ borderColor: currentTeam?.color || "#d9e8e3", color: currentTeam?.color || "#64748b" }}
         >
           {currentTeam ? (
             <>
@@ -188,14 +188,14 @@ export default function ClassHeader({
             <CalendarDays size={14} /> جلسات
           </Link>
         ) : (
-          <span className={`${tabBase} bg-stone-100 text-primary`}>
+          <span className={`${tabBase} bg-slate-100 text-primary`}>
             <Sparkles size={14} /> جلسات
           </span>
         )}
         {isTeacher && (
           <Link
             href={`/class/${session.code}/insights`}
-            className={`${tabBase} ${section === "insights" ? "bg-stone-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+            className={`${tabBase} ${section === "insights" ? "bg-slate-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
           >
             <LineChart size={14} /> آمار کلاس
           </Link>
@@ -203,7 +203,7 @@ export default function ClassHeader({
         {isTeacher && (
           <Link
             href={`/class/${session.code}/students`}
-            className={`${tabBase} ${section === "students" ? "bg-stone-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+            className={`${tabBase} ${section === "students" ? "bg-slate-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
           >
             <BarChart3 size={14} /> دانشجوها
           </Link>

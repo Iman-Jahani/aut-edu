@@ -162,7 +162,7 @@ export default function TeacherDashboard({
                 <ul className="divide-y divide-line/70">
                   {ov.attention.map((a) => (
                     <li key={a.classId + a.userId}>
-                      <button onClick={() => onOpenStudent(a.classId, a.userId)} className="w-full text-right flex items-center gap-3 px-5 py-3 hover:bg-stone-50 transition">
+                      <button onClick={() => onOpenStudent(a.classId, a.userId)} className="w-full text-right flex items-center gap-3 px-5 py-3 hover:bg-slate-50 transition">
                         <Avatar name={a.name} avatar={a.avatar} size={32} />
                         <span className="flex-1 min-w-0">
                           <span className="block text-sm font-bold truncate">{a.name}</span>

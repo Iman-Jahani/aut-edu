@@ -172,7 +172,7 @@ function Frame({ children }: { children: React.ReactNode }) {
 
       <div className="flex-1 min-w-0">
         {/* Top bar */}
-        <div className="sticky top-0 z-30 bg-[#fbf8f1]/90 backdrop-blur border-b border-line">
+        <div className="sticky top-0 z-30 bg-[#f3faf7]/90 backdrop-blur border-b border-line">
           <div className="lg:hidden bg-deep text-white px-4 pt-3 flex items-center gap-2">
             <span className="font-extrabold text-sm flex-1">{title}</span>
             <Link href="/dashboard" className="text-xs text-white/70 px-2 py-1">
@@ -229,11 +229,11 @@ function Frame({ children }: { children: React.ReactNode }) {
 function Skeleton() {
   return (
     <div className="space-y-5 animate-pulse">
-      <div className="h-9 w-56 bg-stone-200 rounded-lg" />
-      <div className="h-24 bg-stone-200/70 rounded-2xl" />
+      <div className="h-9 w-56 bg-slate-200 rounded-lg" />
+      <div className="h-24 bg-slate-200/70 rounded-2xl" />
       <div className="grid lg:grid-cols-3 gap-5">
-        <div className="lg:col-span-2 h-72 bg-stone-200/70 rounded-2xl" />
-        <div className="h-72 bg-stone-200/70 rounded-2xl" />
+        <div className="lg:col-span-2 h-72 bg-slate-200/70 rounded-2xl" />
+        <div className="h-72 bg-slate-200/70 rounded-2xl" />
       </div>
     </div>
   );

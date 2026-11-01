@@ -171,7 +171,7 @@ export default function SignupPage() {
               type="button"
               onClick={() => setRole(value)}
               className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-                role === value ? "border-primary bg-stone-100 text-primary" : "border-line text-muted"
+                role === value ? "border-primary bg-slate-100 text-primary" : "border-line text-muted"
               }`}
             >
               <Icon size={15} /> {label}

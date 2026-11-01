@@ -44,7 +44,7 @@ export default function StudentDetailModal({
   return (
     <Portal>
       <div
-        className="fixed inset-0 z-[130] bg-stone-900/55 backdrop-blur-sm anim-fade flex items-center justify-center p-3 sm:p-6"
+        className="fixed inset-0 z-[130] bg-slate-900/55 backdrop-blur-sm anim-fade flex items-center justify-center p-3 sm:p-6"
         onClick={(e) => e.target === e.currentTarget && onClose()}
         role="dialog"
         aria-modal="true"

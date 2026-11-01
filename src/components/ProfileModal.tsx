@@ -60,7 +60,7 @@ export default function ProfileModal({
   return (
     <Portal>
     <div
-      className="fixed inset-0 z-[100] bg-stone-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
+      className="fixed inset-0 z-[100] bg-slate-900/50 backdrop-blur-sm anim-fade flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget && !firstTime) onClose();
       }}
@@ -78,7 +78,7 @@ export default function ProfileModal({
             : "اسم (یا شماره دانشجویی) و آواتارت رو اینجا می‌تونی عوض کنی."}
         </p>
 
-        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-stone-50 border border-line">
+        <div className="flex items-center gap-3 mb-4 p-3 rounded-xl bg-slate-50 border border-line">
           <div className="w-14 h-14 rounded-full bg-white grid place-items-center text-3xl border">
             {pickedAvatar}
           </div>
@@ -110,7 +110,7 @@ export default function ProfileModal({
                   type="button"
                   onClick={() => setPickedRole(value)}
                   className={`flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-sm font-bold border transition ${
-                    pickedRole === value ? "border-primary bg-stone-100 text-primary" : "border-line text-muted"
+                    pickedRole === value ? "border-primary bg-slate-100 text-primary" : "border-line text-muted"
                   }`}
                 >
                   <Icon size={15} /> {label}
@@ -153,8 +153,8 @@ export default function ProfileModal({
               type="button"
               key={a}
               onClick={() => setPickedAvatar(a)}
-              className={`text-xl rounded-lg p-1.5 hover:bg-stone-100 transition ${
-                a === pickedAvatar ? "bg-stone-200 ring-2 ring-primary" : ""
+              className={`text-xl rounded-lg p-1.5 hover:bg-slate-100 transition ${
+                a === pickedAvatar ? "bg-slate-200 ring-2 ring-primary" : ""
               }`}
             >
               {a}

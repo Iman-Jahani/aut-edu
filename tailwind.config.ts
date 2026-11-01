@@ -5,14 +5,14 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        primary: "#0b6b70",   // Persian turquoise
-        primary2: "#13919a",  // brighter turquoise (gradients)
-        deep: "#08484c",      // dark turquoise for sidebars / hero panels
-        accent: "#f2a93b",    // saffron
-        paper: "#fbf8f1",     // warm cream page background
-        ink: "#17262b",
-        muted: "#5f7077",
-        line: "#e7e2d6",
+        primary: "#1b6ca8",   // ocean blue
+        primary2: "#2f95d6",  // brighter sky blue (gradients)
+        deep: "#0d3b66",      // deep navy-blue for sidebars / hero panels
+        accent: "#3fbf7f",    // leaf green
+        paper: "#f3faf7",     // pale mint page background
+        ink: "#13262f",
+        muted: "#5a6f78",
+        line: "#d9e8e3",
         success: "#10b981",
         warning: "#f59e0b",
         danger: "#ef4444",
@@ -23,8 +23,8 @@ const config: Config = {
       },
       boxShadow: {
         soft: "0 1px 2px rgba(23,38,43,.04), 0 4px 16px rgba(23,38,43,.06)",
-        lift: "0 2px 4px rgba(23,38,43,.05), 0 12px 32px rgba(11,107,112,.16)",
-        glow: "0 8px 24px rgba(11,107,112,.32)",
+        lift: "0 2px 4px rgba(23,38,43,.05), 0 12px 32px rgba(27,108,168,.16)",
+        glow: "0 8px 24px rgba(27,108,168,.32)",
       },
       borderRadius: {
         sm: "8px",

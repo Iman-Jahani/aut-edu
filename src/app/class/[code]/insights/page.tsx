@@ -239,7 +239,7 @@ function StudentsTab({ cs, ix, classId, onOpen }: { cs: ClassStats; ix: Index; c
       render: (r) =>
         r.teamName ? (
           <span className="inline-flex items-center gap-1.5 text-xs font-bold">
-            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#a8a29e" }} />
+            <span className="w-2.5 h-2.5 rounded-full" style={{ background: r.teamColor || "#9db0b6" }} />
             {r.teamName}
           </span>
         ) : (
@@ -360,7 +360,7 @@ function QuizzesTab({ cs, ix, insight }: { cs: ClassStats; ix: Index; insight: I
             ) : (
               <div className="grid lg:grid-cols-2 gap-6">
                 <div>
-                  <div className="text-xs font-bold text-stone-600 mb-3">درصد پاسخ درست هر سؤال</div>
+                  <div className="text-xs font-bold text-slate-600 mb-3">درصد پاسخ درست هر سؤال</div>
                   {stats.length ? (
                     <HBars rows={stats.map((s) => ({ label: `${fa(s.index + 1)}. ${s.question.length > 46 ? s.question.slice(0, 46) + "…" : s.question}`, value: s.correctRate, sub: `${fa(s.answered)} پاسخ` }))} suffix="٪" max={100} />
                   ) : (
@@ -368,7 +368,7 @@ function QuizzesTab({ cs, ix, insight }: { cs: ClassStats; ix: Index; insight: I
                   )}
                 </div>
                 <div>
-                  <div className="text-xs font-bold text-stone-600 mb-3">نمره‌ی دانشجوها</div>
+                  <div className="text-xs font-bold text-slate-600 mb-3">نمره‌ی دانشجوها</div>
                   <ul className="space-y-2 max-h-72 overflow-y-auto pl-1">
                     {results.map((r) => (
                       <li key={r.id} className="flex items-center gap-3 text-sm">
@@ -406,7 +406,7 @@ function CompetitionsTab({ ix, classId }: { ix: Index; classId: string }) {
             <ol className="space-y-2">
               {c.ranking.map((r, i) => (
                 <li key={r.team} className="flex items-center gap-3 rounded-xl border border-line px-4 py-2.5">
-                  <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black ${i === 0 ? "bg-primary text-white" : "bg-stone-100 text-stone-600"}`}>{i === 0 ? <Trophy size={13} /> : fa(i + 1)}</span>
+                  <span className={`w-7 h-7 rounded-full grid place-items-center text-xs font-black ${i === 0 ? "bg-primary text-white" : "bg-slate-100 text-slate-600"}`}>{i === 0 ? <Trophy size={13} /> : fa(i + 1)}</span>
                   <span className="flex-1 min-w-0">
                     <span className="block font-bold text-sm truncate">{r.team}</span>
                     <span className="block text-[11px] text-muted truncate">تحویل توسط {r.author}</span>

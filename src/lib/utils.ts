@@ -14,7 +14,7 @@ export const AVATAR_PALETTE = [
 ];
 
 export const PALETTE = [
-  "#0b6b70", "#f2a93b", "#ec4899", "#f43f5e", "#f59e0b",
+  "#1b6ca8", "#3fbf7f", "#ec4899", "#f43f5e", "#f59e0b",
   "#10b981", "#06b6d4", "#3b82f6", "#84cc16", "#eab308",
 ];
 

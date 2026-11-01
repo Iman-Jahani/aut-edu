@@ -50,8 +50,8 @@ function Hl({ code }: { code: string }) {
       {parts.map((p, i) => {
         if (!p) return null;
         if (/^(def|return|print|for|in|if|len|sum)$/.test(p)) return <span key={i} className="text-white font-bold">{p}</span>;
-        if (/^"/.test(p) || /^\d/.test(p)) return <span key={i} className="text-stone-300">{p}</span>;
-        return <span key={i} className="text-stone-500">{p}</span>;
+        if (/^"/.test(p) || /^\d/.test(p)) return <span key={i} className="text-slate-300">{p}</span>;
+        return <span key={i} className="text-slate-500">{p}</span>;
       })}
     </>
   );
@@ -175,8 +175,8 @@ function SceneComment({ on }: { on: boolean }) {
         <Hl code={`def mean(xs):\n    return sum(xs) / len(xs)`} />
       </pre>
       <div className="lp-rise mt-5 rounded-2xl rounded-tr-sm bg-white text-ink px-4 py-3 max-w-[92%]" style={{ ["--d" as string]: "0.6s" }}>
-        <div className="text-xs font-bold text-stone-500 mb-1">استاد</div>
-        <div className="text-sm leading-7">اگه لیست خالی باشه چی؟ <span dir="ltr" className="font-mono text-[13px] bg-stone-100 rounded px-1">len(xs)</span> صفر می‌شه.</div>
+        <div className="text-xs font-bold text-slate-500 mb-1">استاد</div>
+        <div className="text-sm leading-7">اگه لیست خالی باشه چی؟ <span dir="ltr" className="font-mono text-[13px] bg-slate-100 rounded px-1">len(xs)</span> صفر می‌شه.</div>
       </div>
       <div className="lp-rise mt-auto text-sm text-white/55" style={{ ["--d" as string]: "2s" }}>
         علی با باز کردن کلاس، پنل نظر رو بازشده می‌بینه.
@@ -194,7 +194,7 @@ function SceneQuiz({ on }: { on: boolean }) {
         <div className="relative w-[130px] h-[130px] shrink-0">
           <svg viewBox="0 0 120 120" className="w-full h-full -rotate-90" aria-hidden>
             <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.14)" strokeWidth="8" />
-            <circle cx="60" cy="60" r="52" fill="none" stroke="#f2a93b" strokeWidth="8" strokeLinecap="round" strokeDasharray={len} className="lp-ring" style={{ ["--len" as string]: `${len * 0.68}` }} />
+            <circle cx="60" cy="60" r="52" fill="none" stroke="#3fbf7f" strokeWidth="8" strokeLinecap="round" strokeDasharray={len} className="lp-ring" style={{ ["--len" as string]: `${len * 0.68}` }} />
           </svg>
           <div className="absolute inset-0 grid place-items-center">
             <span className="text-3xl font-black tabular-nums" dir="ltr">0:42</span>
@@ -322,8 +322,8 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen overflow-x-clip bg-[#fbf8f1]">
-      <nav className="sticky top-0 z-50 bg-[#fbf8f1]/85 backdrop-blur-xl border-b border-line">
+    <div className="min-h-screen overflow-x-clip bg-[#f3faf7]">
+      <nav className="sticky top-0 z-50 bg-[#f3faf7]/85 backdrop-blur-xl border-b border-line">
         <div className="max-w-7xl mx-auto px-5 lg:px-8 h-16 flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2.5 font-extrabold">
             <span className="w-9 h-9 rounded-xl bg-primary text-white grid place-items-center font-mono text-sm font-black">{">"}<span className="text-accent">_</span></span>
@@ -352,7 +352,7 @@ export default function LandingPage() {
 
       {/* The story: text on one side, one sticky panel that plays the current moment on the other */}
       <section className="max-w-7xl mx-auto px-5 lg:px-8 lg:grid lg:grid-cols-12 lg:gap-12">
-        <div className="order-1 lg:order-2 lg:col-span-7 sticky top-16 lg:top-[5.5rem] z-20 lg:self-start pt-3 lg:pt-8 bg-[#fbf8f1] lg:bg-transparent -mx-5 px-5 lg:mx-0 lg:px-0">
+        <div className="order-1 lg:order-2 lg:col-span-7 sticky top-16 lg:top-[5.5rem] z-20 lg:self-start pt-3 lg:pt-8 bg-[#f3faf7] lg:bg-transparent -mx-5 px-5 lg:mx-0 lg:px-0">
           <div className="hero-panel relative rounded-[24px] lg:rounded-[32px] text-white overflow-hidden h-[54vh] lg:h-[min(660px,calc(100vh-8rem))] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)]">
             {SCENES.map((Scene, i) => (
               <div key={i} className={`absolute inset-0 p-5 pb-8 md:p-8 md:pb-10 transition-opacity duration-500 ${active === i ? "opacity-100" : "opacity-0 pointer-events-none"}`} aria-hidden={active !== i}>
@@ -381,7 +381,7 @@ export default function LandingPage() {
                   <h1 className="text-[2.6rem] sm:text-6xl lg:text-[4.4rem] font-black leading-[1.18] tracking-tight mb-6">
                     کدِ همه‌ی کلاس، روی <span className="underline decoration-accent decoration-[7px] underline-offset-[12px]">یک صفحه</span>.
                   </h1>
-                  <p className="text-[17px] leading-9 text-stone-600 max-w-md mb-9">
+                  <p className="text-[17px] leading-9 text-slate-600 max-w-md mb-9">
                     دانشجوها توی مرورگر پایتون می‌نویسن و اجرا می‌کنن، تمرین‌هاشون خودکار تست می‌شه و تو زیر هر سلول نظر می‌ذاری. بدون نصب، بدون فایل فرستادن.
                   </p>
                   <div className="flex flex-wrap gap-3">
@@ -402,7 +402,7 @@ export default function LandingPage() {
               ) : (
                 <>
                   <h2 className="text-3xl md:text-[2.6rem] font-black leading-[1.3] tracking-tight mb-4">{s.title}</h2>
-                  <p className="text-[16px] leading-9 text-stone-600 max-w-md">{s.body}</p>
+                  <p className="text-[16px] leading-9 text-slate-600 max-w-md">{s.body}</p>
                 </>
               )}
             </article>
