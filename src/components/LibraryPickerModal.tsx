@@ -1,6 +1,5 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import { fmtRelative } from "@/lib/utils";
@@ -8,6 +7,7 @@ import type { SharedExercise } from "@/lib/types";
 import { ListSkeleton } from "@/components/Skeleton";
 import { DifficultyBadge, TopicBadge } from "@/components/DifficultyBadge";
 import { DIFFICULTIES } from "@/lib/difficulty";
+import { useLibrarySearch } from "@/lib/library";
 import { BookOpen, X } from "lucide-react";
 
 export default function LibraryPickerModal({
@@ -18,43 +18,14 @@ export default function LibraryPickerModal({
   onPick: (ex: SharedExercise) => void;
 }) {
   const toast = useToast();
-  const [items, setItems] = useState<SharedExercise[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [q, setQ] = useState("");
-  const [diff, setDiff] = useState<number | null>(null);
-  const [topic, setTopic] = useState("");
-
-  const load = async () => {
-    setLoading(true);
-    const { data } = await supabase
-      .from("shared_exercises")
-      .select("*")
-      .order("use_count", { ascending: false })
-      .order("created_at", { ascending: false });
-    setItems(data || []);
-    setLoading(false);
-  };
-
-  useEffect(() => {
-    load();
-  }, []);
-
-  const topics = useMemo(
-    () => Array.from(new Set(items.map((e) => (e.topic || "").trim()).filter(Boolean))).sort((a, b) => a.localeCompare(b)),
-    [items]
-  );
-
-  const filtered = useMemo(() => {
-    const needle = q.trim().toLowerCase();
-    return items.filter((e) => {
-      if (diff !== null && e.difficulty !== diff) return false;
-      if (topic && (e.topic || "").trim() !== topic) return false;
-      if (!needle) return true;
-      return (e.title || "").toLowerCase().includes(needle) || (e.description || "").toLowerCase().includes(needle);
-    });
-  }, [items, q, diff, topic]);
-
-  const hasFilter = diff !== null || !!topic || !!q.trim();
+  // search, filters and paging run in the database (the library can hold far more than 1000 exercises)
+  const lib = useLibrarySearch({ sort: "popular", mode: "append" });
+  const { q, diff, topic, topics, items, loading } = lib;
+  const setQ = lib.setQ;
+  const setDiff = lib.setDiff;
+  const setTopic = lib.setTopic;
+  const hasFilter = lib.hasFilter;
+  const filtered = items;
 
   const pick = async (ex: SharedExercise) => {
     onPick(ex);
@@ -114,27 +85,24 @@ export default function LibraryPickerModal({
               ))}
             </select>
           </div>
-          {hasFilter && !loading && (
+          {(hasFilter || lib.total > 0) && (
             <div className="text-[11px] text-muted flex items-center gap-2">
-              {filtered.length} از {items.length} تمرین
-              <button
-                onClick={() => {
-                  setQ("");
-                  setDiff(null);
-                  setTopic("");
-                }}
-                className="text-primary font-bold"
-              >
-                پاک کردن فیلترها
-              </button>
+              {lib.total.toLocaleString("fa-IR")} تمرین{hasFilter ? " پیدا شد" : ""}
+              {hasFilter && (
+                <button onClick={lib.clear} className="text-primary font-bold">
+                  پاک کردن فیلترها
+                </button>
+              )}
             </div>
           )}
         </div>
         <div className="px-6 py-4 overflow-y-auto flex-1 space-y-2">
-          {loading ? (
+          {lib.error ? (
+            <div className="text-center text-sm text-danger py-10">خطا در جستجو: {lib.error}</div>
+          ) : loading && items.length === 0 ? (
             <ListSkeleton rows={4} pill={false} />
           ) : filtered.length === 0 ? (
-            <div className="text-center text-sm text-muted py-10">{items.length ? "چیزی پیدا نشد" : "کتابخانه خالیه"}</div>
+            <div className="text-center text-sm text-muted py-10">{hasFilter ? "چیزی پیدا نشد" : "کتابخانه خالیه"}</div>
           ) : (
             filtered.map((ex) => (
               <div
@@ -159,6 +127,11 @@ export default function LibraryPickerModal({
                 </div>
               </div>
             ))
+          )}
+          {lib.hasMore && !lib.error && (
+            <button onClick={lib.loadMore} disabled={loading} className="btn-ghost w-full justify-center disabled:opacity-50">
+              {loading ? "در حال بارگذاری…" : `نمایش بیشتر (${(lib.total - items.length).toLocaleString("fa-IR")} تمرین دیگه)`}
+            </button>
           )}
         </div>
       </div>
