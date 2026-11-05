@@ -87,7 +87,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
         ]}
       />
 
-      <div className="grid lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر من">
           <ActivityChart data={dash.activity} />
         </Panel>
@@ -132,7 +132,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
             <ul className="divide-y divide-line/70">
               {dash.classes.map((c) => (
                 <li key={c.id}>
-                  <Link href={`/class/${c.code}`} className="flex items-center gap-4 px-5 py-3.5 hover:bg-slate-50">
+                  <Link href={`/class/${c.code}`} className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 px-5 py-3.5 hover:bg-slate-50">
                     <span className="flex-1 min-w-0">
                       <span className="flex items-center gap-1.5 text-sm font-bold">
                         <span className="truncate">{c.title}</span>
@@ -140,7 +140,7 @@ export default function StudentDashboard({ dash, name, avatar, onJoin }: { dash:
                       </span>
                       <span className="block text-[11px] text-muted mt-0.5">آخرین بازدید {ago(c.lastSeenAt)}</span>
                     </span>
-                    <span className="w-40 hidden sm:block">
+                    <span className="w-full sm:w-40 shrink-0">
                       {c.total > 0 ? (
                         <>
                           <span className="flex justify-between text-[11px] text-muted mb-1">

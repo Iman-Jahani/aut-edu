@@ -79,7 +79,7 @@ export default function StudentDetailModal({
           <Panel title="فعالیت ۳۰ روز اخیر">
             <ActivityChart data={d.activity} height={200} />
           </Panel>
-          <div className="grid sm:grid-cols-2 gap-5">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
             <Panel title="نتیجه‌ی پاسخ‌ها">
               <StatusDonut counts={d.statusCounts} />
             </Panel>

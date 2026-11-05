@@ -31,7 +31,7 @@ export default function AdminOverviewPage() {
         ]}
       />
 
-      <div className="grid lg:grid-cols-12 gap-5 mt-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
         <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر" subtitle={`${fa(weekActivity)} فعالیت در هفته‌ی گذشته`}>
           <ActivityChart data={ov.activity} />
         </Panel>

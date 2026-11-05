@@ -105,6 +105,27 @@ export function setGardenCollapsed(v: boolean) {
   }
 }
 
+// ----- which character (the original sprout, or the robot) -----
+export type GardenCharacter = "robot" | "sprout";
+const CHARACTER_KEY = "garden:character";
+export const GARDEN_CHARACTER_EVENT = "garden:character";
+
+export function getGardenCharacter(): GardenCharacter {
+  try {
+    return window.localStorage.getItem(CHARACTER_KEY) === "sprout" ? "sprout" : "robot";
+  } catch {
+    return "robot";
+  }
+}
+export function setGardenCharacter(c: GardenCharacter) {
+  try {
+    window.localStorage.setItem(CHARACTER_KEY, c);
+  } catch {
+    /* ignore */
+  }
+  window.dispatchEvent(new CustomEvent(GARDEN_CHARACTER_EVENT, { detail: c }));
+}
+
 /** Pages where time spent counts as "working on the class". */
 export function isWorkPath(pathname: string): boolean {
   return pathname.startsWith("/class") || pathname.startsWith("/playground");

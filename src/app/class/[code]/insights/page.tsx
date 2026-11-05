@@ -89,7 +89,7 @@ export default function InsightsPage() {
         {!ix || !cs || !insight ? (
           <div className="space-y-5">
             <Skeleton className="h-24 rounded-2xl" />
-            <div className="grid lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <Skeleton className="h-72 rounded-2xl lg:col-span-2" />
               <Skeleton className="h-72 rounded-2xl" />
             </div>
@@ -166,7 +166,7 @@ function Summary({ cs, ix, classId }: { cs: ClassStats; ix: Index; classId: stri
           { label: "مسابقه", value: fa(cs.competitions.length) },
         ]}
       />
-      <div className="grid lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر کلاس">
           <ActivityChart data={cs.activity} />
         </Panel>
@@ -358,7 +358,7 @@ function QuizzesTab({ cs, ix, insight }: { cs: ClassStats; ix: Index; insight: I
             {q.participants === 0 ? (
               <Empty>هنوز کسی جواب نداده.</Empty>
             ) : (
-              <div className="grid lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div>
                   <div className="text-xs font-bold text-slate-600 mb-3">درصد پاسخ درست هر سؤال</div>
                   {stats.length ? (

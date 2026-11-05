@@ -39,7 +39,7 @@ export default function ProgressRing({
           <div className="font-black tabular-nums" style={{ fontSize: size * 0.25 }}>
             {label ?? `${v.toLocaleString("fa-IR")}٪`}
           </div>
-          {sub && <div className={`text-[11px] mt-0.5 ${onDark ? "text-white/55" : "text-muted"}`}>{sub}</div>}
+          {sub && <div className={`text-[10px] leading-[1.35] mt-0.5 mx-auto max-w-[78%] ${onDark ? "text-white/60" : "text-muted"}`}>{sub}</div>}
         </div>
       </div>
     </div>

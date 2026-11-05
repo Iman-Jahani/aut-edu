@@ -103,7 +103,7 @@ function Summary({ cs }: { cs: ClassStats }) {
           { label: "میانگین نمره", value: fa(cs.avgScore), hint: "بهترین پاسخ هر نفر" },
         ]}
       />
-      <div className="grid lg:grid-cols-12 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر کلاس">
           <ActivityChart data={cs.activity} />
         </Panel>
@@ -278,7 +278,7 @@ function ExercisesTab({ cs }: { cs: ClassStats }) {
 
 function StructureTab({ cs }: { cs: ClassStats }) {
   return (
-    <div className="grid lg:grid-cols-12 gap-5">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
       <Panel className="lg:col-span-7" title="جلسه‌ها" subtitle="تعداد سلول و نظر در هر جلسه">
         {cs.meetings.length === 0 ? (
           <Empty>هنوز جلسه‌ای ساخته نشده.</Empty>

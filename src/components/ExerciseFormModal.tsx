@@ -215,7 +215,7 @@ export default function ExerciseFormModal({
             <div className="flex items-center gap-1.5 text-sm font-bold text-muted">
               <CalendarClock size={15} /> بازه‌ی مجاز پاسخ‌دادن <span className="text-[11px] font-normal">(اختیاری)</span>
             </div>
-            <div className="grid sm:grid-cols-2 gap-2.5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
               {(
                 [
                   ["شروع", opensAt, setOpensAt],

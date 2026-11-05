@@ -78,7 +78,7 @@ export default function StudentDetailPage() {
         ]}
       />
 
-      <div className="grid lg:grid-cols-12 gap-5 mt-5">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5">
         <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر">
           <ActivityChart data={st.activity} />
         </Panel>

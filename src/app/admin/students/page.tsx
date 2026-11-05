@@ -65,7 +65,7 @@ export default function StudentsPage() {
           { label: "میانگین نمره", value: fa(avg), hint: "بین پاسخ‌دهنده‌ها" },
         ]}
       />
-      <div className="grid lg:grid-cols-12 gap-5 mt-5 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5 items-start">
         <Panel className="lg:col-span-8" flush title="همه‌ی دانشجوها" right={<SearchBox value={q} onChange={setQ} placeholder="اسم یا ایمیل…" />}>
           <DataTable rows={filtered} columns={columns} rowKey={(r) => r.userId} href={(r) => `/admin/students/${r.userId}`} defaultSort={{ key: "last", dir: "desc" }} maxHeight="640px" empty="دانشجویی پیدا نشد" />
         </Panel>

@@ -1,5 +1,6 @@
 import type { RefObject } from "react";
 import { SHADE_AT, clamp, smooth } from "@/lib/garden";
+import RobotCharacter from "@/components/garden/RobotCharacter";
 
 // ---------------------------------------------------------------------------
 // The picture only: the seed-to-tree plant (drawn from one number `g` in 0..1, so growth is continuous)
@@ -39,6 +40,8 @@ export interface SceneProps {
   wiggling: boolean;
   seedDrop: boolean;
   refs?: SceneRefs;
+  /** which character to draw; the sprout is the original, the robot never talks */
+  variant?: "sprout" | "robot";
   /** false when the visitor prefers reduced motion */
   motion?: boolean;
   /** emit plain transform attributes (for rendering a still image) */
@@ -254,7 +257,9 @@ export default function GardenScene(p: SceneProps) {
   const plantHitW = Math.max(30, cR * 2.3);
   const miniXs = [32, 236, 50].slice(0, Math.min(3, trees));
 
-  const charPose = lounge ? place(still, PLANT_X - 86, GROUND_Y - 1, 76) : place(still, CHAR_X, GROUND_Y, 0);
+  const robot = p.variant === "robot";
+  // the sprout lies down; the robot sits against the trunk, tilted a little, and "charges" in the shade
+  const charPose = lounge ? (robot ? place(still, PLANT_X - 50, GROUND_Y, 7) : place(still, PLANT_X - 86, GROUND_Y - 1, 76)) : place(still, CHAR_X, GROUND_Y, 0);
 
   return (
     <svg viewBox={`0 0 ${VB_W} ${VB_H}`} className="w-full h-auto overflow-visible" aria-hidden focusable="false">
@@ -271,6 +276,10 @@ export default function GardenScene(p: SceneProps) {
           <stop offset="0" stopColor="#3fb675" />
           <stop offset="1" stopColor="#23865a" />
         </radialGradient>
+        <linearGradient id="gc-robot-shell" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#f2faff" />
+          <stop offset="1" stopColor="#a9d3ee" />
+        </linearGradient>
         <linearGradient id="gc-soil" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0" stopColor="#a47c52" />
           <stop offset="1" stopColor="#7d5c3b" />
@@ -328,16 +337,18 @@ export default function GardenScene(p: SceneProps) {
       {/* lounging extras */}
       {lounge && (
         <g>
+          {!robot && (
           <g transform={`translate(${PLANT_X - 112} ${GROUND_Y - 14})`}>
             <rect x={-4.5} y={0} width={9} height={13} rx={2} fill="#bfe6ff" stroke="#3b8fd4" strokeWidth={1.2} />
             <rect x={-4.5} y={5} width={9} height={8} rx={2} fill="#3fbf7f" opacity={0.75} />
             <path d="M 2 0 L 5 -8" stroke="#ff7f93" strokeWidth={1.6} strokeLinecap="round" />
           </g>
+          )}
           {!p.peek && motion && (
             <g fontFamily="Vazirmatn, sans-serif" fontWeight={800} fill="#2a6fb0">
-              <text className="gc-zzz" style={{ animationDelay: "0s" }} x={PLANT_X - 30} y={GROUND_Y - 38} fontSize={13}>z</text>
-              <text className="gc-zzz" style={{ animationDelay: "0.9s" }} x={PLANT_X - 22} y={GROUND_Y - 50} fontSize={10}>z</text>
-              <text className="gc-zzz" style={{ animationDelay: "1.8s" }} x={PLANT_X - 15} y={GROUND_Y - 60} fontSize={8}>z</text>
+              <text className="gc-zzz" style={{ animationDelay: "0s" }} x={robot ? PLANT_X - 40 : PLANT_X - 30} y={robot ? GROUND_Y - 62 : GROUND_Y - 38} fontSize={13}>z</text>
+              <text className="gc-zzz" style={{ animationDelay: "0.9s" }} x={robot ? PLANT_X - 32 : PLANT_X - 22} y={robot ? GROUND_Y - 73 : GROUND_Y - 50} fontSize={10}>z</text>
+              <text className="gc-zzz" style={{ animationDelay: "1.8s" }} x={robot ? PLANT_X - 25 : PLANT_X - 15} y={robot ? GROUND_Y - 82 : GROUND_Y - 60} fontSize={8}>z</text>
             </g>
           )}
         </g>
@@ -346,7 +357,11 @@ export default function GardenScene(p: SceneProps) {
       {/* the character: outer group positions (and eases between standing / lounging), inner group hops */}
       <g {...charPose}>
         <g className={hopping && motion ? "gc-hop" : ""}>
-          <Character lounge={lounge} excited={p.excited} blink={p.blink} peek={p.peek} waving={p.waving} refs={refs} motion={motion} />
+          {robot ? (
+            <RobotCharacter lounge={lounge} excited={p.excited} blink={p.blink} peek={p.peek} waving={p.waving} refs={refs} motion={motion} />
+          ) : (
+            <Character lounge={lounge} excited={p.excited} blink={p.blink} peek={p.peek} waving={p.waving} refs={refs} motion={motion} />
+          )}
           <rect
             x={-26}
             y={-62}

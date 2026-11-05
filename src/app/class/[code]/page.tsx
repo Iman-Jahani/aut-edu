@@ -99,7 +99,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
         </div>
 
         {meetings === null ? (
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[0, 1, 2, 3].map((i) => (
               <MeetingCardSkeleton key={i} />
             ))}
@@ -118,7 +118,7 @@ export default function ClassHomePage({ params }: { params: { code: string } }) 
             )}
           </div>
         ) : (
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {meetings.map((m) => {
               const st = stats[m.id] || { cells: 0, people: 0 };
               return (

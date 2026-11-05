@@ -34,8 +34,8 @@ export function PageHeader({
       )}
       <div className="flex items-start gap-4 flex-wrap">
         {lead}
-        <div className="min-w-0 flex-1">
-          <h1 className="text-2xl md:text-[28px] font-black tracking-tight leading-tight">{title}</h1>
+        <div className="min-w-0 flex-1 basis-full sm:basis-0">
+          <h1 className="text-xl sm:text-2xl md:text-[28px] font-black tracking-tight leading-tight">{title}</h1>
           {subtitle && <div className="text-sm text-muted mt-1.5">{subtitle}</div>}
         </div>
         {actions && <div className="flex items-center gap-2 flex-wrap">{actions}</div>}
@@ -61,7 +61,7 @@ export function Panel({
   flush?: boolean;
 }) {
   return (
-    <section className={`bg-white border border-line rounded-2xl ${className}`}>
+    <section className={`bg-white border border-line rounded-2xl min-w-0 ${className}`}>
       {(title || right) && (
         <div className="px-5 pt-4 pb-3 flex items-start justify-between gap-3">
           <div>
@@ -148,7 +148,7 @@ export function SearchBox({ value, onChange, placeholder = "جستجو…" }: { 
 
 export function Tabs<T extends string>({ tabs, value, onChange }: { tabs: { id: T; label: string; count?: number }[]; value: T; onChange: (v: T) => void }) {
   return (
-    <div className="flex gap-1 border-b border-line mb-5 overflow-x-auto" role="tablist">
+    <div className="flex gap-1 border-b border-line mb-5 overflow-x-auto no-scrollbar" role="tablist">
       {tabs.map((tb) => (
         <button
           key={tb.id}
@@ -218,42 +218,96 @@ export function DataTable<T>({
 
   if (!rows.length) return <Empty>{empty}</Empty>;
 
+  const open = (r: T) => (href ? router.push(href(r)) : onRowClick ? onRowClick(r) : undefined);
+  const clickable = !!(href || onRowClick);
+  const [first, ...others] = columns;
+  const fields = others.filter((c) => c.label);
+  const actions = others.filter((c) => !c.label);
+  const sortable = columns.filter((c) => c.sort);
+  // columns that hold a progress bar (they carry a fixed width class) get the full card width
+  const wide = (c: Column<T>) => /\bw-\d+\b/.test(c.className || "");
+
   return (
-    <div className="overflow-auto" style={maxHeight ? { maxHeight } : undefined}>
-      <table className="w-full text-sm min-w-[640px]">
-        <thead className="sticky top-0 bg-white z-10">
-          <tr className="border-y border-line text-xs text-muted">
-            {columns.map((c) => (
-              <th key={c.key} className={`text-right font-bold px-4 py-2.5 whitespace-nowrap ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className || ""}`}>
-                {c.sort ? (
-                  <button onClick={() => toggle(c.key)} className="inline-flex items-center gap-1 hover:text-ink">
-                    {c.label}
-                    {sort?.key === c.key && (sort.dir === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
-                  </button>
-                ) : (
-                  c.label
-                )}
-              </th>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {sorted.map((r) => (
-            <tr
-              key={rowKey(r)}
-              onClick={href ? () => router.push(href(r)) : onRowClick ? () => onRowClick(r) : undefined}
-              className={`border-b border-line/70 last:border-0 ${href || onRowClick ? "cursor-pointer hover:bg-slate-50" : ""}`}
+    <>
+      {/* phones: one card per row */}
+      <div className="md:hidden">
+        {sortable.length > 1 && (
+          <div className="flex items-center gap-2 px-4 py-2.5 border-y border-line text-xs text-muted">
+            <span>مرتب‌سازی:</span>
+            <select
+              value={sort?.key || ""}
+              onChange={(e) => setSort({ key: e.target.value, dir: sort?.dir || "desc" })}
+              className="flex-1 min-w-0 bg-white border border-line rounded-lg px-2 py-1.5 text-xs text-ink outline-none focus:border-primary"
             >
+              {!sort && <option value="">—</option>}
+              {sortable.map((c) => (
+                <option key={c.key} value={c.key}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+            <button
+              onClick={() => sort && setSort({ key: sort.key, dir: sort.dir === "asc" ? "desc" : "asc" })}
+              className="shrink-0 w-8 h-8 grid place-items-center rounded-lg border border-line bg-white text-ink"
+              aria-label="جهت مرتب‌سازی"
+            >
+              {sort?.dir === "asc" ? <ArrowUp size={14} /> : <ArrowDown size={14} />}
+            </button>
+          </div>
+        )}
+        <ul className="divide-y divide-line/70">
+          {sorted.map((r) => (
+            <li key={rowKey(r)} onClick={clickable ? () => open(r) : undefined} className={`px-4 py-3.5 ${clickable ? "cursor-pointer active:bg-slate-50" : ""}`}>
+              <div className="font-bold text-sm">{first.render(r)}</div>
+              {fields.length > 0 && (
+                <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 mt-3">
+                  {fields.map((c) => (
+                    <div key={c.key} className={wide(c) ? "col-span-2" : ""}>
+                      <dt className="text-[11px] text-muted mb-0.5">{c.label}</dt>
+                      <dd className="text-sm min-w-0">{c.render(r)}</dd>
+                    </div>
+                  ))}
+                </dl>
+              )}
+              {actions.length > 0 && <div className="flex items-center gap-3 mt-3 flex-wrap">{actions.map((c) => <span key={c.key}>{c.render(r)}</span>)}</div>}
+            </li>
+          ))}
+        </ul>
+      </div>
+
+      {/* tablets and up: the table */}
+      <div className="hidden md:block overflow-auto" style={maxHeight ? { maxHeight } : undefined}>
+        <table className="w-full text-sm min-w-[640px]">
+          <thead className="sticky top-0 bg-white z-10">
+            <tr className="border-y border-line text-xs text-muted">
               {columns.map((c) => (
-                <td key={c.key} className={`px-4 py-3 align-middle ${c.hideOnMobile ? "hidden md:table-cell" : ""} ${c.className || ""}`}>
-                  {c.render(r)}
-                </td>
+                <th key={c.key} className={`text-right font-bold px-4 py-2.5 whitespace-nowrap ${c.className || ""}`}>
+                  {c.sort ? (
+                    <button onClick={() => toggle(c.key)} className="inline-flex items-center gap-1 hover:text-ink">
+                      {c.label}
+                      {sort?.key === c.key && (sort.dir === "asc" ? <ArrowUp size={11} /> : <ArrowDown size={11} />)}
+                    </button>
+                  ) : (
+                    c.label
+                  )}
+                </th>
               ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+          </thead>
+          <tbody>
+            {sorted.map((r) => (
+              <tr key={rowKey(r)} onClick={clickable ? () => open(r) : undefined} className={`border-b border-line/70 last:border-0 ${clickable ? "cursor-pointer hover:bg-slate-50" : ""}`}>
+                {columns.map((c) => (
+                  <td key={c.key} className={`px-4 py-3 align-middle ${c.className || ""}`}>
+                    {c.render(r)}
+                  </td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
   );
 }
 

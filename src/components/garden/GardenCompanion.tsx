@@ -7,7 +7,10 @@ import { useAuth } from "@/context/AuthContext";
 import GardenScene, { CHAR_X, GROUND_Y, PLANT_X, VB_H, VB_W, SceneRefs } from "@/components/garden/GardenScene";
 import {
   GARDEN_EVENT,
+  GARDEN_CHARACTER_EVENT,
   GARDEN_VISIBILITY_EVENT,
+  GardenCharacter,
+  getGardenCharacter,
   GROWTH_FULL,
   GardenState,
   SHADE_AT,
@@ -49,6 +52,9 @@ export default function GardenCompanion() {
   const [mounted, setMounted] = useState(false);
   const [hidden, setHidden] = useState(false);
   const [collapsed, setCollapsed] = useState(false);
+  const [variant, setVariant] = useState<GardenCharacter>("robot");
+  const variantRef = useRef<GardenCharacter>("robot");
+  variantRef.current = variant;
   const [state, setState] = useState<GardenState>({ points: 0, trees: 0 });
   const [scrollG, setScrollG] = useState(0);
   const [shown, setShown] = useState(0);
@@ -89,7 +95,9 @@ export default function GardenCompanion() {
   useEffect(() => () => timers.current.forEach((id) => window.clearTimeout(id)), []);
 
   const say = useCallback(
-    (text: string, ms = 3800) => {
+    (raw: string, ms = 3800) => {
+      // the robot never talks: it only shows the emoji of the message (or a heart)
+      const text = variantRef.current === "robot" ? (raw.match(/\p{Extended_Pictographic}/gu) || ["💚"]).slice(0, 2).join("") : raw;
       setBubble(text);
       later(() => setBubble((cur) => (cur === text ? null : cur)), ms);
     },
@@ -116,7 +124,11 @@ export default function GardenCompanion() {
   useEffect(() => {
     setMounted(true);
     setHidden(isGardenHidden());
-    setCollapsed(isGardenCollapsed() ?? false);
+    // on phones he starts tucked away so he never sits on top of the cells; a tap opens him
+    setCollapsed(isGardenCollapsed() ?? window.innerWidth < 640);
+    setVariant(getGardenCharacter());
+    const onChar = (e: Event) => setVariant((e as CustomEvent).detail === "sprout" ? "sprout" : "robot");
+    window.addEventListener(GARDEN_CHARACTER_EVENT, onChar);
     const mq = window.matchMedia("(prefers-reduced-motion: reduce)");
     setMotion(!mq.matches);
     const on = () => setMotion(!mq.matches);
@@ -126,6 +138,7 @@ export default function GardenCompanion() {
     return () => {
       mq.removeEventListener("change", on);
       window.removeEventListener(GARDEN_VISIBILITY_EVENT, onVis);
+      window.removeEventListener(GARDEN_CHARACTER_EVENT, onChar);
     };
   }, []);
 
@@ -240,6 +253,8 @@ export default function GardenCompanion() {
   // ---- first appearance: plant the seed ----
   useEffect(() => {
     if (!visible || collapsed || target > 0.03) return;
+    // `target` can still be 0 here because the saved garden loads in the same commit; ask storage directly
+    if (!scrollMode && loadGarden(userKey).points / GROWTH_FULL > 0.03) return;
     let greeted = false;
     try {
       greeted = sessionStorage.getItem("garden:greeted") === "1";
@@ -394,7 +409,7 @@ export default function GardenCompanion() {
     return (
       <button
         onClick={() => toggle(false)}
-        className="fixed bottom-3 left-3 z-[45] w-12 h-12 rounded-full bg-white border border-line shadow-soft grid place-items-center hover:shadow-lift transition"
+        className="fixed left-3 z-[45] w-11 h-11 sm:w-12 sm:h-12 bottom-[max(0.75rem,env(safe-area-inset-bottom))] rounded-full bg-white border border-line shadow-soft grid place-items-center hover:shadow-lift transition"
         title={`جوانه · ${STAGES[stage].name} (${fa(Math.round(target * 100))}٪)`}
         aria-label="نمایش جوانه و باغچه"
       >
@@ -410,7 +425,7 @@ export default function GardenCompanion() {
   const charLeft = ((lounge ? PLANT_X - 70 : CHAR_X) / VB_W) * 100;
 
   return (
-    <div className="fixed bottom-1 left-1 z-[45] w-[138px] sm:w-[200px] pointer-events-none select-none" role="group" aria-label="جوانه، همراه باغبان">
+    <div className="fixed left-1 z-[45] w-[104px] sm:w-[200px] pointer-events-none select-none bottom-[max(0.25rem,env(safe-area-inset-bottom))]" role="group" aria-label="جوانه، همراه باغبان">
       {bubble && (
         <div key={bubble} className="gc-bubble absolute left-1 bottom-full mb-1 max-w-[min(210px,72vw)] w-max rounded-2xl rounded-bl-md border border-line bg-white px-3 py-2 text-[11.5px] font-bold leading-5 text-ink shadow-soft" style={{ pointerEvents: "none" }}>
           {bubble}
@@ -437,6 +452,7 @@ export default function GardenCompanion() {
           hopping={hopping}
           wiggling={wiggling}
           seedDrop={seedDrop}
+          variant={variant}
           refs={refs}
           motion={motion}
           onCharClick={onCharClick}

@@ -18,7 +18,7 @@ export default function DifficultyTopicFields({
 }) {
   const options = Array.from(new Set([...topicOptions, ...TOPIC_SUGGESTIONS]));
   return (
-    <div className="grid sm:grid-cols-2 gap-2.5">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
       <div>
         <label className="text-[11px] text-muted block mb-1">درجه‌ی سختی</label>
         <div className="flex gap-1">

@@ -231,7 +231,7 @@ function Skeleton() {
     <div className="space-y-5 animate-pulse">
       <div className="h-9 w-56 bg-slate-200 rounded-lg" />
       <div className="h-24 bg-slate-200/70 rounded-2xl" />
-      <div className="grid lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="lg:col-span-2 h-72 bg-slate-200/70 rounded-2xl" />
         <div className="h-72 bg-slate-200/70 rounded-2xl" />
       </div>

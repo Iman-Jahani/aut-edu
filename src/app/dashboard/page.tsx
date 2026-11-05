@@ -104,7 +104,7 @@ export default function DashboardPage() {
           <div className="space-y-5">
             <Skeleton className="h-56 rounded-3xl" />
             <Skeleton className="h-24 rounded-2xl" />
-            <div className="grid lg:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
               <Skeleton className="h-72 rounded-2xl lg:col-span-2" />
               <Skeleton className="h-72 rounded-2xl" />
             </div>

@@ -88,101 +88,110 @@ export default function ClassHeader({
   ];
   const tabBase = "relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition";
 
-  return (
-    <header className="sticky top-0 z-40 glass">
-      <div className="max-w-4xl mx-auto px-4 pt-3 pb-2.5 flex items-center gap-2">
-        <Brand href="/dashboard" showName={false} />
-        <div className="min-w-0 flex items-center gap-2.5">
-          <Breadcrumbs items={crumbs} />
-          <button
-            onClick={onShare}
-            title="اشتراک‌گذاری کد کلاس"
-            className="shrink-0 rounded-full border border-line bg-white px-2.5 py-1 font-mono text-[11px] tracking-widest text-muted hover:text-primary hover:border-primary/40 transition"
-          >
-            {session.code}
-          </button>
-        </div>
-        <div className="flex-1" />
+  const codeChip = (cls: string) => (
+    <button
+      onClick={onShare}
+      title="اشتراک‌گذاری کد کلاس"
+      className={`${cls} shrink-0 items-center rounded-full border border-line bg-white px-2.5 py-1 font-mono text-[11px] tracking-widest text-muted hover:text-primary hover:border-primary/40 transition`}
+    >
+      {session.code}
+    </button>
+  );
+  const teamPill = () => (
+    <button
+      onClick={onTeamPicker}
+      className="shrink-0 flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border bg-white hover:shadow-soft transition whitespace-nowrap"
+      style={{ borderColor: currentTeam?.color || "#d9e8e3", color: currentTeam?.color || "#64748b" }}
+    >
+      {currentTeam ? (
+        <>
+          <span className="w-2 h-2 rounded-full" style={{ background: currentTeam.color }} />
+          {currentTeam.name}
+        </>
+      ) : (
+        <>
+          <Users size={13} /> انتخاب تیم
+        </>
+      )}
+    </button>
+  );
+  const previewBtn = () => (
+    <button
+      onClick={() => setPreviewAsStudent((v) => !v)}
+      title="دیدِ دانشجو رو پیش‌نمایش کن"
+      className={`shrink-0 px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 whitespace-nowrap ${
+        previewAsStudent ? "bg-amber-500 text-white shadow-soft" : "border border-line bg-white hover:shadow-soft"
+      }`}
+    >
+      <Eye size={13} /> {previewAsStudent ? "پیش‌نمایش فعاله" : "دیدِ دانشجو"}
+    </button>
+  );
+  const coTeachersBtn = () =>
+    isOwner ? (
+      <button onClick={onCoTeachers} title="معلم‌های همکار این کلاس" className="shrink-0 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition flex items-center gap-1.5 whitespace-nowrap">
+        <UserCog size={13} /> <span className="sm:hidden">همکارها</span>
+      </button>
+    ) : null;
 
-        <button
-          onClick={onTeamPicker}
-          className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border bg-white hover:shadow-soft transition"
-          style={{ borderColor: currentTeam?.color || "#d9e8e3", color: currentTeam?.color || "#64748b" }}
-        >
-          {currentTeam ? (
+  return (
+    <>
+    <header className="sticky top-0 z-40 glass">
+      {/* top row: on phones only the logo, where you are, and your account fit; the tools get their own row below */}
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 pt-2.5 sm:pt-3 pb-2 sm:pb-2.5 flex items-center gap-2">
+        <Brand href="/dashboard" showName={false} />
+        <div className="min-w-0 flex-1 sm:flex-none flex items-center gap-2.5">
+          <Breadcrumbs items={crumbs} />
+          {codeChip("hidden sm:inline-flex")}
+        </div>
+        <div className="hidden sm:block flex-1" />
+
+        <div className="hidden sm:flex items-center gap-2">
+          {teamPill()}
+          {ipynb && teacherMode && (
+            <div className="hidden md:flex items-center gap-1">
+              <button onClick={ipynb.onExport} title="خروجی ipynb از این جلسه" className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition">
+                <Download size={13} /> ipynb
+              </button>
+              <button
+                onClick={() => ipynbInputRef.current?.click()}
+                disabled={ipynb.importing}
+                title="آپلود فایل ipynb"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition disabled:opacity-50"
+              >
+                <Upload size={13} /> {ipynb.importing ? "..." : "آپلود"}
+              </button>
+            </div>
+          )}
+          {isTeacher && (
             <>
-              <span className="w-2 h-2 rounded-full" style={{ background: currentTeam.color }} />
-              {currentTeam.name}
-            </>
-          ) : (
-            <>
-              <Users size={13} /> انتخاب تیم
+              <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
+                <GraduationCap size={13} /> معلم{!isOwner ? " همکار" : ""}
+              </span>
+              {previewBtn()}
+              {coTeachersBtn()}
             </>
           )}
-        </button>
-
+        </div>
         {ipynb && teacherMode && (
-          <div className="hidden md:flex items-center gap-1">
-            <button
-              onClick={ipynb.onExport}
-              title="خروجی ipynb از این جلسه"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition"
-            >
-              <Download size={13} /> ipynb
-            </button>
-            <button
-              onClick={() => ipynbInputRef.current?.click()}
-              disabled={ipynb.importing}
-              title="آپلود فایل ipynb"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition disabled:opacity-50"
-            >
-              <Upload size={13} /> {ipynb.importing ? "..." : "آپلود"}
-            </button>
-            <input
-              ref={ipynbInputRef}
-              type="file"
-              accept=".ipynb,application/x-ipynb+json,application/json"
-              className="hidden"
-              onChange={(e) => {
-                const f = e.target.files?.[0];
-                if (f) ipynb.onImport(f);
-                e.target.value = "";
-              }}
-            />
-          </div>
-        )}
-
-        {isTeacher && (
-          <>
-            <span className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-              <GraduationCap size={13} /> معلم{!isOwner ? " همکار" : ""}
-            </span>
-            <button
-              onClick={() => setPreviewAsStudent((v) => !v)}
-              title="دیدِ دانشجو رو پیش‌نمایش کن"
-              className={`px-3 py-1.5 rounded-full text-xs font-bold transition flex items-center gap-1.5 ${
-                previewAsStudent ? "bg-amber-500 text-white shadow-soft" : "border border-line bg-white hover:shadow-soft"
-              }`}
-            >
-              <Eye size={13} /> {previewAsStudent ? "پیش‌نمایش فعاله" : "دیدِ دانشجو"}
-            </button>
-            {isOwner && (
-              <button
-                onClick={onCoTeachers}
-                title="معلم‌های همکار این کلاس"
-                className="px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft transition flex items-center gap-1.5"
-              >
-                <UserCog size={13} />
-              </button>
-            )}
-          </>
+          <input
+            ref={ipynbInputRef}
+            type="file"
+            accept=".ipynb,application/x-ipynb+json,application/json"
+            className="hidden"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) ipynb.onImport(f);
+              e.target.value = "";
+            }}
+          />
         )}
 
         <HeaderActions />
       </div>
 
+
       {/* Section nav */}
-      <div className="max-w-4xl mx-auto px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto">
+      <div className="max-w-4xl mx-auto px-3 sm:px-4 pb-2.5 flex items-center gap-1.5 overflow-x-auto no-scrollbar">
         {meetingTitle || section ? (
           <Link href={`/class/${session.code}`} className={`${tabBase} text-muted hover:bg-white hover:text-ink hover:shadow-soft`}>
             <CalendarDays size={14} /> جلسات
@@ -244,5 +253,13 @@ export default function ClassHeader({
         </div>
       )}
     </header>
+    {/* phones: class code, team and teacher tools in one scrollable row; it scrolls away so the sticky header stays slim */}
+      <div className="sm:hidden max-w-4xl mx-auto px-3 pb-2 flex items-center gap-2 overflow-x-auto no-scrollbar">
+        {codeChip("inline-flex")}
+        {teamPill()}
+        {isTeacher && previewBtn()}
+        {isTeacher && coTeachersBtn()}
+      </div>
+    </>
   );
 }

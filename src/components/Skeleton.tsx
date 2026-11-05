@@ -25,7 +25,7 @@ export function ListSkeleton({ rows = 3, pill = true }: { rows?: number; pill?: 
 /** Grid of cards (exercises / quizzes / competitions). */
 export function CardGridSkeleton({ count = 4 }: { count?: number }) {
   return (
-    <div className="grid sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {Array.from({ length: count }).map((_, i) => (
         <div key={i} className="border border-line rounded-xl p-4 space-y-3">
           <Skeleton className="h-4 w-3/5" />
@@ -188,7 +188,7 @@ export function ClassPageSkeleton({ variant = "cells" }: { variant?: "meetings" 
               <Skeleton className="h-6 w-40" />
               <Skeleton className="h-9 w-32 !rounded-xl" />
             </div>
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {[0, 1, 2, 3].map((i) => (
                 <MeetingCardSkeleton key={i} />
               ))}
@@ -241,7 +241,7 @@ export function DashboardSkeleton() {
               <Skeleton key={i} className="h-[62px] !rounded-xl" />
             ))}
           </div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <ClassCardSkeleton />
             <ClassCardSkeleton />
           </div>

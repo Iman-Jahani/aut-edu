@@ -281,7 +281,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={exSolveRate} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
                   <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e3f0ec" />
-                  <XAxis dataKey="title" tick={{ fontSize: 10, fill: "#9db0b6" }} axisLine={false} tickLine={false} interval={0} />
+                  <XAxis dataKey="title" tick={{ fontSize: 10, fill: "#9db0b6" }} axisLine={false} tickLine={false} interval="preserveStartEnd" minTickGap={14} tickFormatter={(v: string) => (v.length > 9 ? v.slice(0, 9) + "…" : v)} />
                   <YAxis tick={{ fontSize: 10, fill: "#9db0b6" }} allowDecimals={false} axisLine={false} tickLine={false} width={24} />
                   <Tooltip
                     contentStyle={{ fontSize: 12, borderRadius: 10, border: "1px solid #d9e8e3", direction: "rtl" }}
@@ -406,7 +406,7 @@ export default function StudentsDashboardPage({ params }: { params: { code: stri
                   </button>
 
                   {isOpen && (
-                    <div className="px-4 pb-4 pt-1 border-t border-line grid md:grid-cols-2 gap-4">
+                    <div className="px-4 pb-4 pt-1 border-t border-line grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
                         <div className="text-xs font-bold text-muted mb-2 flex items-center gap-1.5">
                           <BookOpen size={12} /> وضعیت تمرین‌ها

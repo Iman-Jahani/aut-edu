@@ -275,3 +275,12 @@ a svg {
   .gc-sway, .gc-wiggle, .gc-hop, .gc-wave, .gc-zzz, .gc-seed-drop, .gc-fx { animation: none; }
   .gc-zzz { opacity: 1; }
 }
+
+/* robot character: battery bars "charging" in the shade */
+@keyframes gcCharge { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+.gc-charge { animation: gcCharge 1.8s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) { .gc-charge { animation: none; } }
+
+/* horizontally scrollable rows (tabs, toolbars) without a visible scrollbar */
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }

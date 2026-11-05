@@ -127,7 +127,7 @@ export default function ExercisesModal({
               <h3 className="font-bold">{teacherMode ? "هنوز تمرینی نساختی" : "هنوز تمرینی نیست"}</h3>
             </div>
           ) : (
-            <div className="grid sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {exercises.map((ex) => {
                 const sub = mySubs[ex.id];
                 const status = sub?.status || "pending";

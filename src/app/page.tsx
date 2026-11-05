@@ -353,10 +353,13 @@ export default function LandingPage() {
       {/* The story: text on one side, one sticky panel that plays the current moment on the other */}
       <section className="max-w-7xl mx-auto px-5 lg:px-8 lg:grid lg:grid-cols-12 lg:gap-12">
         <div className="order-1 lg:order-2 lg:col-span-7 sticky top-16 lg:top-[5.5rem] z-20 lg:self-start pt-3 lg:pt-8 bg-[#f3faf7] lg:bg-transparent -mx-5 px-5 lg:mx-0 lg:px-0">
-          <div className="hero-panel relative rounded-[24px] lg:rounded-[32px] text-white overflow-hidden h-[54vh] lg:h-[min(660px,calc(100vh-8rem))] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)]">
+          <div className="hero-panel relative rounded-[24px] lg:rounded-[32px] text-white overflow-hidden h-[40vh] min-h-[300px] lg:h-[min(660px,calc(100vh-8rem))] shadow-[0_30px_80px_-30px_rgba(0,0,0,0.55)]">
             {SCENES.map((Scene, i) => (
               <div key={i} className={`absolute inset-0 p-5 pb-8 md:p-8 md:pb-10 transition-opacity duration-500 ${active === i ? "opacity-100" : "opacity-0 pointer-events-none"}`} aria-hidden={active !== i}>
-                <Scene on={active === i} />
+                {/* phones: draw the scene a little smaller so a short panel still shows all of it */}
+                <div className="h-full w-full max-lg:w-[125%] max-lg:h-[125%] max-lg:origin-top-right max-lg:scale-[.8]">
+                  <Scene on={active === i} />
+                </div>
               </div>
             ))}
             <div className="absolute bottom-0 inset-x-0 flex gap-1 p-3 pointer-events-none" aria-hidden>
@@ -374,7 +377,7 @@ export default function LandingPage() {
               ref={(el) => {
                 stepRefs.current[i] = el;
               }}
-              className={`flex flex-col justify-center ${i === 0 ? "min-h-[78vh] lg:min-h-[calc(100vh-4rem)] py-10" : "min-h-[72vh] lg:min-h-[80vh] py-10"}`}
+              className={`flex flex-col justify-start lg:justify-center ${i === 0 ? "min-h-[64vh] lg:min-h-[calc(100vh-4rem)] pt-6 pb-10 lg:py-10" : "min-h-[72vh] lg:min-h-[80vh] pt-14 lg:pt-10 pb-10"}`}
             >
               {i === 0 ? (
                 <>

@@ -168,7 +168,7 @@ export default function CompetitionsModal({
                   <h3 className="font-bold">هنوز مسابقه‌ای نساختی</h3>
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {competitions.map((c) => (
                     <div key={c.id} className="border border-line rounded-xl p-4">
                       <div className="font-bold text-sm mb-1.5 flex items-center gap-1.5"><Flag size={14} className="text-primary shrink-0" /> {c.title}</div>
@@ -228,7 +228,7 @@ export default function CompetitionsModal({
                   <p className="text-sm text-muted mt-1">وقتی استاد مسابقه شروع کنه اینجا می‌بینی.</p>
                 </div>
               ) : (
-                <div className="grid sm:grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {competitions
                     .filter((c) => c.status === "ended")
                     .map((c) => {

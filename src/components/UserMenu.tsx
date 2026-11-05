@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { ChevronDown, Code2, LayoutDashboard, LogOut, Shield, Sprout, UserRound } from "lucide-react";
-import { isGardenHidden, setGardenHidden } from "@/lib/garden";
+import { GardenCharacter, getGardenCharacter, isGardenHidden, setGardenCharacter, setGardenHidden } from "@/lib/garden";
 import { useAuth } from "@/context/AuthContext";
 import ProfileModal from "@/components/ProfileModal";
 import NotificationBell from "@/components/NotificationBell";
@@ -21,6 +21,7 @@ export default function UserMenu() {
   const [open, setOpen] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [gardenOff, setGardenOff] = useState(false);
+  const [character, setCharacter] = useState<GardenCharacter>("robot");
   const ref = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -58,7 +59,10 @@ export default function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => {
-          if (!open) setGardenOff(isGardenHidden());
+          if (!open) {
+            setGardenOff(isGardenHidden());
+            setCharacter(getGardenCharacter());
+          }
           setOpen((o) => !o);
         }}
         className="flex items-center gap-2 pl-2.5 pr-1 py-1 rounded-full bg-white border border-line hover:shadow-soft transition"
@@ -99,21 +103,43 @@ export default function UserMenu() {
             <Link href="/playground" className={item} onClick={() => setOpen(false)}>
               <Code2 size={16} className="text-muted" /> پلی‌گراند
             </Link>
+            {role === "admin" && (
+              <>
             <button
-              className={item}
-              role="switch"
-              aria-checked={!gardenOff}
-              onClick={() => {
-                setGardenHidden(!gardenOff);
-                setGardenOff(!gardenOff);
-              }}
-            >
-              <Sprout size={16} className="text-muted" />
-              <span className="flex-1">جوانه، همراه باغبان</span>
-              <span className={`w-9 h-5 rounded-full p-0.5 transition ${gardenOff ? "bg-slate-300" : "bg-accent"}`}>
-                <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform ${gardenOff ? "translate-x-0" : "-translate-x-4"}`} />
-              </span>
-            </button>
+                className={item}
+                role="switch"
+                aria-checked={!gardenOff}
+                onClick={() => {
+                  setGardenHidden(!gardenOff);
+                  setGardenOff(!gardenOff);
+                }}
+              >
+                <Sprout size={16} className="text-muted" />
+                <span className="flex-1">جوانه، همراه باغبان</span>
+                <span className={`w-9 h-5 rounded-full p-0.5 transition ${gardenOff ? "bg-slate-300" : "bg-accent"}`}>
+                  <span className={`block w-4 h-4 rounded-full bg-white shadow transition-transform ${gardenOff ? "translate-x-0" : "-translate-x-4"}`} />
+                </span>
+              </button>
+                <div className="flex items-center gap-3 px-4 py-2 text-sm">
+                  <span className="w-4" />
+                  <span className="text-[12px] text-muted">شخصیت</span>
+                  <span className="mr-auto flex rounded-lg border border-line overflow-hidden text-[12px] font-bold">
+                    {([["robot", "ربات"], ["sprout", "جوانه"]] as const).map(([v, label]) => (
+                      <button
+                        key={v}
+                        onClick={() => {
+                          setGardenCharacter(v);
+                          setCharacter(v);
+                        }}
+                        className={`px-3 py-1 transition ${character === v ? "bg-primary text-white" : "bg-white text-muted hover:text-ink"}`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </span>
+                </div>
+              </>
+            )}
             {staff && (
               <Link href="/admin" className={item} onClick={() => setOpen(false)}>
                 <Shield size={16} className="text-muted" /> {role === "admin" ? "پنل مدیریت" : "پنل مدیر"}

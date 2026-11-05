@@ -58,7 +58,7 @@ export function ActivityChart({ data, height = 250 }: { data: DayPoint[]; height
         ))}
       </div>
       <Box height={height}>
-        <AreaChart data={data} margin={{ top: 6, right: 6, left: -22, bottom: 0 }}>
+        <AreaChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 0 }}>
           <defs>
             <linearGradient id="act-fill" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor={INK} stopOpacity={0.18} />
@@ -67,7 +67,7 @@ export function ActivityChart({ data, height = 250 }: { data: DayPoint[]; height
           </defs>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8f2ee" />
           <XAxis dataKey="label" tick={tick} axisLine={false} tickLine={false} interval={Math.max(0, Math.floor(data.length / 7))} />
-          <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} tickFormatter={(v) => fa(v)} width={34} />
+          <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} tickFormatter={(v) => fa(v)} width={30} />
           <Tooltip contentStyle={tooltipStyle} formatter={(v, n) => [fa(Number(v)), SERIES.find((s) => s.key === n)?.name || String(n)]} />
           <Area type="monotone" dataKey="comments" stroke="#9db0b6" strokeWidth={1.5} strokeDasharray="4 3" fill="none" />
           <Area type="monotone" dataKey="cells" stroke={GREY} strokeWidth={1.8} fill="none" />
@@ -182,10 +182,10 @@ export function Columns({
   if (!data.length) return <div className="text-sm text-muted text-center py-10">داده‌ای نیست</div>;
   return (
     <Box height={height}>
-      <BarChart data={data} margin={{ top: 6, right: 6, left: -22, bottom: 0 }} barGap={3}>
+      <BarChart data={data} margin={{ top: 6, right: 8, left: -6, bottom: 0 }} barGap={3}>
         <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e8f2ee" />
         <XAxis dataKey={xKey} tick={tick} axisLine={false} tickLine={false} interval={data.length > 12 ? Math.floor(data.length / 8) : 0} />
-        <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} domain={domain} tickFormatter={(v) => fa(v)} width={34} />
+        <YAxis tick={tick} axisLine={false} tickLine={false} allowDecimals={false} domain={domain} tickFormatter={(v) => fa(v)} width={30} />
         <Tooltip contentStyle={tooltipStyle} cursor={{ fill: "#eaf4f0" }} formatter={(v, n) => [fa(Number(v)) + unit, String(n)]} />
         {bars.length > 1 && <Legend wrapperStyle={{ fontSize: 11 }} />}
         {bars.map((b, i) => (

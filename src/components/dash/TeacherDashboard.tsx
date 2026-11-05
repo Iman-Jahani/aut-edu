@@ -143,7 +143,7 @@ export default function TeacherDashboard({
             ]}
           />
 
-          <div className="grid lg:grid-cols-12 gap-5">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
             <Panel className="lg:col-span-8" title="فعالیت ۳۰ روز اخیر همه‌ی کلاس‌ها">
               <ActivityChart data={ov.activity} />
             </Panel>
