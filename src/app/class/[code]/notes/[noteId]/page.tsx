@@ -9,14 +9,13 @@ import ClassChrome from "@/components/ClassChrome";
 import MaterialSection from "@/components/MaterialSection";
 import { ClassPageSkeleton } from "@/components/Skeleton";
 import { Search } from "lucide-react";
-import type { ClassMeeting, ClassNote } from "@/lib/types";
+import type { ClassNote } from "@/lib/types";
 
 export default function NotePage({ params }: { params: { code: string; noteId: string } }) {
   const access = useClassAccess(params.code);
-  const { ready, session, notFound, teacherMode, currentTeam } = access;
+  const { ready, session, notFound, teacherMode } = access;
   const [note, setNote] = useState<ClassNote | null>(null);
   const [noteMissing, setNoteMissing] = useState(false);
-  const [meetings, setMeetings] = useState<ClassMeeting[]>([]);
 
   useEffect(() => {
     preloadPyodide();
@@ -29,17 +28,6 @@ export default function NotePage({ params }: { params: { code: string; noteId: s
       setNote(data as ClassNote);
     })();
   }, [params.noteId]);
-
-  // Meetings of this class: the student picks which one a copied cell lands in (newest first).
-  useEffect(() => {
-    if (!session) return;
-    supabase
-      .from("class_meetings")
-      .select("*")
-      .eq("class_id", session.id)
-      .order("created_at", { ascending: false })
-      .then(({ data }) => setMeetings((data || []) as ClassMeeting[]));
-  }, [session]);
 
   if (notFound || noteMissing || (note && session && note.class_id !== session.id)) {
     return (
@@ -64,7 +52,6 @@ export default function NotePage({ params }: { params: { code: string; noteId: s
           classId={session.id}
           scopeId={note.id}
           teacherMode={teacherMode}
-          copyTarget={{ meetings, teamId: currentTeam?.id || null, teamName: currentTeam?.name || null }}
         />
       </main>
     </ClassChrome>

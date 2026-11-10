@@ -284,3 +284,6 @@ a svg {
 /* horizontally scrollable rows (tabs, toolbars) without a visible scrollbar */
 .no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
 .no-scrollbar::-webkit-scrollbar { display: none; }
+
+.rich-text img { max-width: 100%; height: auto; display: inline-block; }
+.rich-text div { max-width: 100%; }

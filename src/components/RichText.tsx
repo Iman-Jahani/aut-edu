@@ -5,6 +5,9 @@ import remarkGfm from "remark-gfm";
 import remarkMath from "remark-math";
 import remarkBreaks from "remark-breaks";
 import rehypeKatex from "rehype-katex";
+import rehypeRaw from "rehype-raw";
+import rehypeSanitize, { defaultSchema } from "rehype-sanitize";
+import type { Options as SanitizeSchema } from "rehype-sanitize";
 import "katex/dist/katex.min.css";
 
 // Paragraphs are <span>s so <RichText> can live inside <p>/<span> without invalid nesting;
@@ -28,6 +31,20 @@ const components: Components = {
 const remarkPlugins = [remarkGfm, [remarkMath, { singleDollarTextMath: true }], remarkBreaks] as const;
 const rehypePlugins = [[rehypeKatex, { throwOnError: false, strict: false }]] as const;
 
+// Teacher-authored notes may contain HTML such as <div style="text-align:center"><img src="https://…" style="width:80%"></div>.
+// It is sanitized (no scripts, no event handlers, no javascript: URLs); only style/alignment attributes are added on top
+// of the default safe list, and the math classes are kept so KaTeX still finds them.
+const sanitizeSchema: SanitizeSchema = {
+  ...defaultSchema,
+  attributes: {
+    ...defaultSchema.attributes,
+    "*": [...(defaultSchema.attributes?.["*"] ?? []), "style", "align", "dir"],
+    img: [...(defaultSchema.attributes?.img ?? []), "width", "height", "loading"],
+    code: [["className", /^language-./, "math-inline", "math-display"]],
+  },
+};
+const htmlRehypePlugins = [rehypeRaw, [rehypeSanitize, sanitizeSchema], [rehypeKatex, { throwOnError: false, strict: false }]] as const;
+
 /** `$$…$$` always means display math: put it in its own paragraph with fence lines so it renders as a block. */
 function normalizeMath(src: string): string {
   const parts = src.split(/(```[\s\S]*?```|`[^`\n]+`)/g); // leave code (fenced and inline) untouched
@@ -44,7 +61,7 @@ function normalizeMath(src: string): string {
  * Single line breaks are kept. Raw HTML is NOT rendered (safe by default).
  * Write \$ for a literal dollar sign.
  */
-export default function RichText({ text, className = "" }: { text: string; className?: string }) {
+export default function RichText({ text, className = "", html = false }: { text: string; className?: string; /** Allow (sanitized) inline HTML like <img>/<div style>. Only for teacher-written content. */ html?: boolean }) {
   if (!text) return null;
   // Quiz rows are prefixed like "1. question" — keep that a literal label, not a one-item list.
   const source = normalizeMath(text.replace(/^(\s*\d+)\.(\s)/, "$1\\.$2"));
@@ -52,9 +69,9 @@ export default function RichText({ text, className = "" }: { text: string; class
     <span className={`rich-text ${className}`}>
       <ReactMarkdown
         remarkPlugins={remarkPlugins as unknown as never}
-        rehypePlugins={rehypePlugins as unknown as never}
+        rehypePlugins={(html ? htmlRehypePlugins : rehypePlugins) as unknown as never}
         components={components}
-        skipHtml
+        skipHtml={!html}
       >
         {source}
       </ReactMarkdown>

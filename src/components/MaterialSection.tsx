@@ -9,21 +9,21 @@ import { CellSkeleton } from "@/components/Skeleton";
 import { parseNotebookFull } from "@/lib/ipynb";
 import { getErrorMessage } from "@/lib/errors";
 import { Code2, FileText, Upload, FileUp, Trash2, ExternalLink, Presentation, BookOpen, Lock, Copy } from "lucide-react";
-import type { ClassMeeting, MaterialCell as MCell, MaterialFile, MaterialKind } from "@/lib/types";
+import type { MaterialCell as MCell, MaterialFile, MaterialKind } from "@/lib/types";
 
 const MAX_PDF_BYTES = 25 * 1024 * 1024;
 
 const COPY: Record<MaterialKind, { title: string; studentHint: string; teacherHint: string; emptyStudent: string; emptyTeacher: string }> = {
   notes: {
     title: "جزوه",
-    studentHint: "این جزوه رو معلم نوشته. می‌تونی کدها رو اجرا کنی (خروجی اجرای تو ذخیره نمی‌شه) یا برای تغییر دادنشون توی کارگاه خودت کپی کنی.",
+    studentHint: "این جزوه رو معلم نوشته. می‌تونی کدها رو اجرا کنی (خروجی اجرای تو ذخیره نمی‌شه) یا برای تغییر دادنشون توی پلی‌گراند خودت کپی کنی.",
     teacherHint: "فقط تو می‌تونی این جزوه رو تغییر بدی. فایل ipynb یا PDF آپلود کن، یا سلول بساز. خروجی‌ای که تو اجرا می‌کنی برای همه ذخیره می‌شه.",
     emptyStudent: "هنوز چیزی توی این جزوه نیست.",
     emptyTeacher: "هنوز چیزی نذاشتی. یه ipynb/PDF آپلود کن یا سلول جدید بساز.",
   },
   board: {
     title: "تخته کلاس",
-    studentHint: "تخته‌ی این جلسه: فقط معلم می‌نویسه و تو می‌بینی. می‌تونی کدها رو اجرا کنی (ذخیره نمی‌شه) یا توی کارگاه خودت کپی کنی.",
+    studentHint: "تخته‌ی این جلسه: فقط معلم می‌نویسه و تو می‌بینی. می‌تونی کدها رو اجرا کنی (ذخیره نمی‌شه) یا توی پلی‌گراند خودت کپی کنی.",
     teacherHint: "تخته مخصوص توئه؛ سر کلاس کد بزن یا بعد از کلاس فایل ipynb (یا PDF) تخته رو آپلود کن. دانشجوها فقط می‌بینن و اجرا می‌کنن.",
     emptyStudent: "تخته هنوز خالیه.",
     emptyTeacher: "تخته خالیه. سر کلاس سلول بساز یا بعد از کلاس یه ipynb آپلود کن.",
@@ -35,7 +35,6 @@ export default function MaterialSection({
   classId,
   scopeId,
   teacherMode,
-  copyTarget,
 }: {
   kind: MaterialKind;
   classId: string;
@@ -43,15 +42,10 @@ export default function MaterialSection({
   scopeId: string;
   /** True only for the class's teacher/co-teacher who is NOT previewing as a student. */
   teacherMode: boolean;
-  /** Where "copy to my workspace" puts code cells. The board has a fixed meeting; notes let the student pick. */
-  copyTarget: { meetings: ClassMeeting[]; fixedMeetingId?: string; teamId: string | null; teamName: string | null };
 }) {
-  const { user, displayName } = useAuth();
+  const { user } = useAuth();
   const col = kind === "board" ? "meeting_id" : "note_id";
-  const [targetMeeting, setTargetMeeting] = useState("");
-  useEffect(() => {
-    if (!targetMeeting || !copyTarget.meetings.some((m) => m.id === targetMeeting)) setTargetMeeting(copyTarget.meetings[0]?.id || "");
-  }, [copyTarget.meetings, targetMeeting]);
+
   const toast = useToast();
   const copy = COPY[kind];
   const [cells, setCells] = useState<MCell[]>([]);
@@ -208,33 +202,21 @@ export default function MaterialSection({
     }
   };
 
-  const copyCells = async (list: MCell[]) => {
+  // Students copy a code cell into their own Playground (personal, independent of any class/meeting).
+  const copyToPlayground = async (cell: MCell) => {
     if (!user) return;
-    const meetingId = copyTarget.fixedMeetingId || targetMeeting;
-    if (!meetingId) return toast("اول باید یه جلسه وجود داشته باشه تا کد توش کپی بشه", "err");
-    const codes = list.filter((c) => c.cell_type === "code" && c.source.trim());
-    if (!codes.length) return toast("سلول کدی برای کپی نیست", "err");
-    const base = Date.now();
-    const { error } = await supabase.from("cells").insert(
-      codes.map((c, i) => ({
-        class_id: classId,
-        meeting_id: meetingId,
-        team_id: copyTarget.teamId,
-        team_name: copyTarget.teamName,
-        author_id: user.id,
-        author_name: displayName,
-        code: c.source,
-        output: c.output,
-        tags: [kind === "board" ? "از تخته" : "از جزوه"],
-        position: base + i,
-      }))
-    );
+    if (cell.cell_type !== "code" || !cell.source.trim()) return;
+    const { error } = await supabase.from("playground_cells").insert({
+      user_id: user.id,
+      code: cell.source,
+      output: cell.output,
+      tags: [kind === "board" ? "از تخته" : "از جزوه"],
+      position: Date.now(),
+    });
     if (error) return toast("خطا: " + error.message, "err");
-    const title = copyTarget.fixedMeetingId ? "" : copyTarget.meetings.find((m) => m.id === meetingId)?.title;
-    toast(`${codes.length} سلول توی «کارگاه من»${title ? ` (${title})` : ""} کپی شد`, "ok");
+    toast("توی پلی‌گراند تو کپی شد", "ok");
   };
 
-  const hasCode = cells.some((c) => c.cell_type === "code" && c.source.trim());
   const Icon = kind === "board" ? Presentation : BookOpen;
 
   return (
@@ -284,25 +266,6 @@ export default function MaterialSection({
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-2">
-            {!copyTarget.fixedMeetingId && copyTarget.meetings.length > 1 && (
-              <select
-                value={targetMeeting}
-                onChange={(e) => setTargetMeeting(e.target.value)}
-                title="کدها توی کدوم جلسه کپی بشن"
-                className="text-xs font-bold border border-line rounded-full bg-white px-3 py-1.5 outline-none max-w-[180px]"
-              >
-                {copyTarget.meetings.map((m) => (
-                  <option key={m.id} value={m.id}>
-                    کپی به: {m.title}
-                  </option>
-                ))}
-              </select>
-            )}
-            {hasCode && (
-              <button onClick={() => copyCells(cells)} className="flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-bold border border-line bg-white hover:shadow-soft">
-                <Copy size={13} /> کپی همه‌ی کدها
-              </button>
-            )}
             <span className="flex items-center gap-1 text-[11px] font-bold text-muted px-2.5 py-1 rounded-full bg-slate-100">
               <Lock size={11} /> فقط‌خواندنی
             </span>
@@ -350,7 +313,7 @@ export default function MaterialSection({
               isLast={i === cells.length - 1}
               onMove={move}
               onDeleted={(id) => setCells((p) => p.filter((x) => x.id !== id))}
-              onCopy={(cell) => copyCells([cell])}
+              onCopy={copyToPlayground}
             />
           ))}
 

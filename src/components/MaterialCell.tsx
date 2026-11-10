@@ -190,7 +190,7 @@ export default function MaterialCell({
           />
         ) : (
           <div className="px-5 py-4 text-sm leading-7 select-text">
-            {source.trim() ? <RichText text={source} /> : <span className="text-muted">(متن خالی)</span>}
+            {source.trim() ? <RichText text={source} html /> : <span className="text-muted">(متن خالی)</span>}
           </div>
         )}
       </div>
@@ -275,7 +275,7 @@ export default function MaterialCell({
         </button>
         {!canEdit && onCopy && source.trim() && (
           <button onClick={() => onCopy({ ...cell, source, output })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white hover:shadow-soft">
-            <Copy size={13} /> کپی توی کارگاه من
+            <Copy size={13} /> کپی توی پلی‌گراند من
           </button>
         )}
         {!canEdit && (

@@ -279,7 +279,6 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
             classId={session.id}
             scopeId={meeting.id}
             teacherMode={teacherMode}
-            copyTarget={{ meetings: [], fixedMeetingId: meeting.id, teamId: currentTeam?.id || null, teamName: currentTeam?.name || null }}
           />
         )}
 
