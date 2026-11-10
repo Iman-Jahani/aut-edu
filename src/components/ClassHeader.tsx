@@ -19,6 +19,7 @@ import {
   Upload,
   BarChart3,
   LineChart,
+  FileText,
 } from "lucide-react";
 import type { CurrentTeam } from "@/components/TeamPicker";
 import type { ClassSession } from "@/lib/types";
@@ -76,15 +77,16 @@ export default function ClassHeader({
   onCoTeachers: () => void;
   ipynb?: { onExport: () => void; onImport: (file: File) => void; importing: boolean };
   /** Which top-level section is open when there is no meeting title. */
-  section?: "students" | "insights";
+  section?: "students" | "insights" | "notes";
 }) {
   const ipynbInputRef = useRef<HTMLInputElement>(null);
   const compNeedsAttention = !!comp.item && !teacherMode && (!currentTeam || !comp.answered);
   const crumbs: Crumb[] = [
     { label: "داشبورد", href: "/dashboard" },
     { label: session.title, href: meetingTitle || section ? `/class/${session.code}` : undefined },
+    ...(section === "notes" ? [{ label: "جزوه‌ها", href: meetingTitle ? `/class/${session.code}/notes` : undefined }] : []),
     ...(meetingTitle ? [{ label: meetingTitle }] : []),
-    ...(section ? [{ label: section === "insights" ? "آمار کلاس" : "دانشجوها" }] : []),
+    ...(section && section !== "notes" ? [{ label: section === "insights" ? "آمار کلاس" : "دانشجوها" }] : []),
   ];
   const tabBase = "relative flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[13px] font-bold whitespace-nowrap transition";
 
@@ -201,6 +203,12 @@ export default function ClassHeader({
             <Sparkles size={14} /> جلسات
           </span>
         )}
+        <Link
+          href={`/class/${session.code}/notes`}
+          className={`${tabBase} ${section === "notes" ? "bg-slate-100 text-primary" : "text-muted hover:bg-white hover:text-ink hover:shadow-soft"}`}
+        >
+          <FileText size={14} /> جزوه‌ها
+        </Link>
         {isTeacher && (
           <Link
             href={`/class/${session.code}/insights`}

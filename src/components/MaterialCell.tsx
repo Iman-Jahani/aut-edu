@@ -13,7 +13,7 @@ import { growGarden } from "@/lib/garden";
 import AnsiText from "@/components/AnsiText";
 import RichText from "@/components/RichText";
 import { Skeleton } from "@/components/Skeleton";
-import { Play, Trash2, ArrowUp, ArrowDown, Pencil, Check, CornerDownLeft, X, Loader2, RotateCcw, Eye } from "lucide-react";
+import { Play, Trash2, ArrowUp, ArrowDown, Pencil, Check, CornerDownLeft, X, Loader2, Eye, Copy } from "lucide-react";
 import type { MaterialCell as MCell } from "@/lib/types";
 
 /**
@@ -29,6 +29,7 @@ export default function MaterialCell({
   isLast,
   onMove,
   onDeleted,
+  onCopy,
 }: {
   cell: MCell;
   canEdit: boolean;
@@ -36,6 +37,8 @@ export default function MaterialCell({
   isLast: boolean;
   onMove: (id: string, dir: -1 | 1) => void;
   onDeleted: (id: string) => void;
+  /** Students: copy this code cell into their own workspace. */
+  onCopy?: (cell: MCell) => void;
 }) {
   const toast = useToast();
   const [source, setSource] = useState(cell.source);
@@ -140,13 +143,6 @@ export default function MaterialCell({
     },
     []
   );
-
-  const resetToSaved = () => {
-    setOutput(cell.output);
-    setLocalRun(false);
-    setIsError(false);
-    setPendingPrompt(null);
-  };
 
   const del = async () => {
     if (!confirm("این سلول حذف شود؟")) return;
@@ -277,9 +273,9 @@ export default function MaterialCell({
           {running ? <Loader2 size={14} className="animate-spin" /> : <Play size={14} />}
           {running ? "در حال اجرا…" : "اجرا"}
         </button>
-        {!canEdit && localRun && (
-          <button onClick={resetToSaved} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white">
-            <RotateCcw size={13} /> خروجی معلم
+        {!canEdit && onCopy && source.trim() && (
+          <button onClick={() => onCopy({ ...cell, source, output })} className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold border border-line bg-white hover:shadow-soft">
+            <Copy size={13} /> کپی توی کارگاه من
           </button>
         )}
         {!canEdit && (

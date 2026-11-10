@@ -16,7 +16,7 @@ import MaterialSection from "@/components/MaterialSection";
 import { ClassPageSkeleton } from "@/components/Skeleton";
 import { fetchAvatars } from "@/lib/utils";
 import { downloadNotebook, parseNotebook } from "@/lib/ipynb";
-import { Sparkles, Search, PenLine, BookOpen, Presentation } from "lucide-react";
+import { Sparkles, Search, PenLine, Presentation } from "lucide-react";
 import type { Cell, ClassMeeting } from "@/lib/types";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -36,8 +36,8 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
   const cellsLoadedOnce = useRef(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
-  // Tabs: my own workspace · teacher's notes (جزوه) · teacher's board (تخته کلاس)
-  type Tab = "work" | "notes" | "board";
+  // Tabs: my own workspace · the teacher's board (تخته کلاس) of this meeting
+  type Tab = "work" | "board";
   const [tab, setTab] = useState<Tab>("work");
 
   // ---- Comment notifications -------------------------------------------------------------
@@ -257,7 +257,6 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
         <div className="flex gap-1.5 mb-5 p-1 bg-slate-100 rounded-2xl w-fit max-w-full overflow-x-auto" role="tablist">
           {([
             ["work", "کارگاه من", PenLine],
-            ["notes", "جزوه", BookOpen],
             ["board", "تخته کلاس", Presentation],
           ] as const).map(([id, label, Icon]) => (
             <button
@@ -274,7 +273,15 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
           ))}
         </div>
 
-        {tab !== "work" && <MaterialSection key={tab} kind={tab} classId={session.id} meetingId={meeting.id} teacherMode={teacherMode} />}
+        {tab === "board" && (
+          <MaterialSection
+            kind="board"
+            classId={session.id}
+            scopeId={meeting.id}
+            teacherMode={teacherMode}
+            copyTarget={{ meetings: [], fixedMeetingId: meeting.id, teamId: currentTeam?.id || null, teamName: currentTeam?.name || null }}
+          />
+        )}
 
         {tab === "work" && (<>
         <div className="mb-4">

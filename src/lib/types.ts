@@ -292,7 +292,10 @@ export type MaterialKind = "notes" | "board";
 export interface MaterialCell {
   id: string;
   class_id: string;
-  meeting_id: string;
+  /** Set for the board (tied to a meeting); null for notes. */
+  meeting_id: string | null;
+  /** Set for notes (tied to the class); null for the board. */
+  note_id: string | null;
   kind: MaterialKind;
   cell_type: "code" | "markdown";
   source: string;
@@ -306,10 +309,20 @@ export interface MaterialCell {
 export interface MaterialFile {
   id: string;
   class_id: string;
-  meeting_id: string;
+  meeting_id: string | null;
+  note_id: string | null;
   kind: MaterialKind;
   title: string;
   storage_path: string;
+  created_by: string | null;
+  created_at: string;
+}
+
+/** A titled set of notes ("جزوه") belonging to a class; a class can have many. */
+export interface ClassNote {
+  id: string;
+  class_id: string;
+  title: string;
   created_by: string | null;
   created_at: string;
 }
