@@ -12,10 +12,11 @@ import { useClassAccess } from "@/hooks/useClassAccess";
 import ClassChrome from "@/components/ClassChrome";
 import CellList from "@/components/CellList";
 import CodeCell from "@/components/CodeCell";
+import MaterialSection from "@/components/MaterialSection";
 import { ClassPageSkeleton } from "@/components/Skeleton";
 import { fetchAvatars } from "@/lib/utils";
 import { downloadNotebook, parseNotebook } from "@/lib/ipynb";
-import { Sparkles, Search } from "lucide-react";
+import { Sparkles, Search, PenLine, BookOpen, Presentation } from "lucide-react";
 import type { Cell, ClassMeeting } from "@/lib/types";
 import { getErrorMessage } from "@/lib/errors";
 
@@ -35,6 +36,9 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
   const cellsLoadedOnce = useRef(false);
   const [highlightId, setHighlightId] = useState<string | null>(null);
   const [importing, setImporting] = useState(false);
+  // Tabs: my own workspace · teacher's notes (جزوه) · teacher's board (تخته کلاس)
+  type Tab = "work" | "notes" | "board";
+  const [tab, setTab] = useState<Tab>("work");
 
   // ---- Comment notifications -------------------------------------------------------------
   // Unread comment notifications for this meeting are snapshotted (and never removed during the
@@ -248,8 +252,31 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
   if (!ready || !session || !meeting) return <ClassPageSkeleton />;
 
   return (
-    <ClassChrome access={access} meetingTitle={meeting.title} ipynb={{ onExport: exportNotebook, onImport: importNotebook, importing }}>
+    <ClassChrome access={access} meetingTitle={meeting.title} ipynb={tab === "work" ? { onExport: exportNotebook, onImport: importNotebook, importing } : undefined}>
       <main className="max-w-4xl mx-auto px-4 py-6">
+        <div className="flex gap-1.5 mb-5 p-1 bg-slate-100 rounded-2xl w-fit max-w-full overflow-x-auto" role="tablist">
+          {([
+            ["work", "کارگاه من", PenLine],
+            ["notes", "جزوه", BookOpen],
+            ["board", "تخته کلاس", Presentation],
+          ] as const).map(([id, label, Icon]) => (
+            <button
+              key={id}
+              role="tab"
+              aria-selected={tab === id}
+              onClick={() => setTab(id)}
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl text-sm font-bold whitespace-nowrap transition ${
+                tab === id ? "bg-white text-primary shadow-soft" : "text-muted hover:text-ink"
+              }`}
+            >
+              <Icon size={15} /> {label}
+            </button>
+          ))}
+        </div>
+
+        {tab !== "work" && <MaterialSection key={tab} kind={tab} classId={session.id} meetingId={meeting.id} teacherMode={teacherMode} />}
+
+        {tab === "work" && (<>
         <div className="mb-4">
           <h2 className="font-extrabold text-lg">{teacherMode ? "همه‌ی سلول‌های این جلسه" : currentTeam ? `فضای تیم ${currentTeam.name}` : "سلول‌های شخصی من"}</h2>
           <p className="text-xs text-muted mt-0.5">{cells.length} سلول</p>
@@ -276,6 +303,7 @@ export default function MeetingPage({ params }: { params: { code: string; meetin
           emptyTitle="آماده‌ای شروع کنی؟"
           emptyDesc="یه سلول بساز و اولین کد پایتونت رو توی این جلسه بنویس."
         />
+        </>)}
       </main>
     </ClassChrome>
   );

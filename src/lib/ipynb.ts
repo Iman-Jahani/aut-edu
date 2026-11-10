@@ -112,3 +112,46 @@ export function parseNotebook(fileText: string): ImportedCell[] {
     })
     .filter((c) => c.code.length > 0);
 }
+
+export interface ImportedMaterialCell {
+  cell_type: "code" | "markdown";
+  source: string;
+  output: string;
+}
+
+/** Parses a .ipynb keeping BOTH markdown and code cells (+ their saved text output), in order. Used for notes/board uploads. */
+export function parseNotebookFull(fileText: string): ImportedMaterialCell[] {
+  let nb: Notebook;
+  try {
+    nb = JSON.parse(fileText);
+  } catch {
+    throw new Error("فایل معتبر نیست (JSON قابل خواندن نیست)");
+  }
+  if (!nb || !Array.isArray(nb.cells)) throw new Error("این یک فایل ipynb معتبر نیست");
+  const joinSrc = (src: unknown) => (Array.isArray(src) ? src.join("") : typeof src === "string" ? src : "");
+
+  const out: ImportedMaterialCell[] = [];
+  for (const c of nb.cells as unknown as Array<Record<string, unknown>>) {
+    const type = c.cell_type;
+    if (type !== "code" && type !== "markdown") continue;
+    const source = joinSrc(c.source).replace(/\s+$/, "");
+    if (!source.trim()) continue;
+    let output = "";
+    if (type === "code") {
+      const parts: string[] = [];
+      for (const o of (c.outputs as Array<Record<string, unknown>>) || []) {
+        if (o.output_type === "stream") parts.push(joinSrc(o.text));
+        else if (o.output_type === "execute_result" || o.output_type === "display_data") {
+          const data = (o.data || {}) as Record<string, unknown>;
+          const t = joinSrc(data["text/plain"]);
+          if (t) parts.push(t);
+        } else if (o.output_type === "error") {
+          parts.push(`${o.ename ?? "Error"}: ${o.evalue ?? ""}`);
+        }
+      }
+      output = parts.join("\n").trim();
+    }
+    out.push({ cell_type: type, source, output });
+  }
+  return out;
+}

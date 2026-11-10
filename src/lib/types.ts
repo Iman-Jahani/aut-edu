@@ -285,3 +285,31 @@ export interface TeamMessage {
   text: string;
   created_at: string;
 }
+
+/** Notes ("جزوه") and board ("تخته کلاس") content of a meeting — only teachers can write these. */
+export type MaterialKind = "notes" | "board";
+
+export interface MaterialCell {
+  id: string;
+  class_id: string;
+  meeting_id: string;
+  kind: MaterialKind;
+  cell_type: "code" | "markdown";
+  source: string;
+  output: string;
+  position: number;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string | null;
+}
+
+export interface MaterialFile {
+  id: string;
+  class_id: string;
+  meeting_id: string;
+  kind: MaterialKind;
+  title: string;
+  storage_path: string;
+  created_by: string | null;
+  created_at: string;
+}
