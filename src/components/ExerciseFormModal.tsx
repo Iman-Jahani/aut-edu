@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
-import type { Exercise, TestCase } from "@/lib/types";
+import type { Exercise, ExerciseSet, TestCase } from "@/lib/types";
 import { Pencil, FileText, BookOpen, X, CalendarClock } from "lucide-react";
 import { toLocalInput, fromLocalInput } from "@/lib/schedule";
 import RichTextHint from "@/components/RichTextHint";
@@ -15,11 +15,14 @@ export default function ExerciseFormModal({
   classId,
   exercise,
   template,
+  set,
   onClose,
   onSaved,
 }: {
   classId: string;
   exercise?: Exercise | null;
+  /** When adding a NEW question to a series: the series (schedule is inherited from it). */
+  set?: ExerciseSet | null;
   template?: { title: string; description: string; hint: string; test_cases: TestCase[]; difficulty?: number | null; topic?: string | null } | null;
   onClose: () => void;
   onSaved: () => void;
@@ -42,6 +45,8 @@ export default function ExerciseFormModal({
   const [opensAt, setOpensAt] = useState(toLocalInput(exercise?.opens_at));
   const [dueAt, setDueAt] = useState(toLocalInput(exercise?.due_at));
   const [saving, setSaving] = useState(false);
+  // Questions of a series follow the series' schedule, so the schedule fields are hidden for them.
+  const inSet = !!(set || exercise?.set_id);
   const descRef = useRef<HTMLTextAreaElement>(null);
   const hintRef = useRef<HTMLTextAreaElement>(null);
 
@@ -63,10 +68,17 @@ export default function ExerciseFormModal({
 
     const opensIso = fromLocalInput(opensAt);
     const dueIso = fromLocalInput(dueAt);
-    if (opensIso && dueIso && new Date(dueIso) <= new Date(opensIso)) return toast("زمان پایان باید بعد از زمان شروع باشه", "err");
+    if (!inSet && opensIso && dueIso && new Date(dueIso) <= new Date(opensIso)) return toast("زمان پایان باید بعد از زمان شروع باشه", "err");
     // Only send the schedule columns when they're used, so everything keeps working
-    // on databases that haven't added them yet.
-    const schedule = opensIso || dueIso || exercise?.opens_at || exercise?.due_at ? { opens_at: opensIso, due_at: dueIso } : {};
+    // on databases that haven't added them yet. Series questions: new ones inherit the series' schedule,
+    // existing ones are never touched here (the series owns the schedule).
+    const schedule = inSet
+      ? set && (set.opens_at || set.due_at)
+        ? { opens_at: set.opens_at, due_at: set.due_at }
+        : {}
+      : opensIso || dueIso || exercise?.opens_at || exercise?.due_at
+      ? { opens_at: opensIso, due_at: dueIso }
+      : {};
 
     // Same idea as the schedule: only send difficulty/topic when they're used, so
     // databases that haven't run the migration yet keep working.
@@ -97,7 +109,7 @@ export default function ExerciseFormModal({
       } else {
         const { data: newEx, error } = await supabase
           .from("exercises")
-          .insert({ class_id: classId, title: t, description, hint, test_cases: cleanTests, ...meta, ...schedule })
+          .insert({ class_id: classId, ...(set ? { set_id: set.id } : {}), title: t, description, hint, test_cases: cleanTests, ...meta, ...schedule })
           .select()
           .single();
         if (error) throw error;
@@ -131,7 +143,7 @@ export default function ExerciseFormModal({
         <div className="flex items-center justify-between px-6 py-4 border-b border-line">
           <h2 className="font-extrabold flex items-center gap-2">
             {exercise ? <Pencil size={17} /> : <FileText size={17} />}
-            {exercise ? "ویرایش تمرین" : "تمرین جدید"}
+            {exercise ? "ویرایش تمرین" : set ? `سؤال جدید · ${set.title}` : "تمرین جدید"}
           </h2>
           <button onClick={onClose} className="text-muted hover:text-ink">
             <X size={17} />
@@ -211,6 +223,7 @@ export default function ExerciseFormModal({
             </div>
           ))}
 
+          {!inSet && (
           <div className="border border-line rounded-lg p-3 space-y-2.5">
             <div className="flex items-center gap-1.5 text-sm font-bold text-muted">
               <CalendarClock size={15} /> بازه‌ی مجاز پاسخ‌دادن <span className="text-[11px] font-normal">(اختیاری)</span>
@@ -244,6 +257,8 @@ export default function ExerciseFormModal({
               خالی بذاری یعنی همیشه باز. قبل از شروع دانشجوها تمرین رو قفل می‌بینن، و بعد از پایان فقط می‌تونن مرورش کنن. هر وقت خواستی از «ویرایش» عوضش کن.
             </p>
           </div>
+          )}
+          {inSet && <p className="text-[11px] text-muted">بازه‌ی زمانیِ این سؤال همون بازه‌ی سری‌ه (از «ویرایش سری» عوضش کن).</p>}
 
           {exercise?.shared_exercise_id ? (
             <div className="flex items-start gap-2 text-[12px] text-muted pt-2">

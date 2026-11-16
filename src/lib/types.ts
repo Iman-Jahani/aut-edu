@@ -151,6 +151,8 @@ export interface Exercise {
   hint: string | null;
   test_cases: TestCase[];
   shared_exercise_id?: string | null;
+  /** The series ("سری تمرین") this question belongs to; null/undefined = a standalone exercise. */
+  set_id?: string | null;
   /** 1 = Basic, 2 = Easy, 3 = Medium, 4 = Hard */
   difficulty?: number | null;
   topic?: string | null;
@@ -325,4 +327,16 @@ export interface ClassNote {
   title: string;
   created_by: string | null;
   created_at: string;
+}
+
+/** A named series of exercises (e.g. "سری اول تمرینات"). Its schedule is copied onto every question in it. */
+export interface ExerciseSet {
+  id: string;
+  class_id: string;
+  title: string;
+  description: string | null;
+  opens_at: string | null;
+  due_at: string | null;
+  created_at: string;
+  updated_at?: string | null;
 }

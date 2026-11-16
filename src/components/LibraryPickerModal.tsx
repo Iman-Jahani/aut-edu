@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { supabase } from "@/lib/supabase";
 import { useToast } from "@/components/ToastProvider";
 import { fmtRelative } from "@/lib/utils";
@@ -8,16 +9,40 @@ import { ListSkeleton } from "@/components/Skeleton";
 import { DifficultyBadge, TopicBadge } from "@/components/DifficultyBadge";
 import { DIFFICULTIES } from "@/lib/difficulty";
 import { useLibrarySearch } from "@/lib/library";
-import { BookOpen, X } from "lucide-react";
+import { BookOpen, X, Check } from "lucide-react";
 
 export default function LibraryPickerModal({
   onClose,
   onPick,
+  multi,
 }: {
   onClose: () => void;
   onPick: (ex: SharedExercise) => void;
+  /** Multi-select mode (adding several questions to a series at once). `onPick` is unused then. */
+  multi?: { confirmLabel: (n: number) => string; onConfirm: (list: SharedExercise[]) => void | Promise<void> };
 }) {
   const toast = useToast();
+  // Kept across searches/pages, so a teacher can pick from several searches.
+  const [selected, setSelected] = useState<Map<string, SharedExercise>>(new Map());
+  const [confirming, setConfirming] = useState(false);
+  const toggle = (ex: SharedExercise) =>
+    setSelected((prev) => {
+      const next = new Map(prev);
+      if (next.has(ex.id)) next.delete(ex.id);
+      else next.set(ex.id, ex);
+      return next;
+    });
+  const confirm = async () => {
+    if (!multi || !selected.size) return;
+    setConfirming(true);
+    try {
+      const list = Array.from(selected.values());
+      await multi.onConfirm(list);
+      list.forEach((ex) => supabase.rpc("bump_shared_exercise_use", { p_id: ex.id }).then(() => undefined));
+    } finally {
+      setConfirming(false);
+    }
+  };
   // search, filters and paging run in the database (the library can hold far more than 1000 exercises)
   const lib = useLibrarySearch({ sort: "popular", mode: "append" });
   const { q, diff, topic, topics, items, loading } = lib;
@@ -108,8 +133,13 @@ export default function LibraryPickerModal({
               <div
                 key={ex.id}
                 className="flex items-start gap-2 border border-line rounded-lg p-3 hover:border-primary/40 cursor-pointer"
-                onClick={() => pick(ex)}
+                onClick={() => (multi ? toggle(ex) : pick(ex))}
               >
+                {multi && (
+                  <span className={`mt-0.5 w-5 h-5 rounded-md border grid place-items-center shrink-0 ${selected.has(ex.id) ? "bg-primary border-primary text-white" : "border-line bg-white"}`}>
+                    {selected.has(ex.id) && <Check size={13} />}
+                  </span>
+                )}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <span className="font-bold text-sm">{ex.title}</span>
@@ -134,6 +164,14 @@ export default function LibraryPickerModal({
             </button>
           )}
         </div>
+        {multi && (
+          <div className="px-6 py-3 border-t border-line flex items-center justify-between gap-2">
+            <span className="text-xs text-muted">{selected.size ? `${selected.size.toLocaleString("fa-IR")} سؤال انتخاب شده` : "سؤال‌ها رو انتخاب کن"}</span>
+            <button onClick={confirm} disabled={!selected.size || confirming} className="btn-primary disabled:opacity-50">
+              {confirming ? "در حال افزودن…" : multi.confirmLabel(selected.size)}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
