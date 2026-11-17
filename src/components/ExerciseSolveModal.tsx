@@ -4,18 +4,17 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import CodeMirror from "@uiw/react-codemirror";
 import { python } from "@codemirror/lang-python";
 import { dracula } from "@uiw/codemirror-theme-dracula";
-import { supabase } from "@/lib/supabase";
 import { growGarden } from "@/lib/garden";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/components/ToastProvider";
-import { runTestCases, type TestRunResult } from "@/lib/pyodide";
+import { gradeOnServer } from "@/lib/grade";
 import { noPaste } from "@/lib/editor";
 import { ListSkeleton } from "@/components/Skeleton";
 import RichText from "@/components/RichText";
 import { HintButton, HintBox, useHint } from "@/components/HintPanel";
-import { getWindowState, formatDateTime, formatRemaining, friendlyWindowError } from "@/lib/schedule";
-import type { Exercise, ExerciseSubmission } from "@/lib/types";
-import { FileText, Target, Lightbulb, CheckCircle2, XCircle, Play, X, Lock, CalendarClock } from "lucide-react";
+import { getWindowState, formatDateTime, formatRemaining } from "@/lib/schedule";
+import type { Exercise, ExerciseSubmission, TestResult } from "@/lib/types";
+import { FileText, Target, Lightbulb, CheckCircle2, XCircle, Play, X, Lock, CalendarClock, EyeOff } from "lucide-react";
 import { getErrorMessage } from "@/lib/errors";
 
 export default function ExerciseSolveModal({
@@ -29,14 +28,14 @@ export default function ExerciseSolveModal({
   onClose: () => void;
   onSubmitted: (sub: ExerciseSubmission) => void;
 }) {
-  const { user, displayName } = useAuth();
+  const { user } = useAuth();
   const toast = useToast();
   const draftKey = `exercise_draft_${exercise.id}`;
   const [code, setCode] = useState(
     () => mySubmission?.code || (typeof window !== "undefined" ? localStorage.getItem(draftKey) : "") || ""
   );
   const [running, setRunning] = useState(false);
-  const [results, setResults] = useState<TestRunResult[] | null>(null);
+  const [results, setResults] = useState<TestResult[] | null>(null);
   const [summary, setSummary] = useState<{ passed: number; total: number; status: string } | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const extensions = useMemo(() => [python(), noPaste(() => toast("پیست کردن غیرفعاله", "err"))], [toast]);
@@ -55,7 +54,7 @@ export default function ExerciseSolveModal({
     };
   }, [code, draftKey]);
 
-  const tests = exercise.test_cases?.length ? exercise.test_cases : [{ input: "", expected: "" }];
+  const testCount = Math.max(1, (exercise.test_cases?.length || 0) + (exercise.private_tests || 0));
 
   // Submission window: after the deadline the exercise is view-only. (The database
   // enforces the same rule, so this is a convenience, not the only guard.)
@@ -80,38 +79,21 @@ export default function ExerciseSolveModal({
     setRunning(true);
     setResults(null);
     try {
-      const r = await runTestCases(code, tests);
+      // The server runs the tests, judges them and records the submission (nothing is trusted from the browser).
+      const { saved, submission, results: r } = await gradeOnServer(exercise.id, code);
       setResults(r);
-      const passed = r.filter((x) => x.passed).length;
-      const total = r.length;
-      const status = passed === total ? "correct" : passed > 0 ? "partial" : "wrong";
-      setSummary({ passed, total, status });
-
-      const payload: ExerciseSubmission = {
-        exercise_id: exercise.id,
-        user_id: user.id,
-        author_name: displayName,
-        code,
-        output: r.map((x) => x.actual).join("\n---\n"),
-        status: status as ExerciseSubmission["status"],
-        score: total > 0 ? Math.round((passed / total) * 100) : 0,
-        passed_tests: passed,
-        total_tests: total,
-        test_results: r,
-        submitted_at: new Date().toISOString(),
-      };
-      const { error } = await supabase
-        .from("exercise_submissions")
-        .upsert(payload, { onConflict: "exercise_id,user_id" });
-      if (error) toast(friendlyWindowError(error.message) || "خطا: " + error.message, "err");
-      else {
-        onSubmitted(payload);
+      const status = submission.status;
+      setSummary({ passed: submission.passed_tests, total: submission.total_tests, status });
+      if (saved) {
+        onSubmitted(submission);
         growGarden(status === "correct" ? 15 : 5, status === "correct" ? "solved" : "submit");
         if (status === "correct") toast("🎉 پاس شد!", "ok");
-        else if (status === "partial") toast(`${passed} از ${total}`, "info");
+        else if (status === "partial") toast(`${submission.passed_tests} از ${submission.total_tests}`, "info");
+      } else {
+        toast("نتیجه‌ی آزمایشی (چون معلمی، ثبت نشد)", "info");
       }
     } catch (e) {
-      toast("خطا در اجرا: " + getErrorMessage(e), "err");
+      toast(getErrorMessage(e), "err");
     } finally {
       setRunning(false);
     }
@@ -130,7 +112,7 @@ export default function ExerciseSolveModal({
         <div className="overflow-y-auto px-6 py-4 flex-1 space-y-4">
           {exercise.description && <div className="text-sm text-ink/80"><RichText text={exercise.description} /></div>}
           <div className="bg-slate-100 border border-slate-200 rounded-lg px-3 py-2 text-xs text-slate-900 flex items-center gap-1.5">
-            <Target size={13} className="shrink-0" /> {tests.length} تست — کدت باید برای همه‌ی ورودی‌ها خروجی درست بده
+            <Target size={13} className="shrink-0" /> {testCount} تست — کدت باید برای همه‌ی ورودی‌ها خروجی درست بده
           </div>
           {exercise.hint && (
             <div className="bg-amber-50 border border-amber-100 rounded-lg px-3 py-2 text-xs text-amber-900 flex items-start gap-1.5">
@@ -205,6 +187,21 @@ export default function ExerciseSolveModal({
                     <span>تست {i + 1}</span>
                     <span className="flex items-center gap-1">{r.passed ? <CheckCircle2 size={13} /> : <XCircle size={13} />} {r.passed ? "پاس" : "ناموفق"}</span>
                   </div>
+                  {r.hidden || r.kind === "checker" ? (
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 text-muted">
+                        <EyeOff size={12} /> {r.kind === "checker" ? `تست شبیه‌سازی (${r.runs_passed ?? 0}/${r.runs ?? 1} اجرا درست)` : "تست مخفی"}
+                      </div>
+                      {r.message && <div className="font-bold">{r.message}</div>}
+                      {r.error && <div className="font-mono whitespace-pre-wrap break-words text-danger" dir="ltr">{r.error}</div>}
+                      {!r.passed && r.actual && !r.hidden && (
+                        <div className="font-mono whitespace-pre-wrap break-words" dir="ltr">
+                          <div className="text-muted mb-0.5">خروجی تو</div>
+                          {r.actual}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-3 gap-2 font-mono" dir="ltr">
                     <div>
                       <div className="text-muted mb-0.5">ورودی</div>
@@ -219,6 +216,7 @@ export default function ExerciseSolveModal({
                       <div className="whitespace-pre-wrap break-words">{r.actual || "(خالی)"}</div>
                     </div>
                   </div>
+                  )}
                 </div>
               ))}
             </div>

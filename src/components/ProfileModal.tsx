@@ -123,14 +123,18 @@ export default function ProfileModal({
                 <input
                   value={inviteCode}
                   onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
-                  placeholder="کد معرف (از مدیر موسسه یا ادمین سایت بگیر)"
+                  placeholder={pickedRole === "manager" ? "کد معرف مدیر (از ادمین سایت بگیر)" : "کد معرف معلم (از مدیر موسسه یا ادمین سایت بگیر)"}
                   dir="ltr"
                   className="w-full border border-line rounded-xl pr-9 pl-3 py-2.5 outline-none focus:border-primary text-right font-mono tracking-widest"
                 />
               </div>
             )}
             <p className="text-[11px] text-muted -mt-2 mb-4">
-              فقط معلم‌ها می‌تونن کلاس بسازن. توی کلاسِ یه معلم دیگه، حتی اکانت معلم هم به‌صورت پیش‌فرض دانشجو حساب می‌شه مگر اینکه صاحب کلاس بهش دسترسی بده.
+              {pickedRole === "student"
+                ? "با کد کلاس که معلمت می‌ده وارد کلاس می‌شی."
+                : pickedRole === "teacher"
+                ? "معلم‌ها کلاس می‌سازن. حساب معلم کد معرف می‌خواد؛ اگه موسسه‌ای هستی از مدیرش بگیر، وگرنه از ادمین سایت. توی کلاسِ یه معلم دیگه، حتی اکانت معلم هم به‌صورت پیش‌فرض دانشجو حساب می‌شه مگر اینکه صاحب کلاس بهش دسترسی بده."
+                : "مدیر موسسه کلاس نمی‌سازه؛ معلم‌ها و آمار موسسه‌ی خودش رو می‌بینه و مدیریت می‌کنه. حساب مدیر کد معرف می‌خواد که ادمین سایت می‌ده."}
             </p>
           </>
         )}

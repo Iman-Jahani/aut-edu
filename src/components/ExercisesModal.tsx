@@ -130,7 +130,7 @@ export default function ExercisesModal({
   const renderCard = (ex: Exercise) => {
     const sub = mySubs[ex.id];
     const status = sub?.status || "pending";
-    const total = ex.test_cases?.length || 1;
+    const total = (ex.test_cases?.length || 0) + (ex.private_tests || 0) || 1;
     const solved = status === "correct";
     const partial = status === "partial";
     const ws = getWindowState(ex, now);
@@ -196,6 +196,9 @@ export default function ExercisesModal({
         <div className="flex gap-2 flex-wrap">
           <button onClick={() => setViewingSubs(ex)} className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-line">
             <Eye size={13} /> پاسخ‌ها
+          </button>
+          <button onClick={() => setSolving(ex)} title="با کد راه‌حل خودت تصحیح خودکار رو امتحان کن (ثبت نمی‌شه)" className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-bold border border-line">
+            <Play size={13} /> امتحان
           </button>
           <button
             onClick={() => {

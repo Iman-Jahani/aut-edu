@@ -130,9 +130,21 @@ export interface Comment {
   created_at: string;
 }
 
+export type TestKind = "exact" | "checker";
+
 export interface TestCase {
   input: string;
   expected: string;
+  /** "exact" (default): compare the output. "checker": a teacher-written Python check(ctx) judges several runs (random / simulations). */
+  kind?: TestKind;
+  /** Hidden tests and checkers are stored in the teacher-only exercise_graders table; students never receive them. */
+  hidden?: boolean;
+  /** Controls `random` for this test, one line each: "seed: 7" · "randint: 4, 2, 6" · "choice: 0, 2" (indexes) · "random: 0.3, 0.9". */
+  random?: string;
+  /** Checker source: define check(ctx) (and optionally check_all(ctxs)); return False or raise AssertionError("msg") to fail. */
+  checker?: string;
+  /** Checker tests run this many times with different seeds (1–20). */
+  runs?: number;
 }
 
 export interface TestResult {
@@ -141,6 +153,12 @@ export interface TestResult {
   actual: string;
   passed: boolean;
   error?: string | null;
+  hidden?: boolean;
+  kind?: TestKind;
+  /** Why a checker test failed (teacher-written message). */
+  message?: string;
+  runs?: number;
+  runs_passed?: number;
 }
 
 export interface Exercise {
@@ -150,6 +168,8 @@ export interface Exercise {
   description: string | null;
   hint: string | null;
   test_cases: TestCase[];
+  /** How many hidden/checker tests exist in exercise_graders (their content is teacher-only). */
+  private_tests?: number | null;
   shared_exercise_id?: string | null;
   /** The series ("سری تمرین") this question belongs to; null/undefined = a standalone exercise. */
   set_id?: string | null;

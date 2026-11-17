@@ -178,7 +178,11 @@ export default function WelcomeModal({
             <GraduationCap size={34} className="mx-auto mb-3 text-primary/40" />
             <h3 className="font-bold mb-1">این بخش مخصوص معلم‌هاست</h3>
             <p className="text-sm text-muted">
-              حساب شما به‌عنوان «دانشجو» ثبت شده، پس {displayName ? `${displayName} جان، ` : ""}فقط می‌تونی به کلاس بپیوندی.
+              {role === "manager"
+                ? "حساب شما «مدیر موسسه» است؛ کلاس‌ها رو معلم‌ها می‌سازن و شما معلم‌ها و آمار موسسه رو از «پنل مدیر» می‌بینی."
+                : role === "admin"
+                ? "حساب شما «ادمین سایت» است؛ کلاس‌سازی مخصوص حساب معلم‌هاست و مدیریت سایت از «پنل مدیریت» انجام می‌شه."
+                : `حساب شما به‌عنوان «دانشجو» ثبت شده، پس ${displayName ? `${displayName} جان، ` : ""}فقط می‌تونی به کلاس بپیوندی.`}
             </p>
           </div>
         ) : (
